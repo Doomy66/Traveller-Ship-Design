@@ -18,12 +18,29 @@ export function optionsOf(table: Readonly<Record<string, { label: string }>>): O
   return Object.entries(table).map(([value, rule]) => ({ value, label: rule.label }));
 }
 
+/**
+ * A name and its control, side by side. The hint becomes the tooltip rather
+ * than a line of its own: a screen with forty fields on it cannot afford a
+ * sentence under each.
+ */
 export function labelled(text: string, control: Element, hint?: string): Element {
-  return el("label", { class: "field" }, [
+  return el("label", { class: "field", title: hint }, [
     el("span", { class: "field-name" }, [text]),
     control,
-    hint === undefined ? null : el("span", { class: "field-hint" }, [hint]),
   ]);
+}
+
+/**
+ * A row of controls that flows and wraps. Most of the form is short values and
+ * choices, so they go across the panel rather than down it.
+ */
+export function line(...items: readonly (Element | null)[]): Element {
+  return el("div", { class: "line" }, items);
+}
+
+/** A name for a run of checkboxes that follows it on the same row. */
+export function tag(name: string): Element {
+  return el("span", { class: "line-name" }, [name]);
 }
 
 export function select(

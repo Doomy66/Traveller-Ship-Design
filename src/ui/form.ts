@@ -60,7 +60,7 @@ import type {
   WeaponChoice,
 } from "../engine/design";
 import { clear, el } from "./dom";
-import { button, check, checkSet, labelled, listEditor, number, optionsOf, select, text } from "./controls";
+import { button, check, checkSet, labelled, line, listEditor, number, optionsOf, select, tag, text } from "./controls";
 import type { Option } from "./controls";
 
 export interface FormHost {
@@ -89,9 +89,7 @@ function step(index: string, heading: string, body: readonly (Element | null)[])
   ]);
 }
 
-function group(name: string): Element {
-  return el("p", { class: "group-name" }, [name]);
-}
+
 
 /** Merge into one of the design's object fields, reading the live design. */
 function into<K extends keyof Design>(host: FormHost, key: K) {
@@ -109,12 +107,14 @@ function list<T>(host: FormHost, key: keyof Design): readonly T[] {
 function ship(host: FormHost): Element {
   const d = host.design;
   return step("", "The ship", [
-    labelled("Name", text(d.name, (name) => host.update({ name }))),
-    labelled("Tech Level", number(d.tl, (tl) => host.update({ tl: tl ?? 12 }), { min: 1, max: 21, step: 1 }),
-      "The shipyard's, which caps every component."),
-    check(d.standardDesign === true, "Standard design (10% off)", (standardDesign) =>
-      host.update({ standardDesign })),
-    check(d.military === true, "Military crewing", (military) => host.update({ military })),
+    line(
+      labelled("Name", text(d.name, (name) => host.update({ name }))),
+      labelled("TL", number(d.tl, (tl) => host.update({ tl: tl ?? 12 }), { min: 1, max: 21, step: 1 }),
+        "The shipyard's Tech Level, which caps every component."),
+      check(d.standardDesign === true, "Standard design", (standardDesign) =>
+        host.update({ standardDesign })),
+      check(d.military === true, "Military crewing", (military) => host.update({ military })),
+    ),
   ]);
 }
 
@@ -122,28 +122,37 @@ function hull(host: FormHost): Element {
   const h = host.design.hull;
   const set = into(host, "hull");
   return step("1", "Create a hull", [
-    labelled("Tons", number(h.tons, (tons) => set({ tons: tons ?? 100 }), { min: 5, step: 1 })),
-    labelled("Configuration", select(h.configuration, optionsOf(HULL_CONFIGURATIONS), (v) =>
-      set({ configuration: v as typeof h.configuration }))),
-    labelled("Stealth", select(h.stealth, optionsOf(STEALTH_TYPES), (v) =>
-      set({ stealth: v === "" ? undefined : (v as typeof h.stealth) }), "None")),
-    labelled("Adjustable", select(h.adjustable, [
-      { value: "tl12", label: "TL12, 5% of the ship" },
-      { value: "tl15", label: "TL15, 1% of the ship" },
-    ], (v) => set({ adjustable: v === "" ? undefined : (v as typeof h.adjustable) }), "None")),
-    labelled("Modular share", number(h.modularFraction, (modularFraction) => set({ modularFraction }),
-      { min: 0, max: 0.75, step: 0.05, placeholder: "0" }), "Up to 0.75."),
-    group("Specialised"),
-    checkSet(h.specialised ?? [], optionsOf(SPECIALISED_HULLS), (specialised) => set({ specialised })),
-    group("Hull options"),
-    checkSet(h.options ?? [], optionsOf(HULL_OPTIONS), (options) => set({ options })),
-    check(h.pressureHull === true, "Pressure hull", (pressureHull) => set({ pressureHull })),
+    line(
+      labelled("Tons", number(h.tons, (tons) => set({ tons: tons ?? 100 }), { min: 5, step: 1 })),
+      labelled("Configuration", select(h.configuration, optionsOf(HULL_CONFIGURATIONS), (v) =>
+        set({ configuration: v as typeof h.configuration }))),
+      labelled("Stealth", select(h.stealth, optionsOf(STEALTH_TYPES), (v) =>
+        set({ stealth: v === "" ? undefined : (v as typeof h.stealth) }), "None")),
+    ),
+    line(
+      tag("Specialised"),
+      checkSet(h.specialised ?? [], optionsOf(SPECIALISED_HULLS), (specialised) => set({ specialised })),
+    ),
+    line(
+      tag("Options"),
+      checkSet(h.options ?? [], optionsOf(HULL_OPTIONS), (options) => set({ options })),
+      check(h.pressureHull === true, "Pressure hull", (pressureHull) => set({ pressureHull })),
+    ),
+    line(
+      labelled("Adjustable", select(h.adjustable, [
+        { value: "tl12", label: "TL12, 5% of the ship" },
+        { value: "tl15", label: "TL15, 1% of the ship" },
+      ], (v) => set({ adjustable: v === "" ? undefined : (v as typeof h.adjustable) }), "None")),
+      labelled("Modular", number(h.modularFraction, (modularFraction) => set({ modularFraction }),
+        { min: 0, max: 0.75, step: 0.05, placeholder: "0" }), "The share that can be swapped out, up to 0.75."),
+    ),
   ]);
 }
 
 function armour(host: FormHost): Element {
   const a = host.design.armour;
   return step("1b", "Install armour", [
+    line(
     labelled("Type", select(a?.type, optionsOf(ARMOUR_TYPES), (v) =>
       host.rebuild({
         armour: v === ""
@@ -152,6 +161,7 @@ function armour(host: FormHost): Element {
       }), "None")),
     a === undefined ? null : labelled("Protection", number(a.protection, (protection) =>
       into(host, "armour")({ protection: protection ?? 1 }), { min: 1, step: 1 })),
+    ),
   ]);
 }
 
@@ -166,7 +176,7 @@ function customisation(
     .filter(([, rule]) => rule.category === category)
     .filter(([, rule]) => value === undefined || rule.kind === GRADES[value.grade].kind)
     .map(([key, rule]) => ({ value: key, label: rule.slots > 1 ? `${rule.label} (2)` : rule.label }));
-  return el("div", { class: "customise" }, [
+  return el("div", { class: "line customise" }, [
     labelled("Grade", select(value?.grade, optionsOf(GRADES), (v) =>
       onGrade(v === "" ? undefined : { grade: v as Customisation["grade"], traits: [] }), "Standard")),
     value === undefined ? null : checkSet(value.traits ?? [], allowed, (chosen) => onTraits(chosen as Trait[])),
@@ -195,36 +205,42 @@ function drives(host: FormHost): Element {
     host[how]({ highBurnThruster: { thrust: 0, hours: 1, ...host.design.highBurnThruster, ...patch } });
 
   return step("2", "Install drives", [
-    labelled("Thrust", number(m?.thrust, (thrust) =>
-      thrust === undefined ? host.rebuild({ manoeuvre: undefined }) : setM({ thrust }, "rebuild"),
-      { min: 0, max: 11, step: 1 }), "Leave empty for none."),
-    m === undefined ? null : labelled("Drive sized for", number(m.sizedForTons, (sizedForTons) =>
-      setM({ sizedForTons }), { min: 5, step: 1, placeholder: "the hull" })),
-    m === undefined ? null : check(m.concealed === true, "Concealed plates", (concealed) => setM({ concealed })),
+    line(
+      labelled("Thrust", number(m?.thrust, (thrust) =>
+        thrust === undefined ? host.rebuild({ manoeuvre: undefined }) : setM({ thrust }, "rebuild"),
+        { min: 0, max: 11, step: 1 }), "Leave empty for no manoeuvre drive."),
+      m === undefined ? null : labelled("Sized for", number(m.sizedForTons, (sizedForTons) =>
+        setM({ sizedForTons }), { min: 5, step: 1, placeholder: "hull" }),
+        "Tons the drive is built to move, where that is not the hull's own."),
+      m === undefined ? null : check(m.concealed === true, "Concealed plates", (concealed) => setM({ concealed })),
+    ),
     m === undefined ? null : customisation(m.customisation, "manoeuvre",
       (c) => setM({ customisation: c }, "rebuild"),
       (traits) => setM({ customisation: { ...liveM()?.customisation, grade: liveM()!.customisation!.grade, traits } })),
 
-    labelled("Jump", number(j?.rating, (rating) =>
-      rating === undefined ? host.rebuild({ jump: undefined }) : setJ({ rating }, "rebuild"),
-      { min: 1, max: 9, step: 1 })),
-    j === undefined ? null : labelled("Drive sized for", number(j.sizedForTons, (sizedForTons) =>
-      setJ({ sizedForTons }), { min: 100, step: 1, placeholder: "the hull" })),
+    line(
+      labelled("Jump", number(j?.rating, (rating) =>
+        rating === undefined ? host.rebuild({ jump: undefined }) : setJ({ rating }, "rebuild"),
+        { min: 1, max: 9, step: 1 })),
+      j === undefined ? null : labelled("Sized for", number(j.sizedForTons, (sizedForTons) =>
+        setJ({ sizedForTons }), { min: 100, step: 1, placeholder: "hull" })),
+    ),
     j === undefined ? null : customisation(j.customisation, "jump",
       (c) => setJ({ customisation: c }, "rebuild"),
       (traits) => setJ({ customisation: { ...liveJ()?.customisation, grade: liveJ()!.customisation!.grade, traits } })),
 
-    labelled("Reaction thrust", number(r?.thrust, (thrust) =>
-      thrust === undefined ? host.rebuild({ reaction: undefined }) : setR({ thrust }, "rebuild"),
-      { min: 0, max: 16, step: 1 })),
-    r === undefined ? null : labelled("Hours of burn", number(r.hours, (hours) =>
-      setR({ hours: hours ?? 1 }), { min: 0, step: 1 })),
-
-    labelled("High-burn thrust", number(b?.thrust, (thrust) =>
-      thrust === undefined ? host.rebuild({ highBurnThruster: undefined }) : setB({ thrust }, "rebuild"),
-      { min: 0, max: 16, step: 1 }), "Adds to the manoeuvre drive's."),
-    b === undefined ? null : labelled("Booster hours", number(b.hours, (hours) =>
-      setB({ hours: hours ?? 1 }), { min: 0, step: 1 })),
+    line(
+      labelled("Reaction", number(r?.thrust, (thrust) =>
+        thrust === undefined ? host.rebuild({ reaction: undefined }) : setR({ thrust }, "rebuild"),
+        { min: 0, max: 16, step: 1 }), "Reaction drive thrust."),
+      r === undefined ? null : labelled("Hours", number(r.hours, (hours) =>
+        setR({ hours: hours ?? 1 }), { min: 0, step: 1 })),
+      labelled("High-burn", number(b?.thrust, (thrust) =>
+        thrust === undefined ? host.rebuild({ highBurnThruster: undefined }) : setB({ thrust }, "rebuild"),
+        { min: 0, max: 16, step: 1 }), "A booster whose Thrust adds to the manoeuvre drive's."),
+      b === undefined ? null : labelled("Hours", number(b.hours, (hours) =>
+        setB({ hours: hours ?? 1 }), { min: 0, step: 1 })),
+    ),
   ]);
 }
 
@@ -232,10 +248,13 @@ function powerPlant(host: FormHost): Element {
   const p = host.design.powerPlant;
   const set = into(host, "powerPlant");
   return step("3", "Install power plant", [
-    labelled("Type", select(p.type, optionsOf(POWER_PLANTS), (v) => set({ type: v as typeof p.type }))),
-    labelled("Tons", number(p.tons, (tons) => set({ tons: tons ?? 1 }), { min: 0, step: 1 }),
-      "Before customisation. Output follows this."),
-    labelled("Weeks of fuel", number(p.weeks, (weeks) => set({ weeks: weeks ?? 4 }), { min: 0, step: 1 })),
+    line(
+      labelled("Type", select(p.type, optionsOf(POWER_PLANTS), (v) => set({ type: v as typeof p.type }))),
+      labelled("Tons", number(p.tons, (tons) => set({ tons: tons ?? 1 }), { min: 0, step: 1 }),
+        "Before any customisation. The plant's output follows this figure."),
+      labelled("Weeks", number(p.weeks, (weeks) => set({ weeks: weeks ?? 4 }), { min: 0, step: 1 }),
+        "Weeks of fuel carried for the plant."),
+    ),
     customisation(p.customisation, "powerPlant",
       (c) => set({ customisation: c }, "rebuild"),
       (traits) => set({
@@ -247,10 +266,13 @@ function powerPlant(host: FormHost): Element {
 function fuel(host: FormHost): Element {
   const d = host.design;
   return step("4", "Install fuel tanks", [
-    labelled("Tank for jump", number(d.fuelForJump, (fuelForJump) => host.update({ fuelForJump }),
-      { min: 0, step: 1, placeholder: "the drive" }), "Lower where the long jumps ride on drop tanks."),
-    labelled("Extra tons", number(d.extraFuelTons, (extraFuelTons) => host.update({ extraFuelTons }),
-      { min: 0, step: 1, placeholder: "0" })),
+    line(
+      labelled("Tank for jump", number(d.fuelForJump, (fuelForJump) => host.update({ fuelForJump }),
+        { min: 0, step: 1, placeholder: "drive" }),
+        "Lower than the drive where the long jumps ride on drop tanks."),
+      labelled("Extra tons", number(d.extraFuelTons, (extraFuelTons) => host.update({ extraFuelTons }),
+        { min: 0, step: 1, placeholder: "0" })),
+    ),
   ]);
 }
 
@@ -258,15 +280,17 @@ function bridge(host: FormHost): Element {
   const b = host.design.bridge;
   const set = into(host, "bridge");
   return step("5", "Install bridge", [
-    labelled("Kind", select(b.kind, [
-      { value: "standard", label: "Standard" },
-      { value: "smaller", label: "Smaller (DM-1, half price)" },
-      { value: "cockpit", label: "Cockpit" },
-      { value: "dualCockpit", label: "Dual cockpit" },
-    ], (v) => set({ kind: v as typeof b.kind }))),
-    check(b.command === true, "Command bridge", (command) => set({ command })),
-    check(b.holographic === true, "Holographic controls", (holographic) => set({ holographic })),
-    check(b.detachable === true, "Detachable", (detachable) => set({ detachable })),
+    line(
+      labelled("Kind", select(b.kind, [
+        { value: "standard", label: "Standard" },
+        { value: "smaller", label: "Smaller (DM-1, half price)" },
+        { value: "cockpit", label: "Cockpit" },
+        { value: "dualCockpit", label: "Dual cockpit" },
+      ], (v) => set({ kind: v as typeof b.kind }))),
+      check(b.command === true, "Command", (command) => set({ command })),
+      check(b.holographic === true, "Holographic", (holographic) => set({ holographic })),
+      check(b.detachable === true, "Detachable", (detachable) => set({ detachable })),
+    ),
   ]);
 }
 
@@ -279,20 +303,22 @@ function computer(host: FormHost): Element {
   const current = c === undefined ? undefined : `${c.processing}${c.core === true ? "c" : ""}`;
   const set = into(host, "computer");
   return step("6", "Install computer", [
-    labelled("Model", select(current, options, (v) => host.rebuild({
-      computer: v === ""
-        ? undefined
-        : { ...host.design.computer, processing: Number.parseInt(v, 10), core: v.endsWith("c") },
-    }), "None")),
-    c === undefined ? null : check(c.bis === true, "/bis (Jump Control +5)", (bis) => set({ bis })),
-    c === undefined ? null : check(c.fib === true, "/fib (hardened)", (fib) => set({ fib })),
+    line(
+      labelled("Model", select(current, options, (v) => host.rebuild({
+        computer: v === ""
+          ? undefined
+          : { ...host.design.computer, processing: Number.parseInt(v, 10), core: v.endsWith("c") },
+      }), "None")),
+      c === undefined ? null : check(c.bis === true, "/bis", (bis) => set({ bis })),
+      c === undefined ? null : check(c.fib === true, "/fib", (fib) => set({ fib })),
+    ),
   ]);
 }
 
 function sensors(host: FormHost): Element {
   return step("7", "Install sensors", [
-    labelled("Suite", select(host.design.sensors ?? "basic", optionsOf(SENSORS), (v) =>
-      host.update({ sensors: v as Design["sensors"] }))),
+    line(labelled("Suite", select(host.design.sensors ?? "basic", optionsOf(SENSORS), (v) =>
+      host.update({ sensors: v as Design["sensors"] })))),
   ]);
 }
 
@@ -579,18 +605,22 @@ function accommodation(host: FormHost): Element {
   const setPassengers = (patch: Partial<typeof p>) =>
     host.update({ passengers: { high: 0, middle: 0, low: 0, ...host.design.passengers, ...patch } });
   return step("11", "Install staterooms", [
-    labelled("Staterooms", number(d.staterooms, (staterooms) => host.update({ staterooms }), { min: 0, step: 1 })),
-    labelled("Low berths", number(d.lowBerths, (lowBerths) => host.update({ lowBerths }), { min: 0, step: 1 })),
-    labelled("Emergency berths", number(d.emergencyLowBerths, (emergencyLowBerths) =>
-      host.update({ emergencyLowBerths }), { min: 0, step: 1 })),
-    labelled("Common areas", number(d.commonAreaTons, (commonAreaTons) =>
-      host.update({ commonAreaTons }), { min: 0 }), "Tons."),
-    check(d.doubleOccupancy === true, "Double occupancy", (doubleOccupancy) =>
-      host.update({ doubleOccupancy })),
-    group("Passengers"),
-    labelled("High", number(p.high, (high) => setPassengers({ high: high ?? 0 }), { min: 0, step: 1 })),
-    labelled("Middle", number(p.middle, (middle) => setPassengers({ middle: middle ?? 0 }), { min: 0, step: 1 })),
-    labelled("Low", number(p.low, (low) => setPassengers({ low: low ?? 0 }), { min: 0, step: 1 })),
+    line(
+      labelled("Staterooms", number(d.staterooms, (staterooms) => host.update({ staterooms }), { min: 0, step: 1 })),
+      check(d.doubleOccupancy === true, "Two to a room", (doubleOccupancy) =>
+        host.update({ doubleOccupancy })),
+      labelled("Low berths", number(d.lowBerths, (lowBerths) => host.update({ lowBerths }), { min: 0, step: 1 })),
+      labelled("Emergency", number(d.emergencyLowBerths, (emergencyLowBerths) =>
+        host.update({ emergencyLowBerths }), { min: 0, step: 1 }), "Emergency low berths, four to a berth."),
+      labelled("Common areas", number(d.commonAreaTons, (commonAreaTons) =>
+        host.update({ commonAreaTons }), { min: 0 }), "Tons of common area."),
+    ),
+    line(
+      tag("Passengers"),
+      labelled("High", number(p.high, (high) => setPassengers({ high: high ?? 0 }), { min: 0, step: 1 })),
+      labelled("Middle", number(p.middle, (middle) => setPassengers({ middle: middle ?? 0 }), { min: 0, step: 1 })),
+      labelled("Low", number(p.low, (low) => setPassengers({ low: low ?? 0 }), { min: 0, step: 1 })),
+    ),
   ]);
 }
 

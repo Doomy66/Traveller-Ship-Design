@@ -504,3 +504,7 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 10.6.1 Because the form outlives most changes, no handler may close over the design it was drawn from. One that did would write back a snapshot taken before the last few edits and silently undo them. Every handler reads the live design at the moment it fires.
 
 10.7 A component's tons, cost and power stand on one row of the sheet, with bandwidth in a column of its own that appears only when something aboard uses it.
+
+10.8 The sheet is as wide as its widest row and no wider, and the form gets the rest. Space the sheet has no use for is space the form wanted.
+
+10.9 Almost everything the form asks for is a short number or a choice, so they run across the panel in rows that wrap rather than down it one to a line, and the checkboxes belonging to a choice sit beside it. A hint is the control's tooltip; a screen with forty fields cannot afford a sentence under each.

@@ -1,8 +1,8 @@
 # Plan: design ships to High Guard Update 2022
 
-Status: **phases 0 to 4 done, 2026-09-19.** The engine reproduces four of the book's ships to the ton and the credit, from the 100-ton Scout/Courier to the 1,000-ton Chrysanthemum Destroyer Escort, and 79 tests pass. Next is phase 5, the user interface.
+Status: **phases 0 to 5 done, 2026-09-19.** The application runs: the book's thirteen steps down the left, the sheet down the right, problems reported where they happen, save and load as JSON, and print. Four of the book's ships reproduce to the ton and the credit and are built in to open. 83 tests pass.
 
-Everything in the design sequence is implemented now bar space stations and exotic technology.
+What is left of the rulebook is space stations (pages 65-70) and exotic technology (80-85). After that, the deck plan thread.
 
 ## Goal
 
@@ -83,4 +83,4 @@ Customising ships (pages 71-73) was pulled forward and done after phase 3, becau
 - [x] Phase 3 (2026-09-19): weapons chapter, Patrol Corvette fixture green, 60 tests
 - [x] Customising Ships (2026-09-19): grades, traits, refit costs, 72 tests
 - [x] Phase 4 (2026-09-19): Spacecraft Options in full, Destroyer Escort fixture green, 79 tests
-- [ ] Phase 5: the user interface
+- [x] Phase 5 (2026-09-19): the interface, saving, printing, 83 tests

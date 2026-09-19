@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'"
+    />
+    <title>Traveller Ship Design</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header class="bar">
+      <h1>Ship Design</h1>
+      <span class="bar-sub">High Guard Update 2022</span>
+      <span id="where" class="where"></span>
+      <span class="spacer"></span>
+      <select id="examples" class="examples" aria-label="Open one of the book's ships">
+        <option value="">The book's ships&hellip;</option>
+      </select>
+      <button type="button" id="new">New</button>
+      <button type="button" id="open">Open</button>
+      <button type="button" id="save">Save</button>
+      <button type="button" id="save-as">Save as</button>
+      <button type="button" id="print">Print</button>
+    </header>
+
+    <main class="layout">
+      <!-- The design, as the thirteen steps of the checklist on page 10. -->
+      <section class="panel panel-form" aria-label="The design">
+        <div id="form"></div>
+        <footer class="colophon">
+          <p>
+            Saves as <code id="filename">ship.json</code>. Version
+            <span id="version">dev</span>. <a id="notes" href="#">Release notes</a>.
+            <a id="suggest" href="#">Suggest something</a>.
+          </p>
+          <p class="muted">
+            An unofficial tool. <em>Traveller</em> is a trade mark of Mongoose Publishing and
+            the rules are theirs; this carries none of their text and you need your own copy of
+            the book.
+          </p>
+        </footer>
+      </section>
+
+      <!-- The sheet the rules make of it. -->
+      <section class="panel panel-sheet" id="sheet" aria-label="The sheet"></section>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

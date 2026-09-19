@@ -15,6 +15,7 @@ Clauses are numbered so they can be cited from code and tests. Page numbers are 
 7. [Fixtures](#7-fixtures)
 8. [Saving](#8-saving)
 9. [Open questions](#9-open-questions)
+10. [The interface](#10-the-interface)
 
 ---
 
@@ -49,18 +50,19 @@ Clauses are numbered so they can be cited from code and tests. Page numbers are 
 | Field | Holds | Clause |
 |---|---|---|
 | `name`, `tl`, `standardDesign`, `military` | Identity, shipyard TL, whether the 10% standard-design discount applies, and which crew column to read | 2.4, 4.13, 4.10 |
-| `hull` | Tons, configuration, specialised hull flags, hull options | 4.1 |
+| `hull` | Tons, configuration, specialised hull flags, hull options, structure options | 4.1 |
 | `armour` | Type and protection, or absent | 4.2 |
-| `manoeuvre`, `reaction`, `jump` | Thrust, thrust and hours, jump rating; each optional | 4.3 |
-| `powerPlant` | Type, tons, weeks of fuel | 4.4, 4.5 |
-| `fuel.extraTons` | Fuel beyond what the drives need | 4.5 |
-| `bridge` | Standard, smaller, cockpit or dual cockpit; command and holographic flags | 4.6 |
+| `manoeuvre`, `reaction`, `jump`, `highBurnThruster` | A rating each, optionally with the tonnage the drive is built to move and a customisation on it | 4.3, 4.15 |
+| `powerPlant` | Type, tons before customisation, weeks of fuel, customisation | 4.4, 4.5, 4.15 |
+| `fuelForJump`, `extraFuelTons` | A shorter jump to tank for, and fuel beyond what the drives need | 4.5 |
+| `bridge` | Standard, smaller, cockpit or dual cockpit; command, holographic and detachable flags | 4.6 |
 | `computer` | Model, `/bis`, `/fib` | 4.7 |
 | `sensors` | Grade | 4.8 |
-| `weapons[]` | Mounts, each with its weapons | 4.9 |
+| `weapons[]` | Turrets, barbettes, bays, spinal mounts, point defence, screens, a black globe | 4.9 |
+| `ordnance[]`, `extraCapacitorTons` | Missiles, torpedoes and canisters; capacitors for a black globe | 4.9.5, 4.9.7 |
 | `craft[]` | Carried small craft and vehicles, each with how it is berthed | 4.11 |
 | `systems[]` | Optional systems | 4.11 |
-| `staterooms`, `lowBerths`, `emergencyLowBerths`, `commonAreas` | Accommodation | 4.12 |
+| `staterooms`, `doubleOccupancy`, `lowBerths`, `emergencyLowBerths`, `commonAreaTons` | Accommodation | 4.12 |
 | `passengers` | High, middle and low passengers the ship is meant to carry, for the steward and medic rules | 4.10 |
 | `software[]` | Packages and their levels | 4.7 |
 
@@ -99,8 +101,6 @@ The thirteen steps of the checklist on page 10, each with the rule it applies an
 
 4.1.5 Additional hull types (double hull, hamster cage, breakaway, page 13) are **not in this version**. Open question 9.1.
 
-4.1.7 **Structure options** (pages 44-45) change the hull rather than adding a component, so they are settled with it. An **adjustable hull** takes 5% of the ship and adds a tenth to the hull price at TL12, or 1% and doubles it at TL15, and gives every weapon a pop-up mounting for nothing. A **pressure hull** takes a quarter of the ship, costs ten times the hull price and brings Protection 4 with it. A **modular hull** designates up to three quarters of the ship as swappable and adds that share to the hull price; a module of its own is Cr25000 a ton.
-
 4.1.6 **Hull options** (pages 14-15), each at most once, priced per ton of hull:
 
 | Option | TL | Cost per ton of hull | Tons |
@@ -113,7 +113,9 @@ The thirteen steps of the checklist on page 10, each with the rule it applies an
 | Stealth, enhanced | 12 | MCr0.5 | 0 |
 | Stealth, advanced | 14 | MCr1 | 0 |
 
-Reflec and stealth exclude each other. Solar coating (page 44) is not in this version.
+Reflec and stealth exclude each other. Solar coating is under 4.11.4, with the rest of the solar systems.
+
+4.1.7 **Structure options** (pages 44-45) change the hull rather than adding a component, so they are settled with it. An **adjustable hull** takes 5% of the ship and adds a tenth to the hull price at TL12, or 1% and doubles it at TL15, and gives every weapon a pop-up mounting for nothing. A **pressure hull** takes a quarter of the ship, costs ten times the hull price and brings Protection 4 with it. A **modular hull** designates up to three quarters of the ship as swappable and adds that share to the hull price; a module of its own is Cr25000 a ton.
 
 ### 4.2 Install armour (pages 13-14)
 
@@ -461,9 +463,13 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 ## 8. Saving
 
-8.1 A design saves as its JSON, with a `version` field naming the spec version it was written under. Nothing from the sheet is saved.
+8.1 A design saves as its JSON, with a `version` field naming the spec version it was written under. Nothing from the sheet is saved, because a sheet is one pure call away from the design and storing one would only create something that could disagree with the book.
 
 8.2 Loading a design written under an older version applies whatever migration that version needs and says so. There are none yet.
+
+8.3 The File System Access API is used where the browser has it, so a second Save rewrites the file the first one wrote. Where it is missing the same JSON goes out as an ordinary download and comes back through an ordinary file input, and every save is a new file.
+
+8.4 Anything that is not an object carrying a hull and a power plant is refused. Those two are the only fields every design has.
 
 ## 9. Open questions
 
@@ -480,3 +486,15 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 9.3 Whether to round armour tonnage. The book does not and the fixtures come out whole anyway.
 
 9.4 Whether the architect's 1% belongs on the sheet of a new design by default. The book charges it; the sheets in the book are all standard designs and never show it.
+
+## 10. The interface
+
+10.1 The design is edited on the left and the sheet is drawn on the right, and the sheet is redrawn on every change. There is no state beyond the design itself and the file it was last written to.
+
+10.2 The editing sections follow the checklist on page 10 in the order the book gives it, so a designer working from the book and a designer working from this screen are doing the same thing in the same order.
+
+10.3 Every list of choices is built from the rules data rather than written out again, so a figure corrected in `src/rules` reaches the screen without anyone remembering to change it twice.
+
+10.4 The book's four reproduced ships are offered to open, because the fastest way to understand the sequence is to take a ship apart that is known to be right.
+
+10.5 Printing gives the sheet the page and drops everything else.

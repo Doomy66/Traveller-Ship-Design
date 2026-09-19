@@ -11,6 +11,7 @@ Working notes for the Traveller Ship Design project. One file per thread, so a s
 
 Session log, newest first:
 
+- 2026-09-19 (interface) Phase 5: the application runs. Licence changed from MIT to PolyForm Noncommercial at the author's request, so nobody may sell it. README and CHANGELOG written.
 - 2026-09-19 (options) Spacecraft Options done in full, around ninety entries. Destroyer Escort added as the capital-ship fixture and it reconciles exactly. Found that ammunition is tonnage only and its cost sits outside the ship's price.
 - 2026-09-19 (customising) Customising Ships done: the grade table, every advantage and disadvantage, refit costs. The Close Escort's manoeuvre drive and power plant became the chapter's worked examples and both reconcile exactly; its jump drive does not and is recorded as unexplained.
 - 2026-09-19 (weapons) Weapons chapter done: barbettes, bays, spinal mounts, point defence, screens, ordnance. Patrol Corvette added as the warship fixture. Found that the engineer rule is not the literal "1 per 35 tons"; six of the book's ships say it rounds to nearest with a floor of one.

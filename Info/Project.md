@@ -20,7 +20,7 @@ Taken 2026-09-19:
 - Vite + TypeScript, no UI framework, `vitest` for tests, Electron shell for desktop, `npm run build` is `tsc --noEmit && vite build`.
 - Spec first. Numbered specs (`AppSpec.md`, `PlanetSpec.md`) with clause numbers like 6.4.1, a contents list, and an Open Questions section at the end. Code is written to the spec and the spec is the contract.
 - `CHANGELOG.md` kept, version in `package.json` and `src/version.ts`.
-- MIT licence on the code. The geomorph tiles are CC BY-NC and are not code; see Resources.md.
+- **Licence differs from PlanetHex.** PlanetHex is MIT; this project is PolyForm Noncommercial 1.0.0, chosen 2026-09-19. Anyone may use and modify it for any non-commercial purpose, and nobody may sell it. That fits a fan tool for a ruleset Mongoose declares is not Open Game Content, and it matches the CC BY-NC terms on the geomorph tiles; see Resources.md.
 - README has a short "Claude" section stating the code is Claude-generated to the author's requirements.
 
 ## Things learned while reading the rules

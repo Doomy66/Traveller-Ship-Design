@@ -1,0 +1,167 @@
+/*
+ * The design on the left, the sheet on the right, and a bar over both.
+ *
+ * Dark, because the sibling PlanetHex is, and because a design session is a
+ * long one. The sheet is the part a user prints, so it turns light and loses
+ * everything around it under @media print.
+ */
+
+:root {
+  color-scheme: dark;
+  --bg: #14161a;
+  --panel: #1c1f25;
+  --line: #2e333c;
+  --text: #dfe3ea;
+  --muted: #8b93a1;
+  --accent: #e0b341;
+  --error: #ff6b63;
+  --warning: #e9a13b;
+  --note: #6fb6d8;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.5 "Segoe UI", system-ui, sans-serif;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+
+.bar h1 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: 0.01em; }
+.bar-sub { color: var(--muted); }
+.where { color: var(--accent); font-variant-numeric: tabular-nums; }
+.spacer { flex: 1; }
+
+button, select, input {
+  font: inherit;
+  color: var(--text);
+  background: #232830;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+button { cursor: pointer; }
+button:hover { border-color: var(--accent); }
+input[type="checkbox"] { accent-color: var(--accent); padding: 0; }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 440px);
+  height: calc(100vh - 41px);
+}
+
+.panel { overflow: auto; padding: 14px 18px; }
+.panel-form { border-right: 1px solid var(--line); }
+.panel-sheet { background: var(--panel); }
+
+/* The steps of the checklist. */
+
+.step { margin: 0 0 18px; padding: 0 0 14px; border-bottom: 1px solid var(--line); }
+.step h3 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--accent); }
+.step-no {
+  display: inline-block;
+  min-width: 22px;
+  margin-right: 6px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.field { display: block; margin: 0 0 8px; }
+.field-name { display: block; margin: 0 0 2px; color: var(--muted); font-size: 12px; }
+.field-hint { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; }
+.field input, .field select { width: 100%; }
+
+.row { display: flex; gap: 8px; }
+.row .field { flex: 1; }
+
+.check { display: inline-flex; align-items: center; gap: 6px; margin: 0 12px 6px 0; }
+.check-set { display: flex; flex-wrap: wrap; gap: 4px 0; margin-bottom: 8px; }
+.check-set .field { flex: 0 0 auto; width: 118px; margin-right: 8px; }
+
+.list-editor { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.list-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  width: 100%;
+  padding: 8px;
+  background: #1a1d23;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.list-row > :first-child { flex: 1; min-width: 0; }
+.weapon-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.weapon-row > * { flex: 0 1 auto; margin-bottom: 0; }
+.weapon-row .field { width: 110px; }
+.remove { flex: none; color: var(--muted); }
+.remove:hover { color: var(--error); border-color: var(--error); }
+.add { align-self: flex-start; }
+.customise { margin: 0 0 8px; padding-left: 10px; border-left: 2px solid var(--line); }
+
+.colophon { margin-top: 20px; color: var(--muted); font-size: 11px; }
+.colophon a { color: var(--muted); }
+.colophon code { color: var(--accent); }
+.muted { color: var(--muted); }
+
+/* The sheet. */
+
+.sheet-head h2 { margin: 0; font-size: 16px; }
+.sheet-sub { margin: 2px 0 14px; color: var(--muted); }
+
+table.components { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+table.components th, table.components td { padding: 2px 6px; text-align: left; vertical-align: top; }
+table.components thead th { color: var(--muted); font-weight: 400; border-bottom: 1px solid var(--line); }
+table.components tbody th { color: var(--accent); font-weight: 600; white-space: nowrap; }
+table.components .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.components tr.section-start > * { padding-top: 7px; }
+
+.sheet-panel { margin-bottom: 16px; }
+.sheet-panel h3 { margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--accent); }
+
+dl.figures { display: grid; grid-template-columns: 1fr auto; gap: 1px 12px; margin: 0; }
+dl.figures dt { color: var(--muted); }
+dl.figures dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+dl.figures .sum { padding-top: 4px; border-top: 1px solid var(--line); color: var(--text); }
+
+ul.problems { margin: 0; padding: 0; list-style: none; }
+ul.problems li { margin-bottom: 5px; }
+ul.problems .tag {
+  display: inline-block;
+  min-width: 58px;
+  margin-right: 6px;
+  padding: 0 5px;
+  border-radius: 3px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+ul.problems .clause { color: var(--muted); font-size: 11px; }
+ul.problems .error .tag { background: var(--error); color: #14161a; }
+ul.problems .warning .tag { background: var(--warning); color: #14161a; }
+ul.problems .note .tag { background: var(--note); color: #14161a; }
+
+/* Printing gives the sheet the page and nothing else. */
+
+@media print {
+  :root { color-scheme: light; }
+  body { background: #fff; color: #111; }
+  .bar, .panel-form { display: none; }
+  .layout { display: block; height: auto; }
+  .panel-sheet { background: #fff; overflow: visible; padding: 0; }
+  .sheet-panel h3, table.components tbody th, .sheet-head h2 { color: #111; }
+  table.components thead th, dl.figures dt, .sheet-sub { color: #555; }
+  table.components thead th, dl.figures .sum { border-color: #ccc; }
+  ul.problems .tag { border: 1px solid #999; background: #fff !important; color: #111 !important; }
+  .sheet-panel { break-inside: avoid; }
+}

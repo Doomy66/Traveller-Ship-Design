@@ -14,7 +14,7 @@ import { PATROL_CORVETTE } from "./fixtures/patrolCorvette";
 import { SCOUT_COURIER } from "./fixtures/scoutCourier";
 import { canRewrite, fileNameFor, open as openDesign, save, type FileHandle } from "./io/save";
 import { find } from "./ui/dom";
-import { renderForm } from "./ui/form";
+import { anyOpen, renderForm, setAllOpen } from "./ui/form";
 import type { FormHost } from "./ui/form";
 import { renderSheet } from "./ui/sheetview";
 import { APP_VERSION, RELEASE_NOTES, suggestionLink } from "./version";
@@ -67,6 +67,7 @@ function apply(patch: Partial<Design>): void {
 }
 
 function showState(): void {
+  find("#fold").textContent = anyOpen(find("#form")) ? "Collapse all" : "Expand all";
   find("#where").textContent = handle === undefined ? (dirty ? "Unsaved" : "") : handle.name;
   document.title = `${design.name} — Traveller Ship Design`;
   find("#filename").textContent = fileNameFor(design);
@@ -127,6 +128,19 @@ function wire(): void {
   if (!canRewrite()) find("#save-as").remove();
 
   find("#print").addEventListener("click", () => window.print());
+
+  // One control for all fifteen steps, which is quicker than fifteen clicks
+  // whichever way the designer wants them.
+  find("#fold").addEventListener("click", () => {
+    setAllOpen(!anyOpen(find("#form")));
+    render();
+  });
+
+  // Folding a step by hand changes what the button should offer next.
+  find("#form").addEventListener("click", (event) => {
+    if ((event.target as Element).closest("summary") === null) return;
+    queueMicrotask(showState);
+  });
 
   const examples = find<HTMLSelectElement>("#examples");
   for (const [at, example] of EXAMPLES.entries()) {

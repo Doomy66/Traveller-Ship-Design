@@ -507,6 +507,12 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 10.8 The sheet is as wide as its widest row and no wider, and the form gets the rest. Space the sheet has no use for is space the form wanted.
 
-10.9 Almost everything the form asks for is a short number or a choice, so the form is a grid of equal cells rather than a flow. Every cell holds a name of the same width and a control that begins at the same place, and a checkbox is indented to begin there too, so the names line up down a column and the controls line up beside them whatever a row is made of. A hint is the control's tooltip; a screen with forty fields cannot afford a sentence under each.
+10.9 **Every step folds, and says what is in it when folded.** A ship has fifteen sections and most sessions touch three of them; left open they were eleven screens of scrolling. Shut, each heading carries a précis of its own contents, so the whole design reads as fifteen lines and the shape of a ship can be taken in without opening anything. One control in the bar opens or shuts them all.
+
+10.9.1 The open steps are read from the page itself whenever the form is rebuilt. A `details` element fires its toggle asynchronously, so a rebuild in the same tick as a click would rebuild from a record that had not heard about the click, and shut the step the designer had just opened.
+
+10.9.2 Within a step the fields sit in a grid whose columns size themselves to their widest member, each field rendering as `display: contents` so its name lands in one column and its control in the next. The names line up and the controls line up, and nothing is stretched to a width it has no use for: a Tech Level is not made as wide as a ship's name. A hint is the control's tooltip, because a screen with forty fields cannot afford a sentence under each.
+
+10.9.3 A mounting offers exactly as many weapon choices as it has room for: one for a single turret, three for a triple. Asking for three pulse lasers by typing 3 into one of nine numbered boxes, one per weapon in the book, was the wrong shape for the question. Shrinking a mount discards what the larger one held and cannot fit.
 
 10.10 The computer's Processing stands in the bandwidth column, where the software spends it, and the software's own demand is totalled under the last of it. That total is a sum of the column and nothing more: Jump Control is weighed against the computer on its own under 4.7.5, so it is the totals panel that says whether the computer can run any of it.

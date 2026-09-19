@@ -4,6 +4,13 @@
  * A select of armour types is the armour table's own keys and labels, so a
  * transcription corrected in src/rules reaches the interface without anyone
  * remembering to change it here.
+ *
+ * Layout is two ideas and no more. A **field** is a name and its control, and
+ * it renders as `display: contents` so both land directly in the grid its
+ * section owns: the names line up in one column, the controls in the next, and
+ * each column is exactly as wide as its widest member. A **row** is a break
+ * that pushes whatever follows onto a fresh line of that grid, so fields that
+ * belong together stay together.
  */
 
 import { el } from "./dom";
@@ -19,9 +26,8 @@ export function optionsOf(table: Readonly<Record<string, { label: string }>>): O
 }
 
 /**
- * A name and its control, side by side. The hint becomes the tooltip rather
- * than a line of its own: a screen with forty fields on it cannot afford a
- * sentence under each.
+ * A name and its control. The hint is the tooltip: a screen with forty fields
+ * cannot afford a sentence beneath each of them.
  */
 export function labelled(text: string, control: Element, hint?: string): Element {
   return el("label", { class: "field", title: hint }, [
@@ -30,17 +36,9 @@ export function labelled(text: string, control: Element, hint?: string): Element
   ]);
 }
 
-/**
- * A row of controls that flows and wraps. Most of the form is short values and
- * choices, so they go across the panel rather than down it.
- */
-export function line(...items: readonly (Element | null)[]): Element {
-  return el("div", { class: "line" }, items);
-}
-
-/** A name for a run of checkboxes that follows it on the same row. */
-export function tag(name: string): Element {
-  return el("span", { class: "line-name" }, [name]);
+/** Pushes what follows onto a new line of the section's grid. */
+export function rowBreak(): Element {
+  return el("i", { class: "row-break", "aria-hidden": "true" });
 }
 
 export function select(
@@ -66,6 +64,7 @@ export function number(
 ): HTMLInputElement {
   const node = el("input", {
     type: "number",
+    class: "num",
     value: value === undefined ? "" : String(value),
     min: attrs.min,
     max: attrs.max,
@@ -79,33 +78,30 @@ export function number(
 }
 
 export function text(value: string, onChange: (value: string) => void): HTMLInputElement {
-  const node = el("input", { type: "text", value });
+  const node = el("input", { type: "text", class: "text", value });
   node.addEventListener("change", () => onChange(node.value));
   return node;
 }
 
-export function check(value: boolean, label: string, onChange: (value: boolean) => void): Element {
+/** A checkbox. In a section grid it takes a whole name-and-control pair. */
+export function check(value: boolean, label: string, onChange: (value: boolean) => void, hint?: string): Element {
   const box = el("input", { type: "checkbox", checked: value });
   box.addEventListener("change", () => onChange(box.checked));
-  return el("label", { class: "check" }, [box, el("span", {}, [label])]);
+  return el("label", { class: "check", title: hint }, [box, el("span", {}, [label])]);
 }
 
-/** A row of checkboxes over a set of keys, for things a ship may have several of. */
+/** Several checkboxes over one set of keys, for things a ship may have many of. */
 export function checkSet<T extends string>(
   chosen: readonly T[],
   options: readonly Option[],
   onChange: (chosen: T[]) => void,
-): Element {
-  return el(
-    "div",
-    { class: "check-set" },
-    options.map((option) =>
-      check(chosen.includes(option.value as T), option.label, (on) => {
-        const next = chosen.filter((key) => key !== option.value);
-        if (on) next.push(option.value as T);
-        onChange(next);
-      }),
-    ),
+): Element[] {
+  return options.map((option) =>
+    check(chosen.includes(option.value as T), option.label, (on) => {
+      const next = chosen.filter((key) => key !== option.value);
+      if (on) next.push(option.value as T);
+      onChange(next);
+    }),
   );
 }
 
@@ -129,6 +125,6 @@ export function listEditor(
     ...rows.map((row, at) =>
       el("div", { class: "list-row" }, [row, button("×", () => onRemove(at), "remove")]),
     ),
-    button(addLabel, onAdd, "add"),
+    button(`+ ${addLabel}`, onAdd, "add"),
   ]);
 }

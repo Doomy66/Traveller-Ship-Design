@@ -507,4 +507,6 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 10.8 The sheet is as wide as its widest row and no wider, and the form gets the rest. Space the sheet has no use for is space the form wanted.
 
-10.9 Almost everything the form asks for is a short number or a choice, so they run across the panel in rows that wrap rather than down it one to a line, and the checkboxes belonging to a choice sit beside it. A hint is the control's tooltip; a screen with forty fields cannot afford a sentence under each.
+10.9 Almost everything the form asks for is a short number or a choice, so the form is a grid of equal cells rather than a flow. Every cell holds a name of the same width and a control that begins at the same place, and a checkbox is indented to begin there too, so the names line up down a column and the controls line up beside them whatever a row is made of. A hint is the control's tooltip; a screen with forty fields cannot afford a sentence under each.
+
+10.10 The computer's Processing stands in the bandwidth column, where the software spends it, and the software's own demand is totalled under the last of it. That total is a sum of the column and nothing more: Jump Control is weighed against the computer on its own under 4.7.5, so it is the totals panel that says whether the computer can run any of it.

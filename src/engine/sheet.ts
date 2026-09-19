@@ -590,7 +590,15 @@ export function sheet(design: Design): Sheet {
       processing = rule.processing;
       jumpProcessing = rule.processing + (bis ? JUMP_CONTROL_SPECIALISATION.extraJumpProcessing : 0);
       const suffix = `${bis ? JUMP_CONTROL_SPECIALISATION.suffix : ""}${fib ? HARDENED_SYSTEMS.suffix : ""}`;
-      lines.push({ section: "Computer", label: `${rule.label}${suffix}`, cost: cr(rule.cost * factor) });
+      // The computer supplies bandwidth where the software spends it, so its
+      // Processing goes in the same column and the two can be read against
+      // each other. ShipSpec 10.7.
+      lines.push({
+        section: "Computer",
+        label: `${rule.label}${suffix}`,
+        cost: cr(rule.cost * factor),
+        bandwidth: rule.processing,
+      });
     }
   }
 

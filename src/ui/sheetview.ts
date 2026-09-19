@@ -35,9 +35,29 @@ function componentTable(sheet: Sheet): Element {
   const dash = "—";
   const body = el("tbody");
   let previous = "";
+  let softwareBandwidth = 0;
+
+  /**
+   * The software's bandwidth added up, under the last of it. A plain sum of the
+   * column and nothing more: Jump Control is weighed against the computer on
+   * its own (ShipSpec 4.7.5), so it is the Totals panel, not this row, that
+   * says whether the computer can run any of it.
+   */
+  const softwareTotal = (): Element =>
+    el("tr", { class: "subtotal" }, [
+      el("th", { scope: "row" }, [""]),
+      el("td", {}, ["Total"]),
+      el("td", { class: "num" }, [""]),
+      el("td", { class: "num" }, [""]),
+      el("td", { class: "num" }, [""]),
+      el("td", { class: "num" }, [String(softwareBandwidth)]),
+    ]);
+
   for (const line of sheet.lines) {
     const first = line.section !== previous;
+    if (first && previous === "Software" && anyBandwidth) body.append(softwareTotal());
     previous = line.section;
+    if (line.section === "Software") softwareBandwidth += line.bandwidth ?? 0;
     body.append(
       el("tr", { class: first ? "section-start" : undefined }, [
         el("th", { scope: "row" }, [first ? line.section : ""]),
@@ -51,6 +71,7 @@ function componentTable(sheet: Sheet): Element {
       ]),
     );
   }
+  if (previous === "Software" && anyBandwidth) body.append(softwareTotal());
   return el("table", { class: "components" }, [
     el("thead", {}, [
       el("tr", {}, [

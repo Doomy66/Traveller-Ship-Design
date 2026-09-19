@@ -53,7 +53,7 @@ button, select, input {
 
 button { cursor: pointer; }
 button:hover { border-color: var(--accent); }
-input[type="checkbox"] { accent-color: var(--accent); padding: 0; }
+input[type="checkbox"] { accent-color: var(--accent); margin: 0; padding: 0; }
 
 .layout {
   display: grid;
@@ -83,39 +83,64 @@ input[type="checkbox"] { accent-color: var(--accent); padding: 0; }
   font-variant-numeric: tabular-nums;
 }
 
-/* Almost everything is a short value or a choice, so they run across the panel
-   in rows that wrap, with the checkboxes belonging to a choice beside it rather
-   than under it. Nothing is stretched: a control is as wide as it needs to be. */
+/* Almost everything is a short value or a choice, so the form is a grid of
+   equal cells rather than a flow. Every cell holds a name of the same width and
+   a control that starts at the same place, so the names line up down a column
+   and the controls line up beside them, whatever the row is made of. */
 
 .line {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
   align-items: center;
   gap: 4px 16px;
   margin: 0 0 6px;
 }
-/* A set of checkboxes joins the row it sits in rather than forming a box. */
+/* A set of checkboxes puts its boxes straight into the grid rather than
+   forming a box of its own inside one cell. */
 .line .check-set { display: contents; }
 
-.field { display: inline-flex; align-items: baseline; gap: 6px; margin: 0; }
-.field-name { color: var(--muted); font-size: 12px; white-space: nowrap; }
-.field > input, .field > select { width: auto; max-width: 100%; }
-.field > input[type="number"] { width: 5.5em; }
-.field > input[type="text"] { width: 16em; }
-
-.line-name {
-  color: var(--muted);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.field {
+  display: grid;
+  grid-template-columns: 94px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin: 0;
 }
+.field-name { color: var(--muted); font-size: 12px; text-align: right; }
+.field > select { width: 100%; max-width: 168px; }
+.field > input { width: 100%; max-width: 168px; }
+/* A number is three or four digits. It starts where the other controls start,
+   which is what the eye follows, and stops as soon as it has room for them. */
+.field > input[type="number"] { width: 5.5em; }
 
-.check { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+/* A checkbox takes a cell of its own, indented so its box begins where the
+   controls in the column above and below it begin. */
+.check { display: flex; align-items: center; gap: 6px; padding-left: 102px; }
 .check-set { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
 
-.weapon-row .field > input { width: 5em; }
-.weapon-row .field > input[type="text"] { width: 10em; }
-.weapon-row .field > select { max-width: 15em; }
+/* A name for the run of checkboxes under it, across the whole row. */
+.line-name {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* A list row holds a different set of controls each time, so its cells are
+   narrower and the name goes above rather than beside. */
+.weapon-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  align-items: end;
+  gap: 6px 10px;
+}
+.weapon-row .field { display: block; }
+.weapon-row .field-name { display: block; text-align: left; margin-bottom: 1px; }
+.weapon-row .field > input, .weapon-row .field > select { width: 100%; max-width: none; }
+.weapon-row > select { align-self: end; }
+.weapon-row .check { padding-left: 0; }
 
 .list-editor { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .list-row {
@@ -129,12 +154,11 @@ input[type="checkbox"] { accent-color: var(--accent); padding: 0; }
   border-radius: 4px;
 }
 .list-row > :first-child { flex: 1; min-width: 0; }
-.weapon-row { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
 .weapon-row > * { flex: 0 1 auto; margin-bottom: 0; }
 .remove { flex: none; color: var(--muted); }
 .remove:hover { color: var(--error); border-color: var(--error); }
 .add { align-self: flex-start; }
-.customise { margin: 0 0 6px 10px; padding-left: 10px; border-left: 2px solid var(--line); }
+.customise { margin: 0 0 6px; padding-left: 12px; border-left: 2px solid var(--line); }
 
 .colophon { margin-top: 20px; color: var(--muted); font-size: 11px; }
 .colophon a { color: var(--muted); }

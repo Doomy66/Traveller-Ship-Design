@@ -136,6 +136,8 @@ export interface SheetLine {
   /** MCr. Omitted where the component is free. */
   readonly cost?: number;
   readonly power?: number;
+  /** Software only. Power and bandwidth never appear on the same line. */
+  readonly bandwidth?: number;
 }
 
 export interface PowerEntry {
@@ -1022,7 +1024,12 @@ export function sheet(design: Design): Sheet {
     } else {
       bandwidth += rule.bandwidth;
     }
-    lines.push({ section: "Software", label: rule.label, ...(rule.cost > 0 ? { cost: cr(rule.cost) } : {}) });
+    lines.push({
+      section: "Software",
+      label: rule.label,
+      ...(rule.cost > 0 ? { cost: cr(rule.cost) } : {}),
+      ...(rule.bandwidth > 0 ? { bandwidth: rule.bandwidth } : {}),
+    });
   }
   const computerIsCore = design.computer?.core === true;
   if (!computerIsCore && jumpControlBandwidth > jumpProcessing && design.computer !== undefined) {

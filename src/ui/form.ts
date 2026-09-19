@@ -1,9 +1,21 @@
 /**
- * The design, as thirteen steps to fill in. ShipSpec 4.
+ * The design, as the steps of the checklist on page 10. ShipSpec 4.
  *
- * The sections follow the checklist on page 10 in the order the book gives it,
- * so a designer working from the book and a designer working from this screen
- * are doing the same thing in the same order.
+ * The sections follow the book's order, so a designer working from the book and
+ * a designer working from this screen are doing the same thing in the same
+ * order.
+ *
+ * **Two ways to change the design, and the difference matters.** `update` alters
+ * a value: the sheet redraws and the form is left alone, so the scroll position
+ * and whatever has focus survive. `rebuild` is for a change that adds or
+ * removes a control, such as choosing an armour type where there was none, and
+ * only then is the form thrown away and drawn again.
+ *
+ * Because the form outlives most changes, no handler may close over the design
+ * it was drawn from. A handler that did would write back a snapshot taken
+ * before the last few edits and silently undo them. Every handler reads
+ * `host.design` at the moment it fires; the values used to populate a control
+ * are the only thing read at draw time.
  */
 
 import {
@@ -42,6 +54,7 @@ import type {
   JumpChoice,
   ManoeuvreChoice,
   OrdnanceChoice,
+  ReactionChoice,
   SoftwareChoice,
   SystemChoice,
   WeaponChoice,
@@ -51,8 +64,12 @@ import { button, check, checkSet, labelled, listEditor, number, optionsOf, selec
 import type { Option } from "./controls";
 
 export interface FormHost {
+  /** Read afresh by every handler. Never captured. */
   readonly design: Design;
+  /** A value changed. Redraw the sheet and leave the form standing. */
   update(patch: Partial<Design>): void;
+  /** A control appeared or vanished. Draw the form again. */
+  rebuild(patch: Partial<Design>): void;
 }
 
 export function renderForm(into: Element, host: FormHost): void {
@@ -72,128 +89,174 @@ function step(index: string, heading: string, body: readonly (Element | null)[])
   ]);
 }
 
-function ship({ design, update }: FormHost): Element {
+function group(name: string): Element {
+  return el("p", { class: "group-name" }, [name]);
+}
+
+/** Merge into one of the design's object fields, reading the live design. */
+function into<K extends keyof Design>(host: FormHost, key: K) {
+  return (patch: Partial<NonNullable<Design[K]>>, redraw: "update" | "rebuild" = "update"): void => {
+    const current = (host.design[key] ?? {}) as object;
+    host[redraw]({ [key]: { ...current, ...patch } } as Partial<Design>);
+  };
+}
+
+/** Replace one of the design's list fields, reading the live design. */
+function list<T>(host: FormHost, key: keyof Design): readonly T[] {
+  return (host.design[key] as readonly T[] | undefined) ?? [];
+}
+
+function ship(host: FormHost): Element {
+  const d = host.design;
   return step("", "The ship", [
-    labelled("Name", text(design.name, (name) => update({ name }))),
-    labelled("Tech Level", number(design.tl, (tl) => update({ tl: tl ?? 12 }), { min: 1, max: 21, step: 1 }),
+    labelled("Name", text(d.name, (name) => host.update({ name }))),
+    labelled("Tech Level", number(d.tl, (tl) => host.update({ tl: tl ?? 12 }), { min: 1, max: 21, step: 1 }),
       "The shipyard's, which caps every component."),
-    check(design.standardDesign === true, "Standard design (10% off)", (standardDesign) => update({ standardDesign })),
-    check(design.military === true, "Military crewing", (military) => update({ military })),
+    check(d.standardDesign === true, "Standard design (10% off)", (standardDesign) =>
+      host.update({ standardDesign })),
+    check(d.military === true, "Military crewing", (military) => host.update({ military })),
   ]);
 }
 
-function hull({ design, update }: FormHost): Element {
-  const h = design.hull;
-  const set = (patch: Partial<typeof h>) => update({ hull: { ...h, ...patch } });
+function hull(host: FormHost): Element {
+  const h = host.design.hull;
+  const set = into(host, "hull");
   return step("1", "Create a hull", [
     labelled("Tons", number(h.tons, (tons) => set({ tons: tons ?? 100 }), { min: 5, step: 1 })),
     labelled("Configuration", select(h.configuration, optionsOf(HULL_CONFIGURATIONS), (v) =>
       set({ configuration: v as typeof h.configuration }))),
-    el("p", { class: "field-name" }, ["Specialised"]),
-    checkSet(h.specialised ?? [], optionsOf(SPECIALISED_HULLS), (specialised) => set({ specialised })),
-    el("p", { class: "field-name" }, ["Hull options"]),
-    checkSet(h.options ?? [], optionsOf(HULL_OPTIONS), (options) => set({ options })),
     labelled("Stealth", select(h.stealth, optionsOf(STEALTH_TYPES), (v) =>
       set({ stealth: v === "" ? undefined : (v as typeof h.stealth) }), "None")),
-    labelled("Adjustable hull", select(h.adjustable, [
+    labelled("Adjustable", select(h.adjustable, [
       { value: "tl12", label: "TL12, 5% of the ship" },
       { value: "tl15", label: "TL15, 1% of the ship" },
     ], (v) => set({ adjustable: v === "" ? undefined : (v as typeof h.adjustable) }), "None")),
-    check(h.pressureHull === true, "Pressure hull", (pressureHull) => set({ pressureHull })),
     labelled("Modular share", number(h.modularFraction, (modularFraction) => set({ modularFraction }),
       { min: 0, max: 0.75, step: 0.05, placeholder: "0" }), "Up to 0.75."),
+    group("Specialised"),
+    checkSet(h.specialised ?? [], optionsOf(SPECIALISED_HULLS), (specialised) => set({ specialised })),
+    group("Hull options"),
+    checkSet(h.options ?? [], optionsOf(HULL_OPTIONS), (options) => set({ options })),
+    check(h.pressureHull === true, "Pressure hull", (pressureHull) => set({ pressureHull })),
   ]);
 }
 
-function armour({ design, update }: FormHost): Element {
-  const a = design.armour;
+function armour(host: FormHost): Element {
+  const a = host.design.armour;
   return step("1b", "Install armour", [
     labelled("Type", select(a?.type, optionsOf(ARMOUR_TYPES), (v) =>
-      update({ armour: v === "" ? undefined : { type: v as NonNullable<typeof a>["type"], protection: a?.protection ?? 1 } }),
-      "None")),
+      host.rebuild({
+        armour: v === ""
+          ? undefined
+          : { type: v as NonNullable<typeof a>["type"], protection: host.design.armour?.protection ?? 1 },
+      }), "None")),
     a === undefined ? null : labelled("Protection", number(a.protection, (protection) =>
-      update({ armour: { ...a, protection: protection ?? 1 } }), { min: 1, step: 1 })),
+      into(host, "armour")({ protection: protection ?? 1 }), { min: 1, step: 1 })),
   ]);
 }
 
-/** A grade and its traits, for any component that can be built off its own TL. */
+/** A grade and the traits it allows, for a component built off its own TL. */
 function customisation(
   value: Customisation | undefined,
   category: TraitCategory,
-  onChange: (value: Customisation | undefined) => void,
+  onGrade: (value: Customisation | undefined) => void,
+  onTraits: (traits: Trait[]) => void,
 ): Element {
-  const traits = Object.entries(TRAITS)
+  const allowed = Object.entries(TRAITS)
     .filter(([, rule]) => rule.category === category)
     .filter(([, rule]) => value === undefined || rule.kind === GRADES[value.grade].kind)
-    .map(([key, rule]) => ({ value: key, label: `${rule.label} (${rule.slots})` }));
+    .map(([key, rule]) => ({ value: key, label: rule.slots > 1 ? `${rule.label} (2)` : rule.label }));
   return el("div", { class: "customise" }, [
     labelled("Grade", select(value?.grade, optionsOf(GRADES), (v) =>
-      onChange(v === "" ? undefined : { grade: v as Customisation["grade"], traits: [] }), "Standard")),
-    value === undefined ? null : checkSet(value.traits ?? [], traits, (chosen) =>
-      onChange({ ...value, traits: chosen as Trait[] })),
+      onGrade(v === "" ? undefined : { grade: v as Customisation["grade"], traits: [] }), "Standard")),
+    value === undefined ? null : checkSet(value.traits ?? [], allowed, (chosen) => onTraits(chosen as Trait[])),
   ]);
 }
 
-function drives({ design, update }: FormHost): Element {
-  const m: ManoeuvreChoice | undefined =
-    typeof design.manoeuvre === "number" ? { thrust: design.manoeuvre } : design.manoeuvre;
-  const j: JumpChoice | undefined = typeof design.jump === "number" ? { rating: design.jump } : design.jump;
-  const r = design.reaction;
-  const b = design.highBurnThruster;
+function drives(host: FormHost): Element {
+  const d = host.design;
+  const m: ManoeuvreChoice | undefined = typeof d.manoeuvre === "number" ? { thrust: d.manoeuvre } : d.manoeuvre;
+  const j: JumpChoice | undefined = typeof d.jump === "number" ? { rating: d.jump } : d.jump;
+  const r = d.reaction;
+  const b = d.highBurnThruster;
+
+  /** The live manoeuvre and jump choices, whichever shape they were saved in. */
+  const liveM = (): ManoeuvreChoice | undefined =>
+    typeof host.design.manoeuvre === "number" ? { thrust: host.design.manoeuvre } : host.design.manoeuvre;
+  const liveJ = (): JumpChoice | undefined =>
+    typeof host.design.jump === "number" ? { rating: host.design.jump } : host.design.jump;
+  const setM = (patch: Partial<ManoeuvreChoice>, how: "update" | "rebuild" = "update") =>
+    host[how]({ manoeuvre: { thrust: 0, ...liveM(), ...patch } });
+  const setJ = (patch: Partial<JumpChoice>, how: "update" | "rebuild" = "update") =>
+    host[how]({ jump: { rating: 1, ...liveJ(), ...patch } });
+  const setR = (patch: Partial<ReactionChoice>, how: "update" | "rebuild" = "update") =>
+    host[how]({ reaction: { thrust: 0, hours: 1, ...host.design.reaction, ...patch } });
+  const setB = (patch: Partial<ReactionChoice>, how: "update" | "rebuild" = "update") =>
+    host[how]({ highBurnThruster: { thrust: 0, hours: 1, ...host.design.highBurnThruster, ...patch } });
+
   return step("2", "Install drives", [
     labelled("Thrust", number(m?.thrust, (thrust) =>
-      update({ manoeuvre: thrust === undefined ? undefined : { ...m, thrust } }), { min: 0, max: 11, step: 1 }), "None if empty."),
+      thrust === undefined ? host.rebuild({ manoeuvre: undefined }) : setM({ thrust }, "rebuild"),
+      { min: 0, max: 11, step: 1 }), "Leave empty for none."),
     m === undefined ? null : labelled("Drive sized for", number(m.sizedForTons, (sizedForTons) =>
-      update({ manoeuvre: { ...m, sizedForTons } }), { min: 5, step: 1, placeholder: "the hull" })),
-    m === undefined ? null : check(m.concealed === true, "Concealed thruster plates", (concealed) =>
-      update({ manoeuvre: { ...m, concealed } })),
-    m === undefined ? null : customisation(m.customisation, "manoeuvre", (c) =>
-      update({ manoeuvre: { ...m, customisation: c } })),
+      setM({ sizedForTons }), { min: 5, step: 1, placeholder: "the hull" })),
+    m === undefined ? null : check(m.concealed === true, "Concealed plates", (concealed) => setM({ concealed })),
+    m === undefined ? null : customisation(m.customisation, "manoeuvre",
+      (c) => setM({ customisation: c }, "rebuild"),
+      (traits) => setM({ customisation: { ...liveM()?.customisation, grade: liveM()!.customisation!.grade, traits } })),
 
     labelled("Jump", number(j?.rating, (rating) =>
-      update({ jump: rating === undefined ? undefined : { ...j, rating } }), { min: 1, max: 9, step: 1 })),
-    j === undefined ? null : customisation(j.customisation, "jump", (c) =>
-      update({ jump: { ...j, customisation: c } })),
+      rating === undefined ? host.rebuild({ jump: undefined }) : setJ({ rating }, "rebuild"),
+      { min: 1, max: 9, step: 1 })),
+    j === undefined ? null : labelled("Drive sized for", number(j.sizedForTons, (sizedForTons) =>
+      setJ({ sizedForTons }), { min: 100, step: 1, placeholder: "the hull" })),
+    j === undefined ? null : customisation(j.customisation, "jump",
+      (c) => setJ({ customisation: c }, "rebuild"),
+      (traits) => setJ({ customisation: { ...liveJ()?.customisation, grade: liveJ()!.customisation!.grade, traits } })),
 
     labelled("Reaction thrust", number(r?.thrust, (thrust) =>
-      update({ reaction: thrust === undefined ? undefined : { hours: r?.hours ?? 1, ...r, thrust } }),
+      thrust === undefined ? host.rebuild({ reaction: undefined }) : setR({ thrust }, "rebuild"),
       { min: 0, max: 16, step: 1 })),
     r === undefined ? null : labelled("Hours of burn", number(r.hours, (hours) =>
-      update({ reaction: { ...r, hours: hours ?? 1 } }), { min: 0, step: 1 })),
+      setR({ hours: hours ?? 1 }), { min: 0, step: 1 })),
 
-    labelled("High-burn thruster", number(b?.thrust, (thrust) =>
-      update({ highBurnThruster: thrust === undefined ? undefined : { hours: b?.hours ?? 1, ...b, thrust } }),
-      { min: 0, max: 16, step: 1 }), "Thrust that adds to the manoeuvre drive's."),
+    labelled("High-burn thrust", number(b?.thrust, (thrust) =>
+      thrust === undefined ? host.rebuild({ highBurnThruster: undefined }) : setB({ thrust }, "rebuild"),
+      { min: 0, max: 16, step: 1 }), "Adds to the manoeuvre drive's."),
     b === undefined ? null : labelled("Booster hours", number(b.hours, (hours) =>
-      update({ highBurnThruster: { ...b, hours: hours ?? 1 } }), { min: 0, step: 1 })),
+      setB({ hours: hours ?? 1 }), { min: 0, step: 1 })),
   ]);
 }
 
-function powerPlant({ design, update }: FormHost): Element {
-  const p = design.powerPlant;
-  const set = (patch: Partial<typeof p>) => update({ powerPlant: { ...p, ...patch } });
+function powerPlant(host: FormHost): Element {
+  const p = host.design.powerPlant;
+  const set = into(host, "powerPlant");
   return step("3", "Install power plant", [
     labelled("Type", select(p.type, optionsOf(POWER_PLANTS), (v) => set({ type: v as typeof p.type }))),
     labelled("Tons", number(p.tons, (tons) => set({ tons: tons ?? 1 }), { min: 0, step: 1 }),
-      "Before any customisation. Output follows this figure."),
+      "Before customisation. Output follows this."),
     labelled("Weeks of fuel", number(p.weeks, (weeks) => set({ weeks: weeks ?? 4 }), { min: 0, step: 1 })),
-    customisation(p.customisation, "powerPlant", (c) => set({ customisation: c })),
+    customisation(p.customisation, "powerPlant",
+      (c) => set({ customisation: c }, "rebuild"),
+      (traits) => set({
+        customisation: { grade: host.design.powerPlant.customisation!.grade, traits },
+      })),
   ]);
 }
 
-function fuel({ design, update }: FormHost): Element {
+function fuel(host: FormHost): Element {
+  const d = host.design;
   return step("4", "Install fuel tanks", [
-    labelled("Tank for jump", number(design.fuelForJump, (fuelForJump) => update({ fuelForJump }),
-      { min: 0, step: 1, placeholder: "the drive's rating" }),
-      "Lower than the drive where the longer jumps ride on drop tanks."),
-    labelled("Extra tons", number(design.extraFuelTons, (extraFuelTons) => update({ extraFuelTons }),
+    labelled("Tank for jump", number(d.fuelForJump, (fuelForJump) => host.update({ fuelForJump }),
+      { min: 0, step: 1, placeholder: "the drive" }), "Lower where the long jumps ride on drop tanks."),
+    labelled("Extra tons", number(d.extraFuelTons, (extraFuelTons) => host.update({ extraFuelTons }),
       { min: 0, step: 1, placeholder: "0" })),
   ]);
 }
 
-function bridge({ design, update }: FormHost): Element {
-  const b = design.bridge;
-  const set = (patch: Partial<typeof b>) => update({ bridge: { ...b, ...patch } });
+function bridge(host: FormHost): Element {
+  const b = host.design.bridge;
+  const set = into(host, "bridge");
   return step("5", "Install bridge", [
     labelled("Kind", select(b.kind, [
       { value: "standard", label: "Standard" },
@@ -207,97 +270,132 @@ function bridge({ design, update }: FormHost): Element {
   ]);
 }
 
-function computer({ design, update }: FormHost): Element {
-  const c = design.computer;
+function computer(host: FormHost): Element {
+  const c = host.design.computer;
   const options: Option[] = COMPUTERS.map((rule) => ({
     value: `${rule.processing}${rule.core ? "c" : ""}`,
     label: rule.label,
   }));
   const current = c === undefined ? undefined : `${c.processing}${c.core === true ? "c" : ""}`;
+  const set = into(host, "computer");
   return step("6", "Install computer", [
-    labelled("Model", select(current, options, (v) => update({
-      computer: v === "" ? undefined : { ...c, processing: Number.parseInt(v, 10), core: v.endsWith("c") },
+    labelled("Model", select(current, options, (v) => host.rebuild({
+      computer: v === ""
+        ? undefined
+        : { ...host.design.computer, processing: Number.parseInt(v, 10), core: v.endsWith("c") },
     }), "None")),
-    c === undefined ? null : check(c.bis === true, "/bis (Jump Control +5)", (bis) =>
-      update({ computer: { ...c, bis } })),
-    c === undefined ? null : check(c.fib === true, "/fib (hardened)", (fib) =>
-      update({ computer: { ...c, fib } })),
+    c === undefined ? null : check(c.bis === true, "/bis (Jump Control +5)", (bis) => set({ bis })),
+    c === undefined ? null : check(c.fib === true, "/fib (hardened)", (fib) => set({ fib })),
   ]);
 }
 
-function sensors({ design, update }: FormHost): Element {
+function sensors(host: FormHost): Element {
   return step("7", "Install sensors", [
-    labelled("Suite", select(design.sensors ?? "basic", optionsOf(SENSORS), (v) =>
-      update({ sensors: v as typeof design.sensors }))),
+    labelled("Suite", select(host.design.sensors ?? "basic", optionsOf(SENSORS), (v) =>
+      host.update({ sensors: v as Design["sensors"] }))),
   ]);
 }
 
-function weapons({ design, update }: FormHost): Element {
-  const list = design.weapons ?? [];
-  const set = (weapons: WeaponChoice[]) => update({ weapons });
-  const replace = (at: number, choice: WeaponChoice) =>
-    set(list.map((entry, i) => (i === at ? choice : entry)));
+function weapons(host: FormHost): Element {
+  const live = () => list<WeaponChoice>(host, "weapons");
+  const set = (weapons: WeaponChoice[], how: "update" | "rebuild" = "update") => host[how]({ weapons });
+  const replace = (at: number, choice: WeaponChoice, how: "update" | "rebuild" = "update") =>
+    set(live().map((entry, i) => (i === at ? choice : entry)), how);
+  /** The row's own choice, read live so earlier edits are never written back. */
+  const at = (index: number) => live()[index] as WeaponChoice;
 
-  const rows = list.map((choice, at) => {
-    const kind = select(choice.kind, [
-      { value: "turret", label: "Turret" },
-      { value: "barbette", label: "Barbette" },
-      { value: "bay", label: "Bay" },
-      { value: "spinal", label: "Spinal mount" },
-      { value: "pointDefence", label: "Point defence" },
-      { value: "screen", label: "Screen" },
-      { value: "blackGlobe", label: "Black globe" },
-    ], (v) => replace(at, defaultWeapon(v as WeaponChoice["kind"])));
+  const rows = live().map((choice, i) => {
+    const parts: (Element | null)[] = [
+      select(choice.kind, [
+        { value: "turret", label: "Turret" },
+        { value: "barbette", label: "Barbette" },
+        { value: "bay", label: "Bay" },
+        { value: "spinal", label: "Spinal mount" },
+        { value: "pointDefence", label: "Point defence" },
+        { value: "screen", label: "Screen" },
+        { value: "blackGlobe", label: "Black globe" },
+      ], (v) => replace(i, defaultWeapon(v as WeaponChoice["kind"]), "rebuild")),
+    ];
 
-    const parts: (Element | null)[] = [kind];
     if (choice.kind === "turret") {
-      parts.push(select(choice.mount, optionsOf(MOUNTS), (v) =>
-        replace(at, { ...choice, mount: v as typeof choice.mount })));
+      parts.push(select(choice.mount, optionsOf(MOUNTS), (v) => {
+        const now = at(i);
+        if (now.kind === "turret") replace(i, { ...now, mount: v as typeof now.mount });
+      }));
       parts.push(el("div", { class: "check-set" }, Object.entries(TURRET_WEAPONS).map(([key, rule]) => {
         const count = (choice.weapons ?? []).filter((w) => w === key).length;
         return labelled(rule.label, number(count, (n) => {
-          const others = (choice.weapons ?? []).filter((w) => w !== key);
-          const next = [...others, ...Array.from({ length: n ?? 0 }, () => key as keyof typeof TURRET_WEAPONS)];
-          replace(at, { ...choice, weapons: next });
+          const now = at(i);
+          if (now.kind !== "turret") return;
+          const others = (now.weapons ?? []).filter((w) => w !== key);
+          const mine = Array.from({ length: n ?? 0 }, () => key as keyof typeof TURRET_WEAPONS);
+          replace(i, { ...now, weapons: [...others, ...mine] });
         }, { min: 0, max: 3, step: 1 }));
       })));
-      parts.push(check(choice.popUp === true, "Pop-up", (popUp) => replace(at, { ...choice, popUp })));
+      parts.push(check(choice.popUp === true, "Pop-up", (popUp) => {
+        const now = at(i);
+        if (now.kind === "turret") replace(i, { ...now, popUp });
+      }));
     } else if (choice.kind === "barbette") {
-      parts.push(select(choice.weapon, optionsOf(BARBETTES), (v) =>
-        replace(at, { ...choice, weapon: v as typeof choice.weapon })));
+      parts.push(select(choice.weapon, optionsOf(BARBETTES), (v) => {
+        const now = at(i);
+        if (now.kind === "barbette") replace(i, { ...now, weapon: v as typeof now.weapon });
+      }));
     } else if (choice.kind === "bay") {
-      parts.push(select(choice.size, optionsOf(BAY_SIZES), (v) =>
-        replace(at, { ...choice, size: v as typeof choice.size })));
-      parts.push(select(choice.weapon, optionsOf(BAY_WEAPONS.small), (v) =>
-        replace(at, { ...choice, weapon: v as typeof choice.weapon })));
+      parts.push(select(choice.size, optionsOf(BAY_SIZES), (v) => {
+        const now = at(i);
+        if (now.kind === "bay") replace(i, { ...now, size: v as typeof now.size });
+      }));
+      parts.push(select(choice.weapon, optionsOf(BAY_WEAPONS.small), (v) => {
+        const now = at(i);
+        if (now.kind === "bay") replace(i, { ...now, weapon: v as typeof now.weapon });
+      }));
     } else if (choice.kind === "spinal") {
-      parts.push(select(choice.weapon, optionsOf(SPINAL_WEAPONS), (v) =>
-        replace(at, { ...choice, weapon: v as typeof choice.weapon })));
-      parts.push(labelled("Multiple", number(choice.multiple, (multiple) =>
-        replace(at, { ...choice, multiple: multiple ?? 1 }), { min: 1, step: 1 })));
-      parts.push(labelled("TLs above", number(choice.levelsAboveBase, (levelsAboveBase) =>
-        replace(at, { ...choice, levelsAboveBase }), { min: 0, max: 3, step: 1, placeholder: "0" })));
+      parts.push(select(choice.weapon, optionsOf(SPINAL_WEAPONS), (v) => {
+        const now = at(i);
+        if (now.kind === "spinal") replace(i, { ...now, weapon: v as typeof now.weapon });
+      }));
+      parts.push(labelled("Multiple", number(choice.multiple, (multiple) => {
+        const now = at(i);
+        if (now.kind === "spinal") replace(i, { ...now, multiple: multiple ?? 1 });
+      }, { min: 1, step: 1 })));
+      parts.push(labelled("TLs above", number(choice.levelsAboveBase, (levelsAboveBase) => {
+        const now = at(i);
+        if (now.kind === "spinal") replace(i, { ...now, levelsAboveBase });
+      }, { min: 0, max: 3, step: 1, placeholder: "0" })));
     } else if (choice.kind === "pointDefence") {
       parts.push(select(choice.battery, [
         { value: "laser", label: "Laser" },
         { value: "gauss", label: "Gauss" },
-      ], (v) => replace(at, { ...choice, battery: v as typeof choice.battery })));
-      parts.push(select(choice.type, optionsOf(POINT_DEFENCE.laser), (v) =>
-        replace(at, { ...choice, type: v as typeof choice.type })));
+      ], (v) => {
+        const now = at(i);
+        if (now.kind === "pointDefence") replace(i, { ...now, battery: v as typeof now.battery });
+      }));
+      parts.push(select(choice.type, optionsOf(POINT_DEFENCE.laser), (v) => {
+        const now = at(i);
+        if (now.kind === "pointDefence") replace(i, { ...now, type: v as typeof now.type });
+      }));
     } else if (choice.kind === "screen") {
-      parts.push(select(choice.screen, optionsOf(SCREENS), (v) =>
-        replace(at, { ...choice, screen: v as typeof choice.screen })));
+      parts.push(select(choice.screen, optionsOf(SCREENS), (v) => {
+        const now = at(i);
+        if (now.kind === "screen") replace(i, { ...now, screen: v as typeof now.screen });
+      }));
     }
+
     if (choice.kind !== "spinal" && choice.kind !== "blackGlobe") {
-      parts.push(labelled("How many", number(choice.quantity ?? 1, (quantity) =>
-        replace(at, { ...choice, quantity: quantity ?? 1 }), { min: 1, step: 1 })));
+      parts.push(labelled("How many", number(choice.quantity ?? 1, (quantity) => {
+        const now = at(i);
+        if (now.kind !== "spinal" && now.kind !== "blackGlobe") {
+          replace(i, { ...now, quantity: quantity ?? 1 });
+        }
+      }, { min: 1, step: 1 })));
     }
     return el("div", { class: "weapon-row" }, parts);
   });
 
   return step("8", "Install weapons", [
-    listEditor(rows, (at) => set(list.filter((_, i) => i !== at)), "Add a mount", () =>
-      set([...list, { kind: "turret", mount: "single" }])),
+    listEditor(rows, (i) => set(live().filter((_, k) => k !== i), "rebuild"), "Add a mount", () =>
+      set([...live(), { kind: "turret", mount: "single" }], "rebuild")),
   ]);
 }
 
@@ -313,30 +411,38 @@ function defaultWeapon(kind: WeaponChoice["kind"]): WeaponChoice {
   }
 }
 
-function ordnance({ design, update }: FormHost): Element {
-  const list = design.ordnance ?? [];
-  const set = (ordnance: OrdnanceChoice[]) => update({ ordnance });
-  const rows = list.map((choice, at) => {
-    const table = "missile" in choice ? MISSILES : "torpedo" in choice ? TORPEDOES : CANISTERS;
-    const current = "missile" in choice ? choice.missile : "torpedo" in choice ? choice.torpedo : choice.canister;
+function ordnance(host: FormHost): Element {
+  const live = () => list<OrdnanceChoice>(host, "ordnance");
+  const set = (ordnance: OrdnanceChoice[], how: "update" | "rebuild" = "update") => host[how]({ ordnance });
+  const replace = (i: number, entry: OrdnanceChoice, how: "update" | "rebuild" = "update") =>
+    set(live().map((e, k) => (k === i ? entry : e)), how);
+
+  const rows = live().map((choice, i) => {
     const kind = "missile" in choice ? "missile" : "torpedo" in choice ? "torpedo" : "canister";
+    const table = kind === "missile" ? MISSILES : kind === "torpedo" ? TORPEDOES : CANISTERS;
+    const current = "missile" in choice ? choice.missile : "torpedo" in choice ? choice.torpedo : choice.canister;
+    const rewrite = (type: string, count: number) => ({ [kind]: type, count }) as OrdnanceChoice;
+    const now = () => {
+      const e = live()[i] as OrdnanceChoice;
+      const t = "missile" in e ? e.missile : "torpedo" in e ? e.torpedo : e.canister;
+      return { type: t, count: e.count };
+    };
     return el("div", { class: "weapon-row" }, [
       select(kind, [
         { value: "missile", label: "Missiles" },
         { value: "torpedo", label: "Torpedoes" },
         { value: "canister", label: "Canisters" },
-      ], (v) => set(list.map((entry, i) => (i === at ? defaultOrdnance(v) : entry)))),
-      select(current, optionsOf(table), (v) =>
-        set(list.map((entry, i) => (i === at ? ({ [kind]: v, count: choice.count } as OrdnanceChoice) : entry)))),
-      labelled("How many", number(choice.count, (count) =>
-        set(list.map((entry, i) => (i === at ? ({ [kind]: current, count: count ?? 0 } as OrdnanceChoice) : entry))),
+      ], (v) => replace(i, defaultOrdnance(v), "rebuild")),
+      select(current, optionsOf(table), (v) => replace(i, rewrite(v, now().count))),
+      labelled("How many", number(choice.count, (count) => replace(i, rewrite(now().type, count ?? 0)),
         { min: 0, step: 1 })),
     ]);
   });
+
   return step("8b", "Load ordnance", [
     el("p", { class: "muted" }, ["Takes room in the ship. Its cost is reported apart, as the book does."]),
-    listEditor(rows, (at) => set(list.filter((_, i) => i !== at)), "Add ordnance", () =>
-      set([...list, { missile: "standard", count: 12 }])),
+    listEditor(rows, (i) => set(live().filter((_, k) => k !== i), "rebuild"), "Add ordnance", () =>
+      set([...live(), { missile: "standard", count: 12 }], "rebuild")),
   ]);
 }
 
@@ -346,38 +452,43 @@ function defaultOrdnance(kind: string): OrdnanceChoice {
   return { missile: "standard", count: 12 };
 }
 
-function craft({ design, update }: FormHost): Element {
-  const list = design.craft ?? [];
-  const set = (craft: CraftChoice[]) => update({ craft });
-  const replace = (at: number, entry: CraftChoice) => set(list.map((c, i) => (i === at ? entry : c)));
-  const rows = list.map((entry, at) =>
+function craft(host: FormHost): Element {
+  const live = () => list<CraftChoice>(host, "craft");
+  const set = (craft: CraftChoice[], how: "update" | "rebuild" = "update") => host[how]({ craft });
+  const merge = (i: number, patch: Partial<CraftChoice>) =>
+    set(live().map((e, k) => (k === i ? { ...e, ...patch } : e)));
+
+  const rows = live().map((entry, i) =>
     el("div", { class: "weapon-row" }, [
-      labelled("Name", text(entry.label, (label) => replace(at, { ...entry, label }))),
-      labelled("Tons", number(entry.tons, (tons) => replace(at, { ...entry, tons: tons ?? 0 }), { min: 0, step: 1 })),
-      labelled("Cost MCr", number(entry.cost, (cost) => replace(at, { ...entry, cost: cost ?? 0 }), { min: 0 })),
+      labelled("Name", text(entry.label, (label) => merge(i, { label }))),
+      labelled("Tons", number(entry.tons, (tons) => merge(i, { tons: tons ?? 0 }), { min: 0, step: 1 })),
+      labelled("MCr", number(entry.cost, (cost) => merge(i, { cost: cost ?? 0 }), { min: 0 })),
       labelled("Kind", select(entry.kind, [
         { value: "smallCraft", label: "Small craft" },
         { value: "vehicle", label: "Vehicle" },
-      ], (v) => replace(at, { ...entry, kind: v as CraftChoice["kind"] }))),
+      ], (v) => merge(i, { kind: v as CraftChoice["kind"] }))),
       labelled("Berth", select(entry.berth, [
         { value: "dockingSpace", label: "Docking space" },
         { value: "fullHangar", label: "Full hangar" },
         { value: "none", label: "None" },
-      ], (v) => replace(at, { ...entry, berth: v as CraftChoice["berth"] }))),
+      ], (v) => merge(i, { berth: v as CraftChoice["berth"] }))),
       labelled("Its drives", number(entry.driveAndPlantTons, (driveAndPlantTons) =>
-        replace(at, { ...entry, driveAndPlantTons }), { min: 0, placeholder: "0" })),
+        merge(i, { driveAndPlantTons }), { min: 0, placeholder: "0" })),
     ]),
   );
+
   return step("9b", "Carry craft", [
-    listEditor(rows, (at) => set(list.filter((_, i) => i !== at)), "Add a craft", () =>
-      set([...list, { label: "Air/Raft", tons: 4, cost: 0.25, kind: "vehicle", berth: "dockingSpace" }])),
+    listEditor(rows, (i) => set(live().filter((_, k) => k !== i), "rebuild"), "Add a craft", () =>
+      set([...live(), { label: "Air/Raft", tons: 4, cost: 0.25, kind: "vehicle", berth: "dockingSpace" }], "rebuild")),
   ]);
 }
 
-function systems({ design, update }: FormHost): Element {
-  const list = design.systems ?? [];
-  const set = (systems: SystemChoice[]) => update({ systems });
-  const replace = (at: number, entry: SystemChoice) => set(list.map((c, i) => (i === at ? entry : c)));
+function systems(host: FormHost): Element {
+  const live = () => list<SystemChoice>(host, "systems");
+  const set = (systems: SystemChoice[], how: "update" | "rebuild" = "update") => host[how]({ systems });
+  const replace = (i: number, entry: SystemChoice, how: "update" | "rebuild" = "update") =>
+    set(live().map((e, k) => (k === i ? entry : e)), how);
+  const at = (i: number) => live()[i] as SystemChoice;
 
   const kindOf = (choice: SystemChoice): string =>
     "flat" in choice ? "flat"
@@ -386,7 +497,7 @@ function systems({ design, update }: FormHost): Element {
           : "fuelScoops" in choice ? "fuelScoops"
             : "solar" in choice ? "solar" : "custom";
 
-  const rows = list.map((choice, at) => {
+  const rows = live().map((choice, i) => {
     const parts: (Element | null)[] = [
       select(kindOf(choice), [
         { value: "flat", label: "Fixed size" },
@@ -395,41 +506,59 @@ function systems({ design, update }: FormHost): Element {
         { value: "fuelScoops", label: "Fuel scoops" },
         { value: "solar", label: "Solar" },
         { value: "custom", label: "Something else" },
-      ], (v) => replace(at, defaultSystem(v))),
+      ], (v) => replace(i, defaultSystem(v), "rebuild")),
     ];
+
     if ("flat" in choice) {
-      parts.push(select(choice.flat, optionsOf(FLAT_SYSTEMS), (v) =>
-        replace(at, { ...choice, flat: v as typeof choice.flat })));
-      parts.push(labelled("How many", number(choice.quantity ?? 1, (quantity) =>
-        replace(at, { ...choice, quantity: quantity ?? 1 }), { min: 1, step: 1 })));
+      parts.push(select(choice.flat, optionsOf(FLAT_SYSTEMS), (v) => {
+        const now = at(i);
+        if ("flat" in now) replace(i, { ...now, flat: v as typeof now.flat });
+      }));
+      parts.push(labelled("How many", number(choice.quantity ?? 1, (quantity) => {
+        const now = at(i);
+        if ("flat" in now) replace(i, { ...now, quantity: quantity ?? 1 });
+      }, { min: 1, step: 1 })));
     } else if ("perTon" in choice) {
-      parts.push(select(choice.perTon, optionsOf(PER_TON_SYSTEMS), (v) =>
-        replace(at, { ...choice, perTon: v as typeof choice.perTon })));
-      parts.push(labelled("Tons", number(choice.tons, (tons) => replace(at, { ...choice, tons }),
-        { min: 0, placeholder: "by the rule" })));
+      parts.push(select(choice.perTon, optionsOf(PER_TON_SYSTEMS), (v) => {
+        const now = at(i);
+        if ("perTon" in now) replace(i, { ...now, perTon: v as typeof now.perTon });
+      }));
+      parts.push(labelled("Tons", number(choice.tons, (tons) => {
+        const now = at(i);
+        if ("perTon" in now) replace(i, { ...now, tons });
+      }, { min: 0, placeholder: "by the rule" })));
     } else if ("perHullTon" in choice) {
       parts.push(select(choice.perHullTon, optionsOf(PER_HULL_TON_SYSTEMS), (v) =>
-        replace(at, { perHullTon: v as typeof choice.perHullTon })));
+        replace(i, { perHullTon: v as typeof choice.perHullTon })));
     } else if ("solar" in choice) {
-      parts.push(select(choice.solar, optionsOf(SOLAR_SYSTEMS), (v) =>
-        replace(at, { ...choice, solar: v as typeof choice.solar })));
-      parts.push(labelled("Coating units", number(choice.coatingUnits, (coatingUnits) =>
-        replace(at, { ...choice, coatingUnits }), { min: 0, step: 1, placeholder: "0" })));
-      parts.push(labelled("Panel units", number(choice.panelUnits, (panelUnits) =>
-        replace(at, { ...choice, panelUnits }), { min: 0, step: 1, placeholder: "0" })));
+      parts.push(select(choice.solar, optionsOf(SOLAR_SYSTEMS), (v) => {
+        const now = at(i);
+        if ("solar" in now) replace(i, { ...now, solar: v as typeof now.solar });
+      }));
+      parts.push(labelled("Coating", number(choice.coatingUnits, (coatingUnits) => {
+        const now = at(i);
+        if ("solar" in now) replace(i, { ...now, coatingUnits });
+      }, { min: 0, step: 1, placeholder: "0" })));
+      parts.push(labelled("Panels", number(choice.panelUnits, (panelUnits) => {
+        const now = at(i);
+        if ("solar" in now) replace(i, { ...now, panelUnits });
+      }, { min: 0, step: 1, placeholder: "0" })));
     } else if ("custom" in choice) {
-      const c = choice.custom;
-      parts.push(labelled("Name", text(c.label, (label) => replace(at, { custom: { ...c, label } }))));
-      parts.push(labelled("Tons", number(c.tons, (tons) => replace(at, { custom: { ...c, tons } }), { min: 0 })));
-      parts.push(labelled("Cost MCr", number(c.cost, (cost) => replace(at, { custom: { ...c, cost } }), { min: 0 })));
-      parts.push(labelled("Power", number(c.power, (power) => replace(at, { custom: { ...c, power } }), { min: 0 })));
+      const mergeCustom = (patch: Partial<typeof choice.custom>) => {
+        const now = at(i);
+        if ("custom" in now) replace(i, { custom: { ...now.custom, ...patch } });
+      };
+      parts.push(labelled("Name", text(choice.custom.label, (label) => mergeCustom({ label }))));
+      parts.push(labelled("Tons", number(choice.custom.tons, (tons) => mergeCustom({ tons }), { min: 0 })));
+      parts.push(labelled("MCr", number(choice.custom.cost, (cost) => mergeCustom({ cost }), { min: 0 })));
+      parts.push(labelled("Power", number(choice.custom.power, (power) => mergeCustom({ power }), { min: 0 })));
     }
     return el("div", { class: "weapon-row" }, parts);
   });
 
   return step("9", "Install optional systems", [
-    listEditor(rows, (at) => set(list.filter((_, i) => i !== at)), "Add a system", () =>
-      set([...list, { flat: "workshop" }])),
+    listEditor(rows, (i) => set(live().filter((_, k) => k !== i), "rebuild"), "Add a system", () =>
+      set([...live(), { flat: "workshop" }], "rebuild")),
   ]);
 }
 
@@ -444,48 +573,49 @@ function defaultSystem(kind: string): SystemChoice {
   }
 }
 
-function accommodation({ design, update }: FormHost): Element {
-  const p = design.passengers ?? { high: 0, middle: 0, low: 0 };
+function accommodation(host: FormHost): Element {
+  const d = host.design;
+  const p = d.passengers ?? { high: 0, middle: 0, low: 0 };
+  const setPassengers = (patch: Partial<typeof p>) =>
+    host.update({ passengers: { high: 0, middle: 0, low: 0, ...host.design.passengers, ...patch } });
   return step("11", "Install staterooms", [
-    labelled("Staterooms", number(design.staterooms, (staterooms) => update({ staterooms }), { min: 0, step: 1 })),
-    check(design.doubleOccupancy === true, "Double occupancy", (doubleOccupancy) => update({ doubleOccupancy })),
-    labelled("Low berths", number(design.lowBerths, (lowBerths) => update({ lowBerths }), { min: 0, step: 1 })),
-    labelled("Emergency low berths", number(design.emergencyLowBerths, (emergencyLowBerths) =>
-      update({ emergencyLowBerths }), { min: 0, step: 1 })),
-    labelled("Common areas, tons", number(design.commonAreaTons, (commonAreaTons) =>
-      update({ commonAreaTons }), { min: 0 })),
-    el("p", { class: "field-name" }, ["Passengers"]),
-    el("div", { class: "row" }, [
-      labelled("High", number(p.high, (high) => update({ passengers: { ...p, high: high ?? 0 } }), { min: 0, step: 1 })),
-      labelled("Middle", number(p.middle, (middle) => update({ passengers: { ...p, middle: middle ?? 0 } }), { min: 0, step: 1 })),
-      labelled("Low", number(p.low, (low) => update({ passengers: { ...p, low: low ?? 0 } }), { min: 0, step: 1 })),
-    ]),
+    labelled("Staterooms", number(d.staterooms, (staterooms) => host.update({ staterooms }), { min: 0, step: 1 })),
+    labelled("Low berths", number(d.lowBerths, (lowBerths) => host.update({ lowBerths }), { min: 0, step: 1 })),
+    labelled("Emergency berths", number(d.emergencyLowBerths, (emergencyLowBerths) =>
+      host.update({ emergencyLowBerths }), { min: 0, step: 1 })),
+    labelled("Common areas", number(d.commonAreaTons, (commonAreaTons) =>
+      host.update({ commonAreaTons }), { min: 0 }), "Tons."),
+    check(d.doubleOccupancy === true, "Double occupancy", (doubleOccupancy) =>
+      host.update({ doubleOccupancy })),
+    group("Passengers"),
+    labelled("High", number(p.high, (high) => setPassengers({ high: high ?? 0 }), { min: 0, step: 1 })),
+    labelled("Middle", number(p.middle, (middle) => setPassengers({ middle: middle ?? 0 }), { min: 0, step: 1 })),
+    labelled("Low", number(p.low, (low) => setPassengers({ low: low ?? 0 }), { min: 0, step: 1 })),
   ]);
 }
 
-function software({ design, update }: FormHost): Element {
-  const list = design.software ?? [];
-  const set = (software: SoftwareChoice[]) => update({ software });
-  const rows = list.map((choice, at) => {
+function software(host: FormHost): Element {
+  const live = () => list<SoftwareChoice>(host, "software");
+  const set = (software: SoftwareChoice[], how: "update" | "rebuild" = "update") => host[how]({ software });
+
+  const rows = live().map((choice, i) => {
     const family = SOFTWARE[choice.software];
-    const levels = family.levels.map((rule, i) => ({
-      value: String(family.firstLevel + i),
-      label: rule.label,
-    }));
+    const levels = family.levels.map((rule, k) => ({ value: String(family.firstLevel + k), label: rule.label }));
     return el("div", { class: "weapon-row" }, [
       select(choice.software, optionsOf(SOFTWARE), (v) => {
-        const next = SOFTWARE[v as keyof typeof SOFTWARE];
-        set(list.map((entry, i) => (i === at
+        const next = SOFTWARE[v as SoftwareChoice["software"]];
+        set(live().map((e, k) => (k === i
           ? { software: v as SoftwareChoice["software"], level: next.firstLevel }
-          : entry)));
+          : e)), "rebuild");
       }),
       levels.length < 2 ? null : select(String(choice.level ?? family.firstLevel), levels, (v) =>
-        set(list.map((entry, i) => (i === at ? { ...choice, level: Number(v) } : entry)))),
+        set(live().map((e, k) => (k === i ? { ...e, level: Number(v) } : e)))),
     ]);
   });
+
   return step("6b", "Load software", [
-    listEditor(rows, (at) => set(list.filter((_, i) => i !== at)), "Add a package", () =>
-      set([...list, { software: "manoeuvre", level: 0 }])),
+    listEditor(rows, (i) => set(live().filter((_, k) => k !== i), "rebuild"), "Add a package", () =>
+      set([...live(), { software: "manoeuvre", level: 0 }], "rebuild")),
   ]);
 }
 

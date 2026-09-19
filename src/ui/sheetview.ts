@@ -19,14 +19,20 @@ export function renderSheet(into: Element, sheet: Sheet): void {
     ]),
   );
 
+  // Problems first. A designer who has just broken something should not have to
+  // scroll past a correct-looking sheet to be told.
+  if (sheet.problems.length > 0) into.append(problemPanel(sheet));
   into.append(componentTable(sheet));
   into.append(totals(sheet));
   into.append(powerPanel(sheet));
   into.append(crewPanel(sheet));
-  if (sheet.problems.length > 0) into.append(problemPanel(sheet));
 }
 
 function componentTable(sheet: Sheet): Element {
+  // Bandwidth gets a column only when something on the ship uses it, since on
+  // most designs it would be an empty one.
+  const anyBandwidth = sheet.lines.some((line) => line.bandwidth !== undefined);
+  const dash = "—";
   const body = el("tbody");
   let previous = "";
   for (const line of sheet.lines) {
@@ -36,8 +42,12 @@ function componentTable(sheet: Sheet): Element {
       el("tr", { class: first ? "section-start" : undefined }, [
         el("th", { scope: "row" }, [first ? line.section : ""]),
         el("td", {}, [line.label]),
-        el("td", { class: "num" }, [line.tons === undefined ? "—" : tons(line.tons)]),
-        el("td", { class: "num" }, [line.cost === undefined ? "—" : mcr(line.cost)]),
+        el("td", { class: "num" }, [line.tons === undefined ? dash : tons(line.tons)]),
+        el("td", { class: "num" }, [line.cost === undefined ? dash : mcr(line.cost)]),
+        el("td", { class: "num" }, [line.power === undefined ? dash : tons(line.power)]),
+        anyBandwidth
+          ? el("td", { class: "num" }, [line.bandwidth === undefined ? dash : String(line.bandwidth)])
+          : null,
       ]),
     );
   }
@@ -47,7 +57,9 @@ function componentTable(sheet: Sheet): Element {
         el("th", { scope: "col" }, [""]),
         el("th", { scope: "col" }, [""]),
         el("th", { scope: "col", class: "num" }, ["Tons"]),
-        el("th", { scope: "col", class: "num" }, ["Cost (MCr)"]),
+        el("th", { scope: "col", class: "num" }, ["MCr"]),
+        el("th", { scope: "col", class: "num" }, ["Power"]),
+        anyBandwidth ? el("th", { scope: "col", class: "num" }, ["BW"]) : null,
       ]),
     ]),
     body,
@@ -73,6 +85,12 @@ function totals(sheet: Sheet): Element {
     ["Construction", `${credits(sheet.constructionDays)} days`],
   ];
   if (sheet.ordnanceCost > 0) rows.push(["Ammunition", `MCr${mcr(sheet.ordnanceCost)}, bought apart`]);
+  if (sheet.software.processing > 0) {
+    rows.push(["Bandwidth", `${sheet.software.bandwidth} of ${sheet.software.processing}`]);
+    if (sheet.software.jumpControl > 0) {
+      rows.push(["Jump Control", `${sheet.software.jumpControl} of ${sheet.software.jumpProcessing}`]);
+    }
+  }
   return panel("Totals", el("dl", { class: "figures" }, rows.flatMap(([term, value]) => [
     el("dt", {}, [term]),
     el("dd", {}, [value]),

@@ -15,8 +15,12 @@ and its sheet comes out beside it, redrawn on every change.
   the Scout/Courier, the Free Trader, the Patrol Corvette and the Chrysanthemum
   Destroyer Escort. All four are in the application to open and pull apart, and
   all four are tests.
-- **Problems are reported where they happen**, as errors, warnings or notes,
-  each naming the clause of `ShipSpec.md` it comes from.
+- **Problems are reported at the top of the sheet**, as errors, warnings or
+  notes, each naming the clause of `ShipSpec.md` it comes from. A designer who
+  has just broken something should not have to scroll past a correct-looking
+  sheet to be told.
+- **The sheet carries power and bandwidth** beside tonnage and cost, so what a
+  component draws is read off the same row as what it costs.
 - **Save and load** as JSON through the File System Access API where the browser
   has it, and as a download where it does not. Print gives the sheet the page.
 

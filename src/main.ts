@@ -15,6 +15,7 @@ import { SCOUT_COURIER } from "./fixtures/scoutCourier";
 import { canRewrite, fileNameFor, open as openDesign, save, type FileHandle } from "./io/save";
 import { find } from "./ui/dom";
 import { renderForm } from "./ui/form";
+import type { FormHost } from "./ui/form";
 import { renderSheet } from "./ui/sheetview";
 import { APP_VERSION, RELEASE_NOTES, suggestionLink } from "./version";
 
@@ -41,17 +42,48 @@ let design: Design = EMPTY;
 let handle: FileHandle | undefined;
 let dirty = false;
 
-function render(): void {
-  renderForm(find("#form"), { design, update });
-  renderSheet(find("#sheet"), sheet(design));
-  find("#where").textContent = handle === undefined ? (dirty ? "Unsaved" : "") : handle.name;
-  document.title = `${design.name} — Traveller Ship Design`;
-}
+/**
+ * The form reads the live design through this rather than a copy, so a handler
+ * drawn ten edits ago still writes back against what is there now.
+ */
+const host: FormHost = {
+  get design() {
+    return design;
+  },
+  update(patch) {
+    apply(patch);
+    renderSheet(find("#sheet"), sheet(design));
+    showState();
+  },
+  rebuild(patch) {
+    apply(patch);
+    render();
+  },
+};
 
-function update(patch: Partial<Design>): void {
+function apply(patch: Partial<Design>): void {
   design = { ...design, ...patch };
   dirty = true;
-  render();
+}
+
+function showState(): void {
+  find("#where").textContent = handle === undefined ? (dirty ? "Unsaved" : "") : handle.name;
+  document.title = `${design.name} — Traveller Ship Design`;
+  find("#filename").textContent = fileNameFor(design);
+}
+
+/**
+ * Draw both halves. The form is thrown away and rebuilt, which loses the scroll
+ * position, so it is put back: a designer half way down the weapons should not
+ * be returned to the top for having added a turret.
+ */
+function render(): void {
+  const panel = find(".panel-form");
+  const scroll = panel.scrollTop;
+  renderForm(find("#form"), host);
+  panel.scrollTop = scroll;
+  renderSheet(find("#sheet"), sheet(design));
+  showState();
 }
 
 function load(next: Design, from?: FileHandle): void {
@@ -117,8 +149,6 @@ function wire(): void {
     event.preventDefault();
   });
 
-  // A saved file is named after the ship, so say so where the name is typed.
-  find("#filename").textContent = fileNameFor(design);
 }
 
 wire();

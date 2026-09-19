@@ -57,18 +57,20 @@ input[type="checkbox"] { accent-color: var(--accent); padding: 0; }
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 440px);
+  /* The sheet gets the wider half it needs for six columns, and keeps a floor
+     so the form cannot squeeze it away on a narrow window. */
+  grid-template-columns: minmax(0, 1fr) minmax(460px, 46%);
   height: calc(100vh - 41px);
 }
 
 .panel { overflow: auto; padding: 14px 18px; }
-.panel-form { border-right: 1px solid var(--line); }
+.panel-form { padding-right: 14px; border-right: 1px solid var(--line); }
 .panel-sheet { background: var(--panel); }
 
 /* The steps of the checklist. */
 
-.step { margin: 0 0 18px; padding: 0 0 14px; border-bottom: 1px solid var(--line); }
-.step h3 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--accent); }
+.step { margin: 0 0 14px; padding: 0 0 12px; border-bottom: 1px solid var(--line); }
+.step h3 { margin: 0 0 8px; font-size: 13px; font-weight: 600; color: var(--accent); }
 .step-no {
   display: inline-block;
   min-width: 22px;
@@ -77,17 +79,43 @@ input[type="checkbox"] { accent-color: var(--accent); padding: 0; }
   font-variant-numeric: tabular-nums;
 }
 
-.field { display: block; margin: 0 0 8px; }
-.field-name { display: block; margin: 0 0 2px; color: var(--muted); font-size: 12px; }
-.field-hint { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; }
-.field input, .field select { width: 100%; }
+/* Most things are a short value or a choice, so the name sits on the left and
+   the control on the right, no wider than what it holds. */
 
-.row { display: flex; gap: 8px; }
-.row .field { flex: 1; }
+.field {
+  display: grid;
+  grid-template-columns: 124px minmax(0, 1fr);
+  align-items: center;
+  gap: 1px 10px;
+  margin: 0 0 4px;
+}
+.field-name { color: var(--muted); font-size: 12px; text-align: right; }
+.field > input, .field > select { justify-self: start; width: auto; max-width: 100%; }
+.field > input[type="number"] { width: 6.5em; }
+.field > input[type="text"] { width: 22em; }
+.field-hint { grid-column: 2; color: var(--muted); font-size: 11px; }
 
-.check { display: inline-flex; align-items: center; gap: 6px; margin: 0 12px 6px 0; }
-.check-set { display: flex; flex-wrap: wrap; gap: 4px 0; margin-bottom: 8px; }
-.check-set .field { flex: 0 0 auto; width: 118px; margin-right: 8px; }
+.group-name {
+  margin: 12px 0 4px;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.check { display: inline-flex; align-items: center; gap: 6px; margin: 0 12px 5px 0; }
+.step > .check, .step > .check-set { margin-left: 134px; }
+.check-set { display: flex; flex-wrap: wrap; gap: 0 4px; margin-bottom: 8px; }
+
+/* Inside a row there is no room for a column of names, so they go above. The
+   control still sizes to what it holds, or a select clips its own options. */
+.weapon-row .field, .check-set .field { display: block; margin: 0 6px 0 0; }
+.weapon-row .field-name, .check-set .field-name { text-align: left; }
+.weapon-row .field > input { width: 6.5em; }
+.weapon-row .field > input[type="text"] { width: 11em; }
+.weapon-row .field > select { width: auto; max-width: 15em; }
+.check-set .field { width: 104px; }
+.check-set .field > input { width: 100%; }
 
 .list-editor { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 .list-row {
@@ -103,11 +131,11 @@ input[type="checkbox"] { accent-color: var(--accent); padding: 0; }
 .list-row > :first-child { flex: 1; min-width: 0; }
 .weapon-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
 .weapon-row > * { flex: 0 1 auto; margin-bottom: 0; }
-.weapon-row .field { width: 110px; }
 .remove { flex: none; color: var(--muted); }
 .remove:hover { color: var(--error); border-color: var(--error); }
 .add { align-self: flex-start; }
-.customise { margin: 0 0 8px; padding-left: 10px; border-left: 2px solid var(--line); }
+.customise { margin: 4px 0 8px 12px; padding-left: 10px; border-left: 2px solid var(--line); }
+.customise .check-set { margin-left: 124px; }
 
 .colophon { margin-top: 20px; color: var(--muted); font-size: 11px; }
 .colophon a { color: var(--muted); }
@@ -120,7 +148,8 @@ input[type="checkbox"] { accent-color: var(--accent); padding: 0; }
 .sheet-sub { margin: 2px 0 14px; color: var(--muted); }
 
 table.components { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-table.components th, table.components td { padding: 2px 6px; text-align: left; vertical-align: top; }
+table.components th, table.components td { padding: 2px 5px; text-align: left; vertical-align: top; }
+table.components td:nth-child(2) { width: 99%; }
 table.components thead th { color: var(--muted); font-weight: 400; border-bottom: 1px solid var(--line); }
 table.components tbody th { color: var(--accent); font-weight: 600; white-space: nowrap; }
 table.components .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }

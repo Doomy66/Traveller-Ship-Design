@@ -498,3 +498,9 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 10.4 The book's four reproduced ships are offered to open, because the fastest way to understand the sequence is to take a ship apart that is known to be right.
 
 10.5 Printing gives the sheet the page and drops everything else.
+
+10.6 Changing a value redraws the sheet and leaves the form standing, so the scroll position and whatever has focus survive. Only a change that adds or removes a control, such as choosing an armour type where there was none, draws the form again, and even then the scroll position is put back.
+
+10.6.1 Because the form outlives most changes, no handler may close over the design it was drawn from. One that did would write back a snapshot taken before the last few edits and silently undo them. Every handler reads the live design at the moment it fires.
+
+10.7 A component's tons, cost and power stand on one row of the sheet, with bandwidth in a column of its own that appears only when something aboard uses it.

@@ -19,6 +19,7 @@ import {
   CANISTERS,
   CANISTERS_PER_TON,
   CAPACITORS,
+  UNCUSTOMISED,
   CHEMICAL_FUEL_PER_TON_PER_FORTNIGHT,
   COCKPITS,
   COMMAND_BRIDGE,
@@ -101,12 +102,13 @@ import {
   hullPointDivisor,
   repairDroneTons,
   smallerBridgeTons,
+  customise,
   softwareRule,
   spinalImprovement,
   standardBridgeTons,
 } from "../rules/index";
-import type { CrewInputs, CrewRole } from "../rules/index";
-import type { Design } from "./design";
+import type { CrewInputs, CrewRole, Customised, TraitCategory } from "../rules/index";
+import type { Customisation, Design } from "./design";
 
 /** A line of the sheet. ShipSpec 5.2. */
 export interface SheetLine {
@@ -287,21 +289,48 @@ export function sheet(design: Design): Sheet {
     lines.push({ section: "Armour", label: `${config.label}, Armour: ${armourProtection}` });
   }
 
+  // Customising Ships, pages 71-73. A component built off its own Tech Level
+  // carries a grade and its traits. ShipSpec 4.15.
+  const customisationOf = (
+    choice: { customisation?: Customisation } | undefined,
+    category: TraitCategory,
+    baseTl: number,
+    isTurretWeapon = false,
+  ): Customised => {
+    const chosen = choice?.customisation;
+    if (chosen === undefined) return { ...UNCUSTOMISED, tlRequired: baseTl };
+    const result = customise(chosen.grade, chosen.traits ?? [], category, baseTl, isTurretWeapon);
+    for (const problem of result.problems) fail(problem, "4.15.2");
+    for (const effect of result.effects) note(effect, "4.15.2");
+    return result;
+  };
+
   // Step 2: drives. ShipSpec 4.3.
+  const manoeuvre = typeof design.manoeuvre === "number" ? { thrust: design.manoeuvre } : design.manoeuvre;
+  const jump = typeof design.jump === "number" ? { rating: design.jump } : design.jump;
   let driveTons = 0;
-  if (design.manoeuvre !== undefined) {
-    const rule = driveRating(MANOEUVRE_DRIVES, design.manoeuvre);
+  let manoeuvrePowerFactor = 1;
+  let jumpPowerFactor = 1;
+  let reactionFuelFactor = 1;
+  let jumpFuelFactor = 1;
+
+  if (manoeuvre !== undefined) {
+    const rule = driveRating(MANOEUVRE_DRIVES, manoeuvre.thrust);
     if (rule === undefined) {
-      fail(`There is no manoeuvre drive of Thrust ${design.manoeuvre}.`, "4.3.1");
+      fail(`There is no manoeuvre drive of Thrust ${manoeuvre.thrust}.`, "4.3.1");
     } else {
-      if (design.tl < rule.tl) fail(`Thrust ${rule.rating} is TL${rule.tl}.`, "4.3.1");
-      const t = hullTons * rule.hullFraction;
+      const custom = customisationOf(manoeuvre, "manoeuvre", rule.tl);
+      if (design.tl < custom.tlRequired) fail(`Thrust ${rule.rating} here is TL${custom.tlRequired}.`, "4.3.1");
+      // Cost follows the original size; tonnage follows the modified one. Page 72.
+      const base = (manoeuvre.sizedForTons ?? hullTons) * rule.hullFraction;
+      const t = base * custom.tonnage;
+      manoeuvrePowerFactor = custom.power;
       driveTons += t;
       lines.push({
         section: "M-Drive",
-        label: `Thrust ${rule.rating}`,
+        label: `Thrust ${rule.rating}${manoeuvre.sizedForTons === undefined ? "" : ` (${manoeuvre.sizedForTons} tons)`}${custom.label === "" ? "" : ` (${custom.label})`}`,
         tons: tons(t),
-        cost: cr(t * MANOEUVRE_COST_PER_TON),
+        cost: cr(base * MANOEUVRE_COST_PER_TON * custom.cost),
       });
     }
   }
@@ -310,54 +339,80 @@ export function sheet(design: Design): Sheet {
     if (rule === undefined) {
       fail(`There is no reaction drive of Thrust ${design.reaction.thrust}.`, "4.3.2");
     } else {
-      if (design.tl < rule.tl) fail(`Reaction Thrust ${rule.rating} is TL${rule.tl}.`, "4.3.2");
-      const t = hullTons * rule.hullFraction;
+      const custom = customisationOf(design.reaction, "reaction", rule.tl);
+      if (design.tl < custom.tlRequired) {
+        fail(`Reaction Thrust ${rule.rating} here is TL${custom.tlRequired}.`, "4.3.2");
+      }
+      const base = (design.reaction.sizedForTons ?? hullTons) * rule.hullFraction;
+      const t = base * custom.tonnage;
+      reactionFuelFactor = custom.fuel;
       driveTons += t;
       lines.push({
         section: "R-Drive",
-        label: `Reaction Thrust ${rule.rating}`,
+        label: `Reaction Thrust ${rule.rating}${custom.label === "" ? "" : ` (${custom.label})`}`,
         tons: tons(t),
-        cost: cr(t * REACTION_COST_PER_TON),
+        cost: cr(base * REACTION_COST_PER_TON * custom.cost),
       });
     }
   }
-  if (design.jump !== undefined) {
-    const rule = driveRating(JUMP_DRIVES, design.jump);
+  if (jump !== undefined) {
+    const rule = driveRating(JUMP_DRIVES, jump.rating);
     if (rule === undefined) {
-      fail(`There is no jump drive of Jump ${design.jump}.`, "4.3.3");
+      fail(`There is no jump drive of Jump ${jump.rating}.`, "4.3.3");
     } else {
-      if (design.tl < rule.tl) fail(`Jump ${rule.rating} is TL${rule.tl}.`, "4.3.3");
-      const raw = hullTons * rule.hullFraction + JUMP_DRIVE_EXTRA_TONS;
-      const t = Math.max(raw, JUMP_DRIVE_MIN_TONS);
+      const custom = customisationOf(jump, "jump", rule.tl);
+      if (design.tl < custom.tlRequired) fail(`Jump ${rule.rating} here is TL${custom.tlRequired}.`, "4.3.3");
+      const base = (jump.sizedForTons ?? hullTons) * rule.hullFraction + JUMP_DRIVE_EXTRA_TONS;
+      // Size Reduction may take a jump drive below its minimum, and only it. Page 72.
+      const shrunk = custom.tonnage < 1;
+      const raw = base * custom.tonnage;
+      const t = shrunk ? raw : Math.max(raw, JUMP_DRIVE_MIN_TONS);
       if (t > raw) note(`The jump drive is raised to its ${JUMP_DRIVE_MIN_TONS}-ton minimum.`, "6.4");
+      jumpPowerFactor = custom.power;
+      jumpFuelFactor = custom.fuel;
       driveTons += t;
       lines.push({
         section: "J-Drive",
-        label: `Jump ${rule.rating}`,
+        label: `Jump ${rule.rating}${jump.sizedForTons === undefined ? "" : ` (${jump.sizedForTons} tons)`}${custom.label === "" ? "" : ` (${custom.label})`}`,
         tons: tons(t),
-        cost: cr(t * JUMP_COST_PER_TON),
+        cost: cr(base * JUMP_COST_PER_TON * custom.cost),
       });
     }
   }
 
   // Step 3: the power plant. ShipSpec 4.4.
   const plant = POWER_PLANTS[design.powerPlant.type];
-  const plantTons = design.powerPlant.tons;
-  if (design.tl < plant.tl) fail(`A ${plant.label} power plant is TL${plant.tl}.`, "4.4.1");
-  const powerAvailable = plantTons * plant.powerPerTon;
+  const plantCustom = customisationOf(design.powerPlant, "powerPlant", plant.tl);
+  // The declared tonnage is the plant before customisation. Its output follows
+  // that figure; the room it takes and the fuel it burns follow the modified
+  // one. ShipSpec 4.15.3.
+  const plantBaseTons = design.powerPlant.tons;
+  const plantTons = plantBaseTons * plantCustom.tonnage;
+  if (design.tl < plantCustom.tlRequired) {
+    fail(`A ${plant.label} power plant here is TL${plantCustom.tlRequired}.`, "4.4.1");
+  }
+  const powerAvailable = plantBaseTons * plant.powerPerTon * plantCustom.powerOutput;
   lines.push({
     section: "Power Plant",
-    label: `${plant.label}, Power ${tons(powerAvailable)}`,
+    label: `${plant.label}, Power ${tons(powerAvailable)}${plantCustom.label === "" ? "" : ` (${plantCustom.label})`}`,
     tons: tons(plantTons),
-    cost: cr(plantTons * plant.costPerTon),
+    cost: cr(plantBaseTons * plant.costPerTon * plantCustom.cost),
   });
-  if (design.jump !== undefined && !plant.canJump) {
+  if (jump !== undefined && !plant.canJump) {
     fail(`A ${plant.label} power plant cannot drive a jump.`, "4.4.2");
   }
 
   // Step 4: fuel. ShipSpec 4.5.
-  const jumpFuel = design.jump === undefined ? 0 : hullTons * JUMP_FUEL_PER_RATING * design.jump;
+  // Tankage can be sized for a shorter jump than the drive can make, which is
+  // how a drop-tank ship is designed. ShipSpec 4.5.2.1.
+  const fuelledJump = jump === undefined ? 0 : (design.fuelForJump ?? jump.rating);
+  if (jump !== undefined && fuelledJump > jump.rating) {
+    fail(`Fuel for Jump ${fuelledJump} on a Jump ${jump.rating} drive.`, "4.5.2.1");
+  }
+  const jumpFuel = jump === undefined ? 0 : hullTons * JUMP_FUEL_PER_RATING * fuelledJump * jumpFuelFactor;
   const months = design.powerPlant.weeks / WEEKS_PER_MONTH;
+  // Fuel follows the tonnage actually installed, not the figure the output was
+  // reckoned from. The Close Escort proves it. ShipSpec 4.15.3.
   const plantFuel =
     design.powerPlant.type === "chemical"
       ? plantTons * CHEMICAL_FUEL_PER_TON_PER_FORTNIGHT * (design.powerPlant.weeks / 2)
@@ -366,12 +421,16 @@ export function sheet(design: Design): Sheet {
     design.reaction === undefined
       ? 0
       : design.reaction.thrust === 0
-        ? REACTION_FUEL_THRUST_0_PER_HOUR * design.reaction.hours
-        : hullTons * REACTION_FUEL_PER_THRUST_HOUR * design.reaction.thrust * design.reaction.hours;
+        ? REACTION_FUEL_THRUST_0_PER_HOUR * design.reaction.hours * reactionFuelFactor
+        : hullTons *
+          REACTION_FUEL_PER_THRUST_HOUR *
+          design.reaction.thrust *
+          design.reaction.hours *
+          reactionFuelFactor;
   const extraFuel = design.extraFuelTons ?? 0;
   const totalFuel = jumpFuel + plantFuel + reactionFuel + extraFuel;
   const fuelDetail = [
-    design.jump === undefined ? undefined : `J-${design.jump}`,
+    jump === undefined ? undefined : `J-${fuelledJump}`,
     `${design.powerPlant.weeks} weeks of operation`,
   ].filter((part): part is string => part !== undefined);
   lines.push({ section: "Fuel Tanks", label: fuelDetail.join(", "), tons: tons(totalFuel) });
@@ -774,8 +833,8 @@ export function sheet(design: Design): Sheet {
     if (design.tl < rule.tl) fail(`${rule.label} is TL${rule.tl}.`, "4.7.4");
     if (rule.jumpControl !== undefined) {
       jumpControlBandwidth = Math.max(jumpControlBandwidth, rule.bandwidth);
-      if (design.jump !== undefined && rule.jumpControl < design.jump) {
-        warn(`${rule.label} cannot run a Jump ${design.jump} drive.`, "6.2");
+      if (jump !== undefined && rule.jumpControl < jump.rating) {
+        warn(`${rule.label} cannot run a Jump ${jump.rating} drive.`, "6.2");
       }
     } else {
       bandwidth += rule.bandwidth;
@@ -847,12 +906,13 @@ export function sheet(design: Design): Sheet {
   const basicPower =
     hullTons * BASIC_SYSTEMS_POWER * (specialised.includes("nonGravity") ? NON_GRAVITY_BASIC_POWER_FACTOR : 1);
   const manoeuvrePower =
-    design.manoeuvre === undefined
+    manoeuvre === undefined
       ? 0
-      : design.manoeuvre === 0
-        ? hullTons * MANOEUVRE_POWER_THRUST_0
-        : hullTons * MANOEUVRE_POWER_PER_THRUST * design.manoeuvre;
-  const jumpPower = design.jump === undefined ? 0 : hullTons * JUMP_POWER_PER_RATING * design.jump;
+      : (manoeuvre.thrust === 0
+          ? hullTons * MANOEUVRE_POWER_THRUST_0
+          : hullTons * MANOEUVRE_POWER_PER_THRUST * manoeuvre.thrust) * manoeuvrePowerFactor;
+  const jumpPower =
+    jump === undefined ? 0 : hullTons * JUMP_POWER_PER_RATING * jump.rating * jumpPowerFactor;
   const requirements: PowerEntry[] = [{ label: "Basic Ship Systems", power: tons(basicPower) }];
   if (manoeuvrePower > 0) requirements.push({ label: "Manoeuvre Drive", power: tons(manoeuvrePower) });
   if (jumpPower > 0) requirements.push({ label: "Jump Drive", power: tons(jumpPower), whenJumping: true });
@@ -872,7 +932,7 @@ export function sheet(design: Design): Sheet {
   // Step 10: crew. ShipSpec 4.10.
   const crew: CrewEntry[] = [];
   const passengers = design.passengers ?? { high: 0, middle: 0, low: 0 };
-  const isSmallCraft = hullTons <= 100 && design.jump === undefined;
+  const isSmallCraft = hullTons <= 100 && jump === undefined;
   const column = design.military === true ? "military" : "commercial";
   if (isSmallCraft) {
     crew.push({ role: "pilot", label: CREW_ROLES.pilot.label, count: 1, salary: CREW_ROLES.pilot.salary });
@@ -881,7 +941,7 @@ export function sheet(design: Design): Sheet {
     const craftTons = (design.craft ?? []).reduce((sum, entry) => sum + (entry.driveAndPlantTons ?? 0), 0);
     const inputs: CrewInputs = {
       hullTons,
-      hasJump: design.jump !== undefined,
+      hasJump: jump !== undefined,
       driveAndPlantTons: driveTons + plantTons + craftTons,
       smallCraft,
       ...armed,

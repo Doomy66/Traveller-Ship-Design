@@ -153,6 +153,8 @@ Reflec and stealth exclude each other. Solar coating (page 44) is not in this ve
 
 4.3.4 A ship may have a manoeuvre drive, a reaction drive, both or neither.
 
+4.3.5 A drive is sized against the hull unless the design says otherwise. A ship that carries drop tanks or external cargo has to recalculate its Thrust against the combined tonnage (page 49), so its drives are built to move the larger figure, and the design says which. Two of the book's ships do this: the Close Escort on page 182 carries "Thrust 5 (420 tons)" in a 400-ton hull, and the Laboratory Ship on page 186 carries "Thrust 2 (400t)" in a 360-ton one.
+
 ### 4.4 Install power plant (page 18)
 
 4.4.1 The plant's size in tons is the designer's choice. Power is tons × power per ton:
@@ -175,6 +177,8 @@ Reflec and stealth exclude each other. Solar coating (page 44) is not in this ve
 4.5.1 Fuel costs nothing and takes tons.
 
 4.5.2 Jump fuel is 10% of hull tons × jump rating.
+
+4.5.2.1 The tankage may be sized for a shorter jump than the drive can make, and the design says which. That is how a drop-tank ship is built: the Close Escort has a jump-5 drive and prints "Jump-3, plus 8 weeks of operation", because its longer jumps are made on tanks it throws away. Tanking for more than the drive can use is an error.
 
 4.5.3 Reaction drive fuel is 2.5% of hull tons per thrust per hour of operation; a thrust 0 reaction drive burns 0.25 tons per hour.
 
@@ -366,6 +370,29 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 4.14.3 Hardpoints used against available (4.9.1).
 
+### 4.15 Customising ships (pages 71-73)
+
+4.15.1 A component may be built above or below its own Tech Level. The **grade** chosen shifts the Tech Level it needs, alters its tonnage and cost, and grants a number of Advantage or Disadvantage slots:
+
+| Grade | TL | Tonnage | Cost | Slots |
+|---|---|---|---|---|
+| Early Prototype | −2 | +100% | +1000% | 2 disadvantages |
+| Prototype | −1 | 0 | +500% | 1 disadvantage |
+| Budget | 0 | 0 | −25% | 1 disadvantage |
+| Advanced | +1 | 0 | +10% | 1 advantage |
+| Very Advanced | +2 | 0 | +25% | 2 advantages |
+| High Technology | +3 | 0 | +50% | 3 advantages |
+
+4.15.2 A component takes Advantages or Disadvantages, never both, and must fill its grade's slots exactly. Most traits take one slot; Increased Power, Stealth Jump, Orbital Range, Accurate, Very High Yield, Intense Focus and Long Range take two. A trait belongs to one category of component and cannot be moved to another. Size Reduction and the weapon Energy Inefficient cannot go on a turret weapon. Traits whose effect is not a number the sheet carries, such as Early Jump or Accurate, are reported as notes so the designer can see what was bought.
+
+4.15.3 Three points of arithmetic, each easy to get wrong, and all three confirmed by the Close Escort on page 182:
+
+- Alterations are **additive**. Two of +10% make +20%, not +21%.
+- A price is reckoned on the **original size**, not the modified one (page 72). The Close Escort's manoeuvre drive is 21 tons grown to 26.25 by Increased Size, and priced as 21: `21 × MCr2 × 0.75 = MCr31.5`, exactly as printed.
+- A power plant's **output** follows the original size and its **fuel** follows the size installed. The same ship has 38 tons of plant making Power 570 while occupying 47.5, and tanks fuel as 47.5 tons of plant, which is what makes its printed 130 tons of fuel come out right.
+
+4.15.4 **Refits** (page 73) are priced against the system going in, at 1.5 times its cost for a major refit or 1.1 for a minor one, or against the system coming out when nothing replaces it, at 0.5 or 0.1. Major covers the power plant, the drives, spinal mounts and launch facilities; minor covers everything else. A refit takes a quarter or a tenth of the time the whole ship would take to build. Armour and anything integral to the hull cannot be changed at all. This is an operation on a finished ship rather than a step of the sequence, so the engine offers it as a function and the sheet does not carry it.
+
 ## 5. The sheet
 
 5.1 The sheet lists lines in the book's order and with the book's section labels, so it can be laid beside a page of *Spacecraft of the Third Imperium* and read across: Hull, Armour, M-Drive, J-Drive, Power Plant, Fuel Tanks, Bridge, Computer, Sensors, Weapons, Craft, Systems, Staterooms, Software, Common Areas, Cargo.
@@ -422,7 +449,9 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 9.1 Additional hull types (double hull, hamster cage, breakaway) need per-section designs or spun-fraction inputs. Deferred until a standard ship needs one.
 
-9.2 The drive advantages and disadvantages of Customising Ships (pages 71-73) are what stand between this and a capital-ship fixture. The Close Escort's manoeuvre drive is an Increased Size one and its jump drive Energy Inefficient, and neither can be priced yet.
+9.2 What still stands between this and a capital-ship fixture is the handful of Spacecraft Options the big ships carry and this spec has not transcribed: high-efficiency batteries, drop tank mounts, medical bays and barracks among them.
+
+9.2.3 **The Close Escort's jump drive does not reconcile and the others do.** Its manoeuvre drive and power plant both fall out of the customising rules to the ton and the credit. Its jump drive is 55 tons, which is right, at MCr60, where 55 tons at MCr1.5 less a quarter for Budget is MCr61.875. No combination of the printed modifiers reaches 60. Left as the book has it, and not made a fixture.
 
 9.2.1 The Ion torpedo is printed with the Smart trait where its damage is Special and the Ion missile beside it carries the Ion trait. Transcribed as printed and worth a second look.
 

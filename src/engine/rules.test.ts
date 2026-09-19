@@ -9,6 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 import type { Design } from "./design";
+import { refitCost } from "../rules/index";
 import { sheet } from "./sheet";
 import type { Sheet } from "./sheet";
 
@@ -418,5 +419,154 @@ describe("the heavier weapons", () => {
     });
     // A single turret and a beam laser want 5; three quarters of that, rounded up.
     expect(line(fighter, "Single Turret").power).toBe(4);
+  });
+});
+
+describe("customising ships", () => {
+  /**
+   * The Gazelle-class Close Escort, page 182, is the chapter's worked example,
+   * even though the book never calls it one. Two of its three drive lines fall
+   * straight out of the rules and pin down the arithmetic; the third does not
+   * and is discussed in ShipSpec 9.2.3.
+   */
+  const GAZELLE: Design = {
+    ...BASE,
+    tl: 14,
+    hull: { tons: 400, configuration: "closeStructure" },
+    armour: { type: "bondedSuperdense", protection: 3 },
+    manoeuvre: {
+      thrust: 5,
+      sizedForTons: 420,
+      customisation: { grade: "budget", traits: ["manoeuvreIncreasedSize"] },
+    },
+    jump: { rating: 5, customisation: { grade: "budget", traits: ["jumpEnergyInefficient"] } },
+    powerPlant: {
+      type: "fusion12",
+      tons: 38,
+      weeks: 8,
+      customisation: { grade: "budget", traits: ["plantIncreasedSize"] },
+    },
+    bridge: { kind: "smaller" },
+    // Its longest jumps are made on drop tanks, so it tanks for a jump-3 only.
+    fuelForJump: 3,
+  };
+
+  const gazelle = sheet(GAZELLE);
+
+  it("grows the drive but prices the drive it started as", () => {
+    // 5% of 420 is 21 tons. Increased Size makes it 26.25, and the price stays
+    // on the 21 the book charges for: 21 x MCr2, less a quarter for Budget.
+    expect(line(gazelle, "Thrust 5")).toMatchObject({ tons: 26.25, cost: 31.5 });
+  });
+
+  it("keeps a plant's output on the tonnage it was reckoned from", () => {
+    // 38 tons of TL12 fusion is Power 570 however much room it ends up taking,
+    // and it costs 38 x MCr1 less a quarter.
+    expect(line(gazelle, "Fusion (TL12), Power 570")).toMatchObject({ tons: 47.5, cost: 28.5 });
+  });
+
+  it("burns fuel for the plant it actually installed", () => {
+    // 47.5 tons, so five tons of fuel a month and ten for eight weeks, on top
+    // of 120 for the jump. The book prints 130.
+    expect(gazelle.fuel.powerPlant).toBe(10);
+    expect(gazelle.fuel.total).toBe(130);
+  });
+
+  it("makes an energy inefficient jump drive draw three tenths more", () => {
+    expect(gazelle.powerRequirements).toContainEqual({
+      label: "Jump Drive",
+      power: 260,
+      whenJumping: true,
+    });
+  });
+
+  it("has nothing wrong with it", () => {
+    expect(errors(gazelle)).toEqual([]);
+  });
+});
+
+describe("advantages and disadvantages", () => {
+  const AT_TL15: Design = { ...BASE, tl: 15 };
+
+  it("adds alterations rather than compounding them", () => {
+    // Two Size Reductions on a High Technology drive: a fifth off, not 19%.
+    const twice = sheet({
+      ...AT_TL15,
+      manoeuvre: {
+        thrust: 2,
+        customisation: {
+          grade: "veryAdvanced",
+          traits: ["manoeuvreSizeReduction", "manoeuvreSizeReduction"],
+        },
+      },
+    });
+    // 2% of 200 is 4 tons, less a fifth is 3.2. Priced on the 4, plus a quarter.
+    expect(line(twice, "Thrust 2")).toMatchObject({ tons: 3.2, cost: 10 });
+  });
+
+  it("raises the Tech Level a component needs", () => {
+    const tooAdvanced = sheet({
+      ...BASE,
+      tl: 10,
+      powerPlant: { type: "fusion8", tons: 5, weeks: 4 },
+      manoeuvre: { thrust: 2, customisation: { grade: "highTechnology", traits: ["manoeuvreSizeReduction", "manoeuvreSizeReduction", "manoeuvreSizeReduction"] } },
+    });
+    // A Thrust 2 drive is TL10; three levels up makes it TL13.
+    expect(errors(tooAdvanced)).toContain("Thrust 2 here is TL13.");
+  });
+
+  it("refuses an advantage on a grade that grants disadvantages", () => {
+    const muddled = sheet({
+      ...AT_TL15,
+      manoeuvre: { thrust: 2, customisation: { grade: "budget", traits: ["manoeuvreEnergyEfficient"] } },
+    });
+    expect(errors(muddled)).toContain("Budget grants disadvantages, and Energy Efficient is an advantage.");
+  });
+
+  it("refuses a trait from the wrong category", () => {
+    const wrong = sheet({
+      ...AT_TL15,
+      manoeuvre: { thrust: 2, customisation: { grade: "budget", traits: ["jumpIncreasedSize"] } },
+    });
+    expect(errors(wrong)).toContain("Increased Size is a jump trait and cannot go on a manoeuvre component.");
+  });
+
+  it("insists the grade's slots are filled exactly", () => {
+    const short = sheet({
+      ...AT_TL15,
+      manoeuvre: { thrust: 2, customisation: { grade: "veryAdvanced", traits: ["manoeuvreSizeReduction"] } },
+    });
+    expect(errors(short)).toContain("Very Advanced allows 2 advantages, and 1 was taken.");
+
+    // Increased Power is a two-slot advantage, so it fills Very Advanced alone.
+    const exact = sheet({
+      ...AT_TL15,
+      powerPlant: {
+        type: "fusion12",
+        tons: 100,
+        weeks: 4,
+        customisation: { grade: "veryAdvanced", traits: ["increasedPower"] },
+      },
+    });
+    expect(errors(exact)).toEqual([]);
+    // 100 tons of TL12 fusion is Power 1,500, and a tenth more is 1,650.
+    expect(exact.powerAvailable).toBe(1_650);
+  });
+
+  it("lets Size Reduction take a jump drive under its ten-ton floor", () => {
+    const small = sheet({
+      ...AT_TL15,
+      hull: { tons: 100, configuration: "standard" },
+      jump: { rating: 1, customisation: { grade: "advanced", traits: ["jumpSizeReduction"] } },
+    });
+    // 2.5% of 100 plus five is 7.5, a tenth off is 6.75, and the floor does not bite.
+    expect(line(small, "Jump 1").tons).toBe(6.75);
+  });
+
+  it("prices a refit against the system going in, or the one coming out", () => {
+    expect(refitCost("major", 40, 60)).toBe(90);
+    expect(refitCost("major", 40)).toBe(20);
+    expect(refitCost("minor", 10, 20)).toBe(22);
+    expect(refitCost("minor", 10)).toBe(1);
   });
 });

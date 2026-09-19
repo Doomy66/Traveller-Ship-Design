@@ -13,6 +13,7 @@ import type {
   BayWeapon,
   Canister,
   CockpitKind,
+  CustomisationGrade,
   FlatSystem,
   HullConfiguration,
   HullOption,
@@ -29,6 +30,7 @@ import type {
   SpinalWeapon,
   StealthType,
   Torpedo,
+  Trait,
   TurretWeapon,
 } from "../rules/index";
 
@@ -50,17 +52,57 @@ export interface ArmourChoice {
   readonly protection: number;
 }
 
-export interface ReactionChoice {
+/**
+ * A component built above or below its own Tech Level. ShipSpec 4.15.
+ * The traits must be the grade's own kind, and must fill its slots exactly.
+ */
+export interface Customisation {
+  readonly grade: CustomisationGrade;
+  readonly traits?: readonly Trait[];
+}
+
+/**
+ * The tonnage a drive is built to move, where that is not the hull's own.
+ *
+ * A ship that carries drop tanks or external cargo has to recalculate its
+ * Thrust against the combined tonnage (page 49), so its drives are sized for
+ * the larger figure. Two of the book's ships do exactly this: the Close Escort
+ * on page 182 carries "Thrust 5 (420 tons)" in a 400-ton hull, and the
+ * Laboratory Ship on page 186 carries "Thrust 2 (400t)" in a 360-ton one.
+ * Left out, the drive is sized for the hull. ShipSpec 4.3.5.
+ */
+export interface DriveSizing {
+  readonly sizedForTons?: number;
+}
+
+/** A drive is a bare rating, or a rating with sizing and a customisation on it. */
+export interface ManoeuvreChoice extends DriveSizing {
+  readonly thrust: number;
+  readonly customisation?: Customisation;
+}
+
+export interface JumpChoice extends DriveSizing {
+  readonly rating: number;
+  readonly customisation?: Customisation;
+}
+
+export interface ReactionChoice extends DriveSizing {
   readonly thrust: number;
   /** Hours of burn the fuel tankage is sized for. ShipSpec 4.5.3. */
   readonly hours: number;
+  readonly customisation?: Customisation;
 }
 
 export interface PowerPlantChoice {
   readonly type: PowerPlantType;
+  /**
+   * Tons before any customisation. A plant with Increased Size takes more room
+   * than this and still makes the Power this much of it would. ShipSpec 4.15.3.
+   */
   readonly tons: number;
   /** Weeks of operation the fuel tankage is sized for. ShipSpec 4.5.4. */
   readonly weeks: number;
+  readonly customisation?: Customisation;
 }
 
 export interface BridgeChoice {
@@ -173,12 +215,19 @@ export interface Design {
   readonly military?: boolean;
   readonly hull: HullChoice;
   readonly armour?: ArmourChoice;
-  /** Thrust. */
-  readonly manoeuvre?: number;
+  /** Thrust, or a thrust with a customisation on the drive. */
+  readonly manoeuvre?: number | ManoeuvreChoice;
   readonly reaction?: ReactionChoice;
-  /** Jump rating. */
-  readonly jump?: number;
+  /** Jump rating, or a rating with a customisation on the drive. */
+  readonly jump?: number | JumpChoice;
   readonly powerPlant: PowerPlantChoice;
+  /**
+   * The jump number the tankage is sized for, where that is not the drive's
+   * own rating. A ship meant to make its longest jumps on drop tanks carries
+   * less than its drive could use: the Close Escort on page 182 has a jump-5
+   * drive and prints "Jump-3, plus 8 weeks of operation". ShipSpec 4.5.2.1.
+   */
+  readonly fuelForJump?: number;
   /** Tankage beyond what the drives and plant need. ShipSpec 4.5.5. */
   readonly extraFuelTons?: number;
   readonly bridge: BridgeChoice;

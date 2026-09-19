@@ -1,8 +1,8 @@
 # Plan: design ships to High Guard Update 2022
 
-Status: **phases 0 to 3 done, 2026-09-19.** The engine reproduces the Scout/Courier, the Free Trader and the Patrol Corvette from the book to the ton and the credit, and 60 tests pass. Next is phase 4, the rest of Spacecraft Options, or phase 5, a user interface.
+Status: **phases 0 to 3 plus Customising Ships done, 2026-09-19.** The engine reproduces the Scout/Courier, the Free Trader and the Patrol Corvette from the book to the ton and the credit, and 72 tests pass. Next is phase 4, the rest of Spacecraft Options, or phase 5, a user interface.
 
-A capital-ship fixture is blocked until Customising Ships (pages 71-73) lands, because the Close Escort and the Destroyer Escort both use drive advantages and disadvantages. That chapter is small and would be worth doing before phase 4.
+A capital-ship fixture now needs only the handful of Spacecraft Options the big ships carry: high-efficiency batteries, drop tank mounts, medical bays, barracks.
 
 ## Goal
 
@@ -65,7 +65,9 @@ Stepper, live sheet, problems list, JSON save/load, printable sheet in the book'
 
 ### Phase 6 and beyond
 
-Customising ships (TL changes, drive and weapon advantages, refits, pages 71-73). Space stations (65-70). Exotic technology (80-85). Then the deck plan thread using the geomorph tiles.
+Space stations (65-70). Exotic technology (80-85). Then the deck plan thread using the geomorph tiles.
+
+Customising ships (pages 71-73) was pulled forward and done after phase 3, because the book's capital ships all use drive advantages and disadvantages and none of them could be reproduced without it.
 
 ## Decisions needed before phase 0
 
@@ -79,7 +81,6 @@ Customising ships (TL changes, drive and weapon advantages, refits, pages 71-73)
 - [x] Phase 1 (2026-09-19): `src/rules/*.ts`, one file per step, typechecks clean
 - [x] Phase 2 (2026-09-19): `src/engine/`, both fixtures green, 43 tests
 - [x] Phase 3 (2026-09-19): weapons chapter, Patrol Corvette fixture green, 60 tests
-- [ ] Phase 2
-- [ ] Phase 3
-- [ ] Phase 4
-- [ ] Phase 5
+- [x] Customising Ships (2026-09-19): grades, traits, refit costs, 72 tests
+- [ ] Phase 4: the rest of Spacecraft Options
+- [ ] Phase 5: the user interface

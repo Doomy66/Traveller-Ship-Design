@@ -1,6 +1,6 @@
 # Plan: design ships to High Guard Update 2022
 
-Status: **approved 2026-09-19 with all three recommendations.** Phase 0 scaffold and phase 1 rules data done; `ShipSpec.md` written. Next is phase 2: the engine (`src/engine/`), the Scout and Free Trader fixtures, and their tests. Stopped there for review.
+Status: **phases 0 to 2 done, 2026-09-19.** The engine reproduces the Scout/Courier and the Free Trader from the book to the ton and the credit, and 43 tests pass. All four table readings that needed eyeballing were confirmed by the author. Next is phase 3, the weapons chapter, or phase 5, a user interface, whichever is wanted first.
 
 ## Goal
 
@@ -75,6 +75,7 @@ Customising ships (TL changes, drive and weapon advantages, refits, pages 71-73)
 
 - [x] Phase 0 (2026-09-19)
 - [x] Phase 1 (2026-09-19): `src/rules/*.ts`, one file per step, typechecks clean
+- [x] Phase 2 (2026-09-19): `src/engine/`, both fixtures green, 43 tests
 - [ ] Phase 2
 - [ ] Phase 3
 - [ ] Phase 4

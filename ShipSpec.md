@@ -216,7 +216,9 @@ Reflec and stealth exclude each other. Solar coating (page 44) is not in this ve
 
 4.7.4 **Software.** High Guard defers the basic packages to Core page 161, and the fixtures need them, so they are transcribed here: Manoeuvre (TL8) and Intellect (TL11) are included at no cost and no bandwidth; Library likewise, as every fixture sheet shows it at no cost; Jump Control/n is TL 9, 11, 12, 13, 14, 15 for n = 1 to 6, bandwidth 5n, cost MCr0.1n. Evade, Fire Control and Auto-Repair are transcribed from the same table for later use. The High Guard packages (Advanced Fire Control, Anti-Hijack, Battle Network, Battle System, Broad Spectrum EW, Conscious Intelligence, Electronic Warfare, Launch Solution, Point Defence, Screen Optimiser, Virtual Crew, Virtual Gunner) are transcribed from pages 74-76.
 
-4.7.5 The sheet shows total bandwidth against processing. Jump Control over the processing the computer offers it, including `/bis`, is an error; other software over the total is a warning, since not all of it need run at once (page 74).
+4.7.5 Jump Control is weighed on its own, against the processing the computer offers it: base processing plus `/bis`, or included outright in a core. Over that is an error. This is the whole point of `/bis`, and the Scout is the case: a Computer/5bis runs Jump Control/2, which wants 10 bandwidth against a base of 5.
+
+4.7.5.1 Every other package is weighed together against base processing, and going over is only a warning, because a ship does not jump and fight at once and the book says to size the computer on what runs concurrently (page 74).
 
 ### 4.8 Install sensors (page 22)
 
@@ -376,6 +378,8 @@ Reflec and stealth exclude each other. Solar coating (page 44) is not in this ve
 7.3 **Free Trader, Type A** (page 172). TL12, 200 tons streamlined, crystaliron 2, thrust 1, jump 1, 5 tons of TL12 fusion for power 75 and 4 weeks, 10-ton bridge, Computer/5, civilian sensors, 1-ton fuel processor, scoops, cargo crane, ten staterooms, twenty low berths, 10 tons of common area, Jump Control/1; 80 tons of cargo. Total MCr51.38, standard MCr46.242, Cr3854 a month, hull 80. Crew pilot, astrogator, engineer, steward, with six high and twenty low passengers declared.
 
 7.3.1 Core prints the same ship with 11 tons of common area and a medic. High Guard is the authority here and the fixture follows it.
+
+7.3.2 **The Free Trader's tonnage does not balance and the fixture does not pretend it does.** Its components come to 119 tons against a 200-ton hull, so cargo is 81; the sheet prints 80. Every cost on the sheet is right, and they total to the printed MCr51.38, so the slip is in the tonnage column alone. Core prints the same ship with 11 tons of common area and 81 tons of cargo, which comes to 201. Neither printing adds up, and they miss in opposite directions. The engine computes 81 and the test asserts 81, with the printed 80 named as the erratum it is. The Scout, by contrast, reconciles exactly: 89 tons of components, 11 of cargo, and MCr41.045 to the credit.
 
 7.4 Next in line, once weapons and more options land: Launch and Ship's Boat (cockpits, small craft crew), Far Trader (page 170), Patrol Corvette (188), Subsidised Merchant (190).
 

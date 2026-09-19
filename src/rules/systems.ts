@@ -16,6 +16,11 @@ export interface FlatSystemRule {
   /** MCr. */
   readonly cost: number;
   readonly power?: number;
+  /**
+   * How many of the thing one entry buys, where the book sells them in sets.
+   * Drones come five to an entry, and a sheet says "Probe Drones x10" for two.
+   */
+  readonly units?: number;
 }
 
 export interface PerTonSystemRule {
@@ -54,10 +59,9 @@ export const FLAT_SYSTEMS: Readonly<Record<FlatSystem, FlatSystemRule>> = {
   cargoScoop: { kind: "flat", label: "Cargo Scoop", page: 53, tons: 2, cost: 0.5 },
   cargoNet: { kind: "flat", label: "Cargo Net", page: 53, tons: 5, cost: 1 },
   sensorStation: { kind: "flat", label: "Sensor Station", page: 53, tons: 1, cost: 0.5 },
-  /** Five drones per entry. */
-  probeDrones: { kind: "flat", label: "Probe Drones x5", page: 55, tl: 9, tons: 1, cost: 0.5 },
-  advancedProbeDrones: { kind: "flat", label: "Advanced Probe Drones x5", page: 55, tl: 12, tons: 1, cost: 0.8 },
-  miningDrones: { kind: "flat", label: "Mining Drones x5", page: 55, tl: 12, tons: 10, cost: 1 },
+  probeDrones: { kind: "flat", label: "Probe Drones", page: 55, tl: 9, tons: 1, cost: 0.5, units: 5 },
+  advancedProbeDrones: { kind: "flat", label: "Advanced Probe Drones", page: 55, tl: 12, tons: 1, cost: 0.8, units: 5 },
+  miningDrones: { kind: "flat", label: "Mining Drones", page: 55, tl: 12, tons: 10, cost: 1, units: 5 },
   armoury: { kind: "flat", label: "Armoury", page: 59, tons: 1, cost: 0.25 },
   briefingRoom: { kind: "flat", label: "Briefing Room", page: 60, tons: 4, cost: 0.5 },
   workshop: { kind: "flat", label: "Workshop", page: 64, tons: 6, cost: 0.9 },

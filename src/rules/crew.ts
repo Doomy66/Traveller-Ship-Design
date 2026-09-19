@@ -27,8 +27,56 @@ export interface CrewInputs {
   readonly smallCraft: number;
   /** Turrets with at least one weapon. ShipSpec 4.10.2.2. */
   readonly armedTurrets: number;
+  readonly barbettes: number;
+  readonly smallBays: number;
+  readonly mediumBays: number;
+  readonly largeBays: number;
+  /** Tons of spinal mount weaponry. */
+  readonly spinalTons: number;
+  readonly screens: number;
   readonly highPassengers: number;
   readonly middlePassengers: number;
+}
+
+/** Nothing armed at all, to spread over in a caller that only cares about a few. */
+export const NO_WEAPONS = {
+  armedTurrets: 0,
+  barbettes: 0,
+  smallBays: 0,
+  mediumBays: 0,
+  largeBays: 0,
+  spinalTons: 0,
+  screens: 0,
+} as const;
+
+/** A spinal mount wants a gunner per this much of itself. Page 24. */
+export const SPINAL_TONS_PER_GUNNER = 100;
+
+export const TONS_PER_ENGINEER = 35;
+
+/**
+ * Engineers, page 24: "1 per 35 tons of drives and power plant". Taken
+ * literally that rounds up, and the book's own ships say otherwise. The figure
+ * is rounded to the nearest whole engineer, with one as the floor for any ship
+ * that has an engine room at all. ShipSpec 4.10.2.1.
+ *
+ * Six of the book's ships, and only this rule fits all six:
+ *
+ * | Ship | Drives and plant | Engineers |
+ * |---|---|---|
+ * | Scout/Courier | 16 | 1 |
+ * | Free Trader | 17 | 1 |
+ * | Far Trader | 22 | 1 |
+ * | Patrol Corvette | 71 | 2 |
+ * | Close Escort | 128.75 | 4 |
+ * | Destroyer Escort | 229 | 7 |
+ *
+ * Rounding up gives the Corvette three and the book gives it two. Rounding
+ * down gives the Destroyer Escort six and the book gives it seven. Rounding
+ * down without the floor leaves the Scout with none at all.
+ */
+export function engineers(driveAndPlantTons: number): number {
+  return Math.max(1, Math.round(driveAndPlantTons / TONS_PER_ENGINEER));
 }
 
 export interface CrewRoleRule {
@@ -71,8 +119,8 @@ export const CREW_ROLES: Readonly<Record<CrewRole, CrewRoleRule>> = {
   },
   engineer: {
     label: "Engineer", skill: "Engineer", salary: 4_000, reducible: true,
-    commercial: (i) => Math.ceil(i.driveAndPlantTons / 35),
-    military: (i) => Math.ceil(i.driveAndPlantTons / 35),
+    commercial: (i) => engineers(i.driveAndPlantTons),
+    military: (i) => engineers(i.driveAndPlantTons),
   },
   maintenance: {
     label: "Maintenance", skill: "Mechanic", salary: 1_000, reducible: true,
@@ -81,8 +129,22 @@ export const CREW_ROLES: Readonly<Record<CrewRole, CrewRoleRule>> = {
   },
   gunner: {
     label: "Gunner", skill: "Gunner", salary: 2_000, reducible: true,
-    commercial: (i) => i.armedTurrets,
-    military: (i) => 2 * i.armedTurrets,
+    // Commercial: one per turret, barbette and screen. The book adds that bay
+    // and spinal weapons require military crewing, so those are counted at the
+    // military rate whoever owns the ship, and the engine says so. ShipSpec 4.10.2.3.
+    commercial: (i) =>
+      i.armedTurrets +
+      i.barbettes +
+      i.screens +
+      i.smallBays +
+      2 * i.mediumBays +
+      4 * i.largeBays +
+      Math.floor(i.spinalTons / SPINAL_TONS_PER_GUNNER),
+    military: (i) =>
+      2 * (i.armedTurrets + i.barbettes + i.mediumBays + i.screens) +
+      i.smallBays +
+      4 * i.largeBays +
+      Math.floor(i.spinalTons / SPINAL_TONS_PER_GUNNER),
   },
   steward: {
     label: "Steward", skill: "Steward", salary: 2_000, reducible: false,

@@ -10,6 +10,8 @@ export * from "./bridge";
 export * from "./computer";
 export * from "./sensors";
 export * from "./weapons";
+export * from "./ordnance";
+export * from "./screens";
 export * from "./crew";
 export * from "./accommodation";
 export * from "./systems";

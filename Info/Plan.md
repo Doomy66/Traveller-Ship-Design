@@ -1,6 +1,8 @@
 # Plan: design ships to High Guard Update 2022
 
-Status: **phases 0 to 2 done, 2026-09-19.** The engine reproduces the Scout/Courier and the Free Trader from the book to the ton and the credit, and 43 tests pass. All four table readings that needed eyeballing were confirmed by the author. Next is phase 3, the weapons chapter, or phase 5, a user interface, whichever is wanted first.
+Status: **phases 0 to 3 done, 2026-09-19.** The engine reproduces the Scout/Courier, the Free Trader and the Patrol Corvette from the book to the ton and the credit, and 60 tests pass. Next is phase 4, the rest of Spacecraft Options, or phase 5, a user interface.
+
+A capital-ship fixture is blocked until Customising Ships (pages 71-73) lands, because the Close Escort and the Destroyer Escort both use drive advantages and disadvantages. That chapter is small and would be worth doing before phase 4.
 
 ## Goal
 
@@ -76,6 +78,7 @@ Customising ships (TL changes, drive and weapon advantages, refits, pages 71-73)
 - [x] Phase 0 (2026-09-19)
 - [x] Phase 1 (2026-09-19): `src/rules/*.ts`, one file per step, typechecks clean
 - [x] Phase 2 (2026-09-19): `src/engine/`, both fixtures green, 43 tests
+- [x] Phase 3 (2026-09-19): weapons chapter, Patrol Corvette fixture green, 60 tests
 - [ ] Phase 2
 - [ ] Phase 3
 - [ ] Phase 4

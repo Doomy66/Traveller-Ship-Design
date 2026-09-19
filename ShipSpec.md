@@ -258,7 +258,17 @@ Reflec and stealth exclude each other. Solar coating (page 44) is not in this ve
 | Railgun | 10 | Short | 2 | 2D | MCr1 | AP 4 |
 | Sandcaster | 9 | Special | 0 | Special | MCr0.25 | |
 
-4.9.4 Barbettes, bays, spinal mounts, missiles and torpedoes as ammunition, and screens are **not in this version**. Open question 9.2.
+4.9.4 **Barbettes** (page 31) are heavy turrets. Each takes one hardpoint and 5 tons, or three firmpoints on a ship under 100 tons, where a missile or torpedo barbette takes 2 tons more. Their damage is multiplied by 3.
+
+4.9.4.1 **Bays** (pages 32-34) come small, medium and large. The size fixes the tonnage, hardpoints, crew and damage multiple: 50 tons and one hardpoint, 100 and one, 500 and five. The weapon fixes the cost, power and damage, and each of the eleven bay weapons is priced separately at each size. A ship under 100 tons has no hardpoint to put one on.
+
+4.9.5 **Ordnance** is bought by the load. Twelve missiles to a ton, three torpedoes, twenty canisters, and the book's prices are per bundle. Every launcher comes with a magazine that costs nothing, so what a design buys here is the stock on top of that.
+
+4.9.6 **Spinal mounts** (pages 35-37) are sized in multiples of a base size, and the multiple scales tonnage, power, damage and cost together. They take a hardpoint per 100 tons, rounded up, and cannot exceed half the ship. Building one above its own Tech Level shrinks it and raises its price, by 10, 15 or 20 per cent against 10, 20 or 30, and the table stops at three levels.
+
+4.9.7 **Screens** (page 42) are the meson screen and the nuclear damper, 10 tons each. They are not on the Hardpoints table, so they take none, but they do want a gunner. A **black globe generator** takes 50 tons and is not for sale at any price the rules set; its capacitors come free from a jump drive at a fifth of the drive's tonnage, and more can be bought.
+
+4.9.8 **Point defence batteries** (page 41), laser or gauss, take 20 tons and one hardpoint each.
 
 ### 4.10 Determine crew (pages 23-24)
 
@@ -280,7 +290,22 @@ Reflec and stealth exclude each other. Solar coating (page 44) is not in this ve
 | Medic | Cr4000 | 1 per 120 crew and passengers | 1 per 120 crew |
 | Officer | Cr5000 | 1 per full 20 crew | 1 per full 10 crew |
 
-4.10.2.1 "1 per 35 tons" rounds up; "1 per 1,000 tons", "per 120", "per full 20" round down. The fixtures agree: the Scout's 16 tons of drives and plant is one engineer, and neither fixture has a medic.
+4.10.2.1 "1 per 1,000 tons", "per 120" and "per full 20" round down. **Engineers do not.** Read literally, "1 per 35 tons of drives and power plant" rounds up, and the book's own ships say otherwise. The figure is rounded to the nearest whole engineer, with one as the floor for any ship with an engine room:
+
+| Ship | Page | Drives and plant | Engineers |
+|---|---|---|---|
+| Scout/Courier | 161 | 16 | 1 |
+| Free Trader | 172 | 17 | 1 |
+| Far Trader | 170 | 22 | 1 |
+| Patrol Corvette | 188 | 71 | 2 |
+| Close Escort | 182 | 128.75 | 4 |
+| Destroyer Escort | 208 | 229 | 7 |
+
+Rounding up gives the Corvette three where the book gives two. Rounding down gives the Destroyer Escort six where the book gives seven, and leaves the Scout with none. Only rounding to nearest, with a floor of one, fits all six.
+
+4.10.2.1.1 A carried craft contributes its own drives and power plant, not its displacement. The Corvette carries a 30-ton ship's boat and is crewed as though only its own 71 tons of machinery existed. A design that does not say what a carried craft's engine room weighs contributes nothing for it.
+
+4.10.2.3 Gunners: one per turret, barbette and screen for a commercial ship, two for a military one. Bays and spinal mounts are crewed at military rates whoever owns the ship, because the book says they require military crewing, and the sheet notes it on a civilian design. A small bay wants one gunner, a medium two, a large four, and a spinal mount one per 100 tons.
 
 4.10.2.2 An empty turret has no gunner. The Scout carries an empty double turret and lists none.
 
@@ -381,7 +406,11 @@ Reflec and stealth exclude each other. Solar coating (page 44) is not in this ve
 
 7.3.2 **The Free Trader's tonnage does not balance and the fixture does not pretend it does.** Its components come to 119 tons against a 200-ton hull, so cargo is 81; the sheet prints 80. Every cost on the sheet is right, and they total to the printed MCr51.38, so the slip is in the tonnage column alone. Core prints the same ship with 11 tons of common area and 81 tons of cargo, which comes to 201. Neither printing adds up, and they miss in opposite directions. The engine computes 81 and the test asserts 81, with the printed 80 named as the erratum it is. The Scout, by contrast, reconciles exactly: 89 tons of components, 11 of cargo, and MCr41.045 to the credit.
 
-7.4 Next in line, once weapons and more options land: Launch and Ship's Boat (cockpits, small craft crew), Far Trader (page 170), Patrol Corvette (188), Subsidised Merchant (190).
+7.4 **Patrol Corvette, Type T** (page 188). The warship, and the proof of the weapons chapter. TL12, 400 tons streamlined, crystaliron 4, thrust 4, jump 3, 20 tons of TL12 fusion for power 300 and 4 weeks, 20-ton bridge, Computer/15, military sensors, four triple turrets, three pulse lasers each in two of them and three missile racks each in the other two, a ship's boat and a G/carrier each in its own docking space, 4-ton fuel processor, scoops, twelve staterooms, four low berths, 10 tons of common area, Jump Control/3 with Evade and Fire Control; 43 tons of cargo. Total MCr198.26, standard design MCr178.434, Cr14870 a month, hull 160. Its weapons draw the 28 power the book prints, which is the figure that proves the turret rules.
+
+7.4.1 The book's crew list is not the Crew Requirements table's output and does not claim to be. It adds a medic and eight marines that no rule in the design sequence generates, and lists one pilot where the table asks for two, a carried small craft adding the second. The Subsidised Merchant on page 190 says outright what is going on: "the pilot also operates the launch". The sheets print a practical minimum crew. The fixture tests the table.
+
+7.5 Next in line: Launch and Ship's Boat (cockpits, small craft crew), Far Trader (page 170), Subsidised Merchant (190), and a capital ship once Customising Ships lands, since the Close Escort and the Destroyer Escort both use drive advantages and disadvantages.
 
 ## 8. Saving
 
@@ -393,7 +422,11 @@ Reflec and stealth exclude each other. Solar coating (page 44) is not in this ve
 
 9.1 Additional hull types (double hull, hamster cage, breakaway) need per-section designs or spun-fraction inputs. Deferred until a standard ship needs one.
 
-9.2 Barbettes, bays, spinal mounts, screens and ammunition are the bulk of the Weapons chapter and the whole of the capital-ship fixtures. Phase 3 of the plan.
+9.2 The drive advantages and disadvantages of Customising Ships (pages 71-73) are what stand between this and a capital-ship fixture. The Close Escort's manoeuvre drive is an Increased Size one and its jump drive Energy Inefficient, and neither can be priced yet.
+
+9.2.1 The Ion torpedo is printed with the Smart trait where its damage is Special and the Ion missile beside it carries the Ion trait. Transcribed as printed and worth a second look.
+
+9.2.2 The Repulsor Bay's Tech Level falls as the bay grows, 15 then 14 then 13, where every other bay weapon holds steady or rises. Transcribed as printed.
 
 9.3 Whether to round armour tonnage. The book does not and the fixtures come out whole anyway.
 

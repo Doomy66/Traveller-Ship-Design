@@ -230,15 +230,15 @@ describe("weapons", () => {
   it("refuses more mounts than there are hardpoints", () => {
     const bristling = sheet({
       ...BASE,
-      weapons: [{ mount: "triple", weapons: ["pulseLaser"], quantity: 3 }],
+      weapons: [{ kind: "turret", mount: "triple", weapons: ["pulseLaser"], quantity: 3 }],
     });
     expect(errors(bristling)).toContain("3 mounts against 2 hardpoints.");
   });
 
   it("prices a turret with its weapons and draws power only when it is armed", () => {
-    const armed = sheet({ ...BASE, weapons: [{ mount: "triple", weapons: ["beamLaser", "beamLaser"] }] });
+    const armed = sheet({ ...BASE, weapons: [{ kind: "turret", mount: "triple", weapons: ["beamLaser", "beamLaser"] }] });
     expect(line(armed, "Triple Turret")).toMatchObject({ tons: 1, cost: 2, power: 9 });
-    const empty = sheet({ ...BASE, weapons: [{ mount: "triple" }] });
+    const empty = sheet({ ...BASE, weapons: [{ kind: "turret", mount: "triple" }] });
     expect(line(empty, "Triple Turret").power).toBeUndefined();
   });
 });
@@ -303,5 +303,120 @@ describe("finalising", () => {
     const stuffed = sheet({ ...BASE, hull: { tons: 100, configuration: "standard" }, staterooms: 30 });
     expect(errors(stuffed)[0]).toMatch(/^Components come to /);
     expect(stuffed.cargoTons).toBeLessThan(0);
+  });
+});
+
+describe("the heavier weapons", () => {
+  /** A capital ship to hang things off. */
+  const CAPITAL: Design = {
+    ...BASE,
+    military: true,
+    hull: { tons: 20_000, configuration: "standard" },
+    powerPlant: { type: "fusion15", tons: 2_000, weeks: 4 },
+  };
+
+  it("gives a barbette five tons and a hardpoint", () => {
+    const armed = sheet({ ...CAPITAL, weapons: [{ kind: "barbette", weapon: "particle" }] });
+    expect(line(armed, "Particle Barbette")).toMatchObject({ tons: 5, cost: 8, power: 15 });
+    expect(armed.hardpoints.used).toBe(1);
+  });
+
+  it("takes three firmpoints for a barbette on a small hull, and two more tons for a missile one", () => {
+    const boat = sheet({
+      ...BASE,
+      hull: { tons: 80, configuration: "standard" },
+      weapons: [{ kind: "barbette", weapon: "missile" }],
+    });
+    expect(line(boat, "Missile Barbette").tons).toBe(7);
+    expect(boat.hardpoints).toMatchObject({ available: 3, used: 3, firmpoints: true });
+  });
+
+  it("sizes a bay by the bay and prices it by the weapon", () => {
+    const small = sheet({ ...CAPITAL, weapons: [{ kind: "bay", size: "small", weapon: "particleBeam" }] });
+    expect(line(small, "Particle Beam Bay")).toMatchObject({ tons: 50, cost: 20, power: 30 });
+    const large = sheet({ ...CAPITAL, weapons: [{ kind: "bay", size: "large", weapon: "particleBeam" }] });
+    expect(line(large, "Particle Beam Bay")).toMatchObject({ tons: 500, cost: 60, power: 80 });
+    expect(large.hardpoints.used).toBe(5);
+  });
+
+  it("scales a spinal mount by its multiple, as the book's worked example does", () => {
+    // Page 36: a 15,000-ton meson spinal mount, so two multiples of 7,500,
+    // consumes 2,000 Power, deals 12D and costs MCr4000.
+    const meson = sheet({
+      ...CAPITAL,
+      hull: { tons: 40_000, configuration: "standard" },
+      weapons: [{ kind: "spinal", weapon: "meson", multiple: 2 }],
+    });
+    expect(line(meson, "Meson Spinal Mount x2")).toMatchObject({ tons: 15_000, cost: 4_000, power: 2_000 });
+    expect(meson.hardpoints.used).toBe(150);
+  });
+
+  it("shrinks a spinal mount built above its Tech Level and charges for it", () => {
+    const advanced = sheet({
+      ...CAPITAL,
+      tl: 15,
+      hull: { tons: 40_000, configuration: "standard" },
+      weapons: [{ kind: "spinal", weapon: "meson", multiple: 2, levelsAboveBase: 3 }],
+    });
+    // Three levels above TL12: a fifth off the tonnage, three tenths on the price.
+    expect(line(advanced, "Meson Spinal Mount x2")).toMatchObject({ tons: 12_000, cost: 5_200 });
+  });
+
+  it("refuses a spinal mount over half the ship", () => {
+    const overgrown = sheet({
+      ...CAPITAL,
+      hull: { tons: 10_000, configuration: "standard" },
+      weapons: [{ kind: "spinal", weapon: "meson", multiple: 1 }],
+    });
+    expect(errors(overgrown)).toContain("A spinal mount cannot exceed half the tonnage of the ship carrying it.");
+  });
+
+  it("gives a screen no hardpoint but a gunner, and a point defence battery both", () => {
+    const screened = sheet({ ...CAPITAL, tl: 15, weapons: [{ kind: "screen", screen: "mesonScreen" }] });
+    expect(line(screened, "Meson Screen")).toMatchObject({ tons: 10, cost: 20, power: 30 });
+    expect(screened.hardpoints.used).toBe(0);
+
+    const defended = sheet({ ...CAPITAL, weapons: [{ kind: "pointDefence", battery: "laser", type: "typeII" }] });
+    expect(line(defended, "Point Defence Laser Battery Type II")).toMatchObject({ tons: 20, cost: 10 });
+    expect(defended.hardpoints.used).toBe(1);
+  });
+
+  it("crews bays and spinal mounts at military rates on a civilian ship, and says so", () => {
+    const civilian = sheet({
+      ...CAPITAL,
+      military: false,
+      weapons: [{ kind: "bay", size: "large", weapon: "missile" }],
+    });
+    const gunners = civilian.crew.find((entry) => entry.role === "gunner")?.count ?? 0;
+    // Four for a large bay, then the three-quarters reduction a 20,000-ton hull gets.
+    expect(gunners).toBe(3);
+    expect(civilian.problems.map((problem) => problem.message)).toContain(
+      "Bay and spinal weapons require military crewing, so they are crewed at military rates.",
+    );
+  });
+
+  it("buys ordnance by the ton it comes in", () => {
+    const loaded = sheet({
+      ...CAPITAL,
+      ordnance: [
+        { missile: "standard", count: 24 },
+        { torpedo: "nuclear", count: 6 },
+        { canister: "sand", count: 40 },
+      ],
+    });
+    expect(line(loaded, "Standard Missile x24")).toMatchObject({ tons: 2, cost: 0.5 });
+    expect(line(loaded, "Nuclear Torpedo x6")).toMatchObject({ tons: 2, cost: 0.45 });
+    expect(line(loaded, "Sand Canister x40")).toMatchObject({ tons: 2, cost: 0.05 });
+  });
+
+  it("discounts the power of a weapon on a firmpoint by a quarter", () => {
+    const fighter = sheet({
+      ...BASE,
+      hull: { tons: 20, configuration: "standard" },
+      bridge: { kind: "cockpit" },
+      weapons: [{ kind: "turret", mount: "single", weapons: ["beamLaser"] }],
+    });
+    // A single turret and a beam laser want 5; three quarters of that, rounded up.
+    expect(line(fighter, "Single Turret").power).toBe(4);
   });
 });

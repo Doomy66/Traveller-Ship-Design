@@ -7,6 +7,7 @@
 
 import { describe, expect, it } from "vitest";
 import { FREE_TRADER } from "../fixtures/freeTrader";
+import { PATROL_CORVETTE } from "../fixtures/patrolCorvette";
 import { SCOUT_COURIER } from "../fixtures/scoutCourier";
 import { sheet } from "./sheet";
 import type { Sheet } from "./sheet";
@@ -148,6 +149,91 @@ describe("Free Trader, page 172", () => {
     // in nobody's hands. Core prints the same ship at 201. ShipSpec 7.3.2.
     expect(result.tonsUsed).toBe(119);
     expect(result.tonsUsed + result.cargoTons).toBe(200);
+  });
+
+  it("has nothing wrong with it", () => {
+    expect(result.problems.filter((problem) => problem.severity !== "note")).toEqual([]);
+  });
+});
+
+describe("Patrol Corvette, page 188", () => {
+  const result = sheet(PATROL_CORVETTE);
+
+  it("prints the sheet the book prints", () => {
+    expect(printed(result)).toEqual([
+      ["400 tons, Streamlined", undefined, 24],
+      ["Crystaliron, Armour: 4", 24, 4.8],
+      ["Thrust 4", 16, 32],
+      ["Jump 3", 35, 52.5],
+      ["Fusion (TL12), Power 300", 20, 20],
+      ["J-3, 4 weeks of operation", 122, undefined],
+      ["Bridge", 20, 2],
+      ["Computer/15", undefined, 2],
+      ["Military Grade", 2, 4.1],
+      ["Triple Turret (Pulse Laser x3) x2", 2, 8],
+      ["Triple Turret (Missile Rack x3) x2", 2, 6.5],
+      ["Docking Space (30 tons)", 33, 8.25],
+      ["Ship's Boat", undefined, 7.58],
+      ["Docking Space (15 tons)", 17, 4.25],
+      ["G/carrier", undefined, 11.58],
+      ["Fuel Processor (80 tons/day)", 4, 0.2],
+      ["Fuel Scoops", undefined, undefined],
+      ["Standard x12", 48, 6],
+      ["Low Berth x4", 2, 0.2],
+      ["Manoeuvre", undefined, undefined],
+      ["Jump Control/3", undefined, 0.3],
+      ["Library", undefined, undefined],
+      ["Intellect", undefined, undefined],
+      ["Evade/1", undefined, 1],
+      ["Fire Control/1", undefined, 2],
+      ["Common Areas", 10, 1],
+      ["Cargo", 43, undefined],
+    ]);
+  });
+
+  it("fills the hull exactly", () => {
+    expect(result.tonsUsed).toBe(357);
+    expect(result.cargoTons).toBe(43);
+    expect(result.hullPoints).toBe(160);
+  });
+
+  it("costs what the book says", () => {
+    expect(result.totalCost).toBe(198.26);
+    expect(result.purchaseCost).toBe(178.434);
+    expect(result.maintenanceCost).toBe(14870);
+  });
+
+  it("draws the weapon power the book lists", () => {
+    expect(result.powerAvailable).toBe(300);
+    expect(requirements(result)).toEqual([
+      ["Basic Ship Systems", 80],
+      ["Manoeuvre Drive", 160],
+      ["Jump Drive", 120],
+      ["Sensors", 2],
+      ["Weapons", 28],
+      ["Fuel Processor", 4],
+      ["Low Berths", 1],
+    ]);
+  });
+
+  it("uses every hardpoint it has", () => {
+    expect(result.hardpoints).toEqual({ available: 4, used: 4, firmpoints: false });
+  });
+
+  it("is crewed as the Crew Requirements table says", () => {
+    // The book's list adds a medic and eight marines by editorial judgement.
+    // ShipSpec 7.4.1.
+    expect(roles(result)).toEqual([
+      "Pilot",
+      "Pilot",
+      "Astrogator",
+      "Engineer",
+      "Engineer",
+      "Gunner",
+      "Gunner",
+      "Gunner",
+      "Gunner",
+    ]);
   });
 
   it("has nothing wrong with it", () => {

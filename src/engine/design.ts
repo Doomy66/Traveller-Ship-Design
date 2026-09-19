@@ -8,17 +8,27 @@
 
 import type {
   ArmourType,
+  BarbetteWeapon,
+  BaySize,
+  BayWeapon,
+  Canister,
   CockpitKind,
   FlatSystem,
   HullConfiguration,
   HullOption,
+  Missile,
   MountKind,
   PerTonSystem,
+  PointDefenceKind,
+  PointDefenceType,
   PowerPlantType,
+  Screen,
   SensorGrade,
   SoftwarePackage,
   SpecialisedHull,
+  SpinalWeapon,
   StealthType,
+  Torpedo,
   TurretWeapon,
 } from "../rules/index";
 
@@ -68,6 +78,7 @@ export interface ComputerChoice {
   readonly fib?: boolean;
 }
 
+/** A turret or fixed mount and what is bolted to it. ShipSpec 4.9.2. */
 export interface MountChoice {
   readonly mount: MountKind;
   readonly weapons?: readonly TurretWeapon[];
@@ -75,6 +86,34 @@ export interface MountChoice {
   /** How many identical mounts this line stands for. */
   readonly quantity?: number;
 }
+
+/** Everything that can be installed under step 8. ShipSpec 4.9. */
+export type WeaponChoice =
+  | ({ readonly kind: "turret" } & MountChoice)
+  | { readonly kind: "barbette"; readonly weapon: BarbetteWeapon; readonly quantity?: number }
+  | { readonly kind: "bay"; readonly size: BaySize; readonly weapon: BayWeapon; readonly quantity?: number }
+  | {
+      readonly kind: "spinal";
+      readonly weapon: SpinalWeapon;
+      /** Multiples of the weapon's base size. ShipSpec 4.9.6. */
+      readonly multiple: number;
+      /** Tech Levels above the weapon's own, which shrinks it and costs more. */
+      readonly levelsAboveBase?: number;
+    }
+  | {
+      readonly kind: "pointDefence";
+      readonly battery: PointDefenceKind;
+      readonly type: PointDefenceType;
+      readonly quantity?: number;
+    }
+  | { readonly kind: "screen"; readonly screen: Screen; readonly quantity?: number }
+  | { readonly kind: "blackGlobe" };
+
+/** Ordnance carried beyond what the launchers hold for nothing. ShipSpec 4.9.5. */
+export type OrdnanceChoice =
+  | { readonly missile: Missile; readonly count: number }
+  | { readonly torpedo: Torpedo; readonly count: number }
+  | { readonly canister: Canister; readonly count: number };
 
 export interface CraftChoice {
   readonly label: string;
@@ -84,6 +123,13 @@ export interface CraftChoice {
   /** A small craft adds a pilot to the crew; a vehicle does not. */
   readonly kind: "smallCraft" | "vehicle";
   readonly berth: "dockingSpace" | "fullHangar" | "none";
+  /**
+   * The craft's own drives and power plant, which count towards the mother
+   * ship's engineers. Its displacement does not: the Patrol Corvette carries a
+   * 30-ton ship's boat and is crewed as though only its own 71 tons of
+   * machinery existed. Left out, it contributes nothing. ShipSpec 4.10.2.1.
+   */
+  readonly driveAndPlantTons?: number;
 }
 
 export type SystemChoice =
@@ -138,7 +184,11 @@ export interface Design {
   readonly bridge: BridgeChoice;
   readonly computer?: ComputerChoice;
   readonly sensors?: SensorGrade;
-  readonly weapons?: readonly MountChoice[];
+  readonly weapons?: readonly WeaponChoice[];
+  /** Extra missiles, torpedoes and canisters. ShipSpec 4.9.5. */
+  readonly ordnance?: readonly OrdnanceChoice[];
+  /** Capacitor tonnage bought beyond what a jump drive gives. ShipSpec 4.9.7. */
+  readonly extraCapacitorTons?: number;
   readonly craft?: readonly CraftChoice[];
   readonly systems?: readonly SystemChoice[];
   readonly staterooms?: number;

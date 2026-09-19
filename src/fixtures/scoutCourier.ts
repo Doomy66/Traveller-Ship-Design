@@ -21,7 +21,7 @@ export const SCOUT_COURIER: Design = {
   bridge: { kind: "standard" },
   computer: { processing: 5, bis: true },
   sensors: "military",
-  weapons: [{ mount: "double" }],
+  weapons: [{ kind: "turret", mount: "double" }],
   craft: [{ label: "Air/Raft", tons: 4, cost: 0.25, kind: "vehicle", berth: "dockingSpace" }],
   systems: [
     { perTon: "fuelProcessor", tons: 2 },

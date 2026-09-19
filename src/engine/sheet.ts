@@ -8,7 +8,17 @@
 import {
   ARCHITECT_FEE,
   ARMOUR_TYPES,
+  BARBETTES,
+  BARBETTE_FIRMPOINTS,
+  BARBETTE_FIRMPOINT_EXTRA_TONS,
+  BARBETTE_TONS,
   BASIC_SYSTEMS_POWER,
+  BAY_SIZES,
+  BAY_WEAPONS,
+  BLACK_GLOBE,
+  CANISTERS,
+  CANISTERS_PER_TON,
+  CAPACITORS,
   CHEMICAL_FUEL_PER_TON_PER_FORTNIGHT,
   COCKPITS,
   COMMAND_BRIDGE,
@@ -18,6 +28,7 @@ import {
   DERIVED_CREW,
   DOCKING_SPACE_FACTOR,
   EMERGENCY_LOW_BERTH,
+  FIRMPOINT_POWER_FACTOR,
   FLAT_SYSTEMS,
   FUEL_PROCESSOR_TONS_PER_DAY,
   FUEL_SCOOPS,
@@ -44,11 +55,16 @@ import {
   MILITARY_HULL_MIN_TONS,
   MIN_HULL_TONS,
   MIN_JUMP_HULL_TONS,
+  MISSILES,
+  MISSILES_PER_TON,
   MOUNTS,
   NON_GRAVITY_BASIC_POWER_FACTOR,
   NON_GRAVITY_MAX_TONS,
+  NO_WEAPONS,
   PER_TON_SYSTEMS,
   PLANETOID_COST_PER_TON,
+  POINT_DEFENCE,
+  POINT_DEFENCE_HARDPOINTS,
   POP_UP_MOUNTING,
   POWER_PLANTS,
   POWER_PLANT_FUEL_PER_MONTH,
@@ -56,14 +72,21 @@ import {
   REACTION_DRIVES,
   REACTION_FUEL_PER_THRUST_HOUR,
   REACTION_FUEL_THRUST_0_PER_HOUR,
+  SCREENS,
   SENSORS,
   SMALLER_BRIDGE_COST_FACTOR,
   SMALLER_BRIDGE_DM,
   SPECIALISED_HULLS,
+  SPINAL_MAX_SHARE_OF_HULL,
+  SPINAL_TONS_PER_HARDPOINT,
+  SPINAL_WEAPONS,
   STANDARD_DESIGN_FACTOR,
   STATEROOM,
   STEALTH_TYPES,
   TONS_PER_FREE_AIRLOCK,
+  TONS_PER_HARDPOINT,
+  TORPEDOES,
+  TORPEDOES_PER_TON,
   TURRET_WEAPONS,
   WEEKS_PER_MONTH,
   armourTonnageMultiplier,
@@ -79,6 +102,7 @@ import {
   repairDroneTons,
   smallerBridgeTons,
   softwareRule,
+  spinalImprovement,
   standardBridgeTons,
 } from "../rules/index";
 import type { CrewInputs, CrewRole } from "../rules/index";
@@ -418,52 +442,196 @@ export function sheet(design: Design): Sheet {
   });
 
   // Step 8: weapons. ShipSpec 4.9.
+  const onFirmpoints = hullTons < TONS_PER_HARDPOINT;
   let mountsUsed = 0;
-  let armedTurrets = 0;
   let weaponPower = 0;
-  for (const choice of design.weapons ?? []) {
-    const rule = MOUNTS[choice.mount];
-    const quantity = choice.quantity ?? 1;
-    const carried = choice.weapons ?? [];
-    if (carried.length > rule.weapons) {
-      fail(`A ${rule.label.toLowerCase()} carries ${rule.weapons}, not ${carried.length}.`, "4.9.2");
-    }
-    if (rule.tl !== undefined && design.tl < rule.tl) fail(`A ${rule.label.toLowerCase()} is TL${rule.tl}.`, "4.9.2");
-    let mountTons = rule.tons;
-    let mountCost = rule.cost;
-    // An empty mount draws no power: the Scout carries an empty double turret
-    // and its sheet lists none. ShipSpec 4.9.2.
-    let mountPower = carried.length > 0 ? rule.power : 0;
-    if (choice.popUp === true) {
-      if (design.tl < POP_UP_MOUNTING.tl) fail(`A pop-up mounting is TL${POP_UP_MOUNTING.tl}.`, "4.9.2");
-      mountTons += POP_UP_MOUNTING.tons;
-      mountCost += POP_UP_MOUNTING.cost;
-    }
-    for (const weapon of carried) {
-      const w = TURRET_WEAPONS[weapon];
-      if (design.tl < w.tl) fail(`A ${w.label.toLowerCase()} is TL${w.tl}.`, "4.9.3");
-      mountCost += w.cost;
-      mountPower += w.power;
-    }
-    const names = carried.map((weapon) => TURRET_WEAPONS[weapon].label).join(", ");
-    mountsUsed += rule.hardpoints * quantity;
-    if (carried.length > 0) armedTurrets += quantity;
-    weaponPower += mountPower * quantity;
+  const armed = { ...NO_WEAPONS } as {
+    armedTurrets: number;
+    barbettes: number;
+    smallBays: number;
+    mediumBays: number;
+    largeBays: number;
+    spinalTons: number;
+    screens: number;
+  };
+  const install = (label: string, t: number, c: number, p: number, points: number, quantity: number) => {
+    mountsUsed += points * quantity;
+    weaponPower += p * quantity;
     lines.push({
       section: "Weapons",
-      label: `${rule.label}${choice.popUp === true ? " (pop-up)" : ""} (${names === "" ? "empty" : names})${quantity > 1 ? ` x${quantity}` : ""}`,
-      tons: tons(mountTons * quantity),
-      cost: cr(mountCost * quantity),
-      ...(mountPower > 0 ? { power: mountPower * quantity } : {}),
+      label: `${label}${quantity > 1 ? ` x${quantity}` : ""}`,
+      ...(t > 0 ? { tons: tons(t * quantity) } : {}),
+      cost: cr(c * quantity),
+      ...(p > 0 ? { power: p * quantity } : {}),
+    });
+  };
+
+  for (const choice of design.weapons ?? []) {
+    const quantity = "quantity" in choice ? (choice.quantity ?? 1) : 1;
+
+    if (choice.kind === "turret") {
+      const rule = MOUNTS[choice.mount];
+      const carried = choice.weapons ?? [];
+      if (carried.length > rule.weapons) {
+        fail(`A ${rule.label.toLowerCase()} carries ${rule.weapons}, not ${carried.length}.`, "4.9.2");
+      }
+      if (rule.tl !== undefined && design.tl < rule.tl) fail(`A ${rule.label.toLowerCase()} is TL${rule.tl}.`, "4.9.2");
+      if (onFirmpoints && choice.mount !== "fixed" && choice.mount !== "single") {
+        fail("A firmpoint takes a fixed mount or a single turret, nothing larger.", "4.9.1");
+      }
+      let mountTons = rule.tons;
+      let mountCost = rule.cost;
+      // An empty mount draws no power: the Scout carries an empty double turret
+      // and its sheet lists none. ShipSpec 4.9.2.
+      let mountPower = carried.length > 0 ? rule.power : 0;
+      if (choice.popUp === true) {
+        if (design.tl < POP_UP_MOUNTING.tl) fail(`A pop-up mounting is TL${POP_UP_MOUNTING.tl}.`, "4.9.2");
+        mountTons += POP_UP_MOUNTING.tons;
+        mountCost += POP_UP_MOUNTING.cost;
+      }
+      for (const weapon of carried) {
+        const w = TURRET_WEAPONS[weapon];
+        if (design.tl < w.tl) fail(`A ${w.label.toLowerCase()} is TL${w.tl}.`, "4.9.3");
+        mountCost += w.cost;
+        mountPower += w.power;
+      }
+      // A firmpoint weapon needs a quarter less power, rounded up. Page 27.
+      if (onFirmpoints) mountPower = Math.ceil(mountPower * FIRMPOINT_POWER_FACTOR);
+      // Repeats collapse, so three pulse lasers read as the book writes them.
+      const counts = new Map<string, number>();
+      for (const weapon of carried) {
+        const label = TURRET_WEAPONS[weapon].label;
+        counts.set(label, (counts.get(label) ?? 0) + 1);
+      }
+      const names = [...counts]
+        .map(([label, count]) => (count > 1 ? `${label} x${count}` : label))
+        .join(", ");
+      if (carried.length > 0) armed.armedTurrets += quantity;
+      install(
+        `${rule.label}${choice.popUp === true ? " (pop-up)" : ""} (${names === "" ? "empty" : names})`,
+        mountTons,
+        mountCost,
+        mountPower,
+        rule.hardpoints,
+        quantity,
+      );
+      continue;
+    }
+
+    if (choice.kind === "barbette") {
+      const rule = BARBETTES[choice.weapon];
+      if (design.tl < rule.tl) fail(`A ${rule.label.toLowerCase()} is TL${rule.tl}.`, "4.9.4");
+      // A missile or torpedo barbette on a firmpoint wants two more tons. Page 32.
+      const extra =
+        onFirmpoints && (choice.weapon === "missile" || choice.weapon === "torpedo")
+          ? BARBETTE_FIRMPOINT_EXTRA_TONS
+          : 0;
+      armed.barbettes += quantity;
+      install(
+        rule.label,
+        BARBETTE_TONS + extra,
+        rule.cost,
+        rule.power,
+        onFirmpoints ? BARBETTE_FIRMPOINTS : 1,
+        quantity,
+      );
+      continue;
+    }
+
+    if (choice.kind === "bay") {
+      const size = BAY_SIZES[choice.size];
+      const rule = BAY_WEAPONS[choice.size][choice.weapon];
+      if (design.tl < rule.tl) fail(`A ${size.label.toLowerCase()} ${rule.label.toLowerCase()} is TL${rule.tl}.`, "4.9.4");
+      if (onFirmpoints) fail("A ship of less than 100 tons has no hardpoint for a bay.", "4.9.1");
+      if (choice.size === "small") armed.smallBays += quantity;
+      if (choice.size === "medium") armed.mediumBays += quantity;
+      if (choice.size === "large") armed.largeBays += quantity;
+      install(`${rule.label} (${size.label})`, size.tons, rule.cost, rule.power, size.hardpoints, quantity);
+      continue;
+    }
+
+    if (choice.kind === "spinal") {
+      const rule = SPINAL_WEAPONS[choice.weapon];
+      const levels = choice.levelsAboveBase ?? 0;
+      if (design.tl < rule.tl + levels) {
+        fail(`A ${rule.label.toLowerCase()} built ${levels} above TL${rule.tl} needs TL${rule.tl + levels}.`, "4.9.6");
+      }
+      const improvement = spinalImprovement(levels);
+      const spinalTons = rule.baseSize * choice.multiple * (1 + improvement.tons);
+      const spinalCost = rule.cost * choice.multiple * (1 + improvement.cost);
+      if (rule.baseSize * choice.multiple > rule.maxSize) {
+        fail(`A ${rule.label.toLowerCase()} stops at ${rule.maxSize.toLocaleString()} tons.`, "4.9.6");
+      }
+      if (spinalTons > hullTons * SPINAL_MAX_SHARE_OF_HULL) {
+        fail("A spinal mount cannot exceed half the tonnage of the ship carrying it.", "4.9.6");
+      }
+      armed.spinalTons += spinalTons;
+      install(
+        `${rule.label} x${choice.multiple}${levels > 0 ? ` (TL${rule.tl + levels})` : ""}`,
+        spinalTons,
+        spinalCost,
+        rule.power * choice.multiple,
+        Math.ceil(spinalTons / SPINAL_TONS_PER_HARDPOINT),
+        1,
+      );
+      continue;
+    }
+
+    if (choice.kind === "pointDefence") {
+      const rule = POINT_DEFENCE[choice.battery][choice.type];
+      if (design.tl < rule.tl) fail(`A ${rule.label.toLowerCase()} is TL${rule.tl}.`, "4.9.8");
+      install(rule.label, rule.tons, rule.cost, rule.power, POINT_DEFENCE_HARDPOINTS, quantity);
+      continue;
+    }
+
+    if (choice.kind === "screen") {
+      const rule = SCREENS[choice.screen];
+      if (design.tl < rule.tl) fail(`A ${rule.label.toLowerCase()} is TL${rule.tl}.`, "4.9.7");
+      // Screens are not on the Hardpoints table, so they cost none. Page 27.
+      armed.screens += quantity;
+      install(rule.label, rule.tons, rule.cost, rule.power, 0, quantity);
+      continue;
+    }
+
+    if (design.tl < BLACK_GLOBE.tl) fail(`A ${BLACK_GLOBE.label.toLowerCase()} is TL${BLACK_GLOBE.tl}.`, "4.9.7");
+    install(BLACK_GLOBE.label, BLACK_GLOBE.tons, BLACK_GLOBE.cost, BLACK_GLOBE.power, 0, 1);
+  }
+
+  // Capacitors for a black globe. A jump drive already provides some. Page 43.
+  const extraCapacitors = design.extraCapacitorTons ?? 0;
+  if (extraCapacitors > 0) {
+    lines.push({
+      section: "Weapons",
+      label: CAPACITORS.label,
+      tons: tons(extraCapacitors),
+      cost: cr(extraCapacitors * CAPACITORS.costPerTon),
     });
   }
 
-  const pointsAvailable = hullTons < 100 ? firmpoints(hullTons) : hardpoints(hullTons);
+  // Ordnance beyond what the launchers hold. ShipSpec 4.9.5.
+  for (const choice of design.ordnance ?? []) {
+    const [rule, perTon] =
+      "missile" in choice
+        ? [MISSILES[choice.missile], MISSILES_PER_TON]
+        : "torpedo" in choice
+          ? [TORPEDOES[choice.torpedo], TORPEDOES_PER_TON]
+          : [CANISTERS[choice.canister], CANISTERS_PER_TON];
+    if (design.tl < rule.tl) fail(`${rule.label} is TL${rule.tl}.`, "4.9.5");
+    const bundles = choice.count / perTon;
+    lines.push({
+      section: "Ordnance",
+      label: `${rule.label} x${choice.count}`,
+      tons: tons(bundles),
+      cost: cr(bundles * rule.cost),
+    });
+  }
+
+  const pointsAvailable = onFirmpoints ? firmpoints(hullTons) : hardpoints(hullTons);
   if (mountsUsed > pointsAvailable) {
-    fail(
-      `${mountsUsed} mounts against ${pointsAvailable} ${hullTons < 100 ? "firmpoints" : "hardpoints"}.`,
-      "4.9.1",
-    );
+    fail(`${mountsUsed} mounts against ${pointsAvailable} ${onFirmpoints ? "firmpoints" : "hardpoints"}.`, "4.9.1");
+  }
+  if (design.military !== true && (armed.smallBays + armed.mediumBays + armed.largeBays > 0 || armed.spinalTons > 0)) {
+    note("Bay and spinal weapons require military crewing, so they are crewed at military rates.", "4.10.2.3");
   }
 
   // Step 9, part one: carried craft and their berths. ShipSpec 4.11.3.
@@ -709,15 +877,14 @@ export function sheet(design: Design): Sheet {
   if (isSmallCraft) {
     crew.push({ role: "pilot", label: CREW_ROLES.pilot.label, count: 1, salary: CREW_ROLES.pilot.salary });
   } else {
-    const craftTons = (design.craft ?? [])
-      .filter((entry) => entry.kind === "smallCraft")
-      .reduce((sum, entry) => sum + entry.tons, 0);
+    // A carried craft contributes its own engine room, not its displacement.
+    const craftTons = (design.craft ?? []).reduce((sum, entry) => sum + (entry.driveAndPlantTons ?? 0), 0);
     const inputs: CrewInputs = {
       hullTons,
       hasJump: design.jump !== undefined,
       driveAndPlantTons: driveTons + plantTons + craftTons,
       smallCraft,
-      armedTurrets,
+      ...armed,
       highPassengers: passengers.high,
       middlePassengers: passengers.middle,
     };

@@ -1,0 +1,136 @@
+/**
+ * Step 10, Determine Crew. High Guard Update 2022, PDF pages 23-24. ShipSpec 4.10.
+ *
+ * The table's "1 per N" rules are functions of the figures they read, so the
+ * rounding lives here with the rule and not in the engine. ShipSpec 4.10.2.1.
+ */
+
+export type CrewRole =
+  | "captain"
+  | "pilot"
+  | "astrogator"
+  | "engineer"
+  | "maintenance"
+  | "gunner"
+  | "steward"
+  | "administrator"
+  | "sensorOperator"
+  | "medic"
+  | "officer";
+
+/** What the crew rules read off a design. */
+export interface CrewInputs {
+  readonly hullTons: number;
+  readonly hasJump: boolean;
+  /** Tons of manoeuvre, reaction and jump drives and power plant, ship and carried craft. */
+  readonly driveAndPlantTons: number;
+  readonly smallCraft: number;
+  /** Turrets with at least one weapon. ShipSpec 4.10.2.2. */
+  readonly armedTurrets: number;
+  readonly highPassengers: number;
+  readonly middlePassengers: number;
+}
+
+export interface CrewRoleRule {
+  readonly label: string;
+  readonly skill: string;
+  /** Cr per month at skill 1. */
+  readonly salary: number;
+  readonly commercial: (inputs: CrewInputs) => number;
+  readonly military: (inputs: CrewInputs) => number;
+  /** Page 23: only these roles are reduced on large ships. */
+  readonly reducible: boolean;
+}
+
+/** Roles worked out from the others: officers and medics. Page 23. */
+export interface DerivedCrewInputs {
+  /** Everyone except officers and medics, after any large-ship reduction. */
+  readonly crew: number;
+  readonly passengers: number;
+}
+
+/** Ships of 100 tons or less with no jump drive have a single pilot. Page 23. ShipSpec 4.10.1. */
+export const SMALL_CRAFT_MAX_TONS = 100;
+
+/** Crew Requirements table, page 24. */
+export const CREW_ROLES: Readonly<Record<CrewRole, CrewRoleRule>> = {
+  captain: {
+    label: "Captain", skill: "--", salary: 10_000, reducible: false,
+    commercial: () => 0,
+    military: () => 1,
+  },
+  pilot: {
+    label: "Pilot", skill: "Pilot", salary: 6_000, reducible: false,
+    commercial: (i) => 1 + i.smallCraft,
+    military: (i) => 3 + i.smallCraft,
+  },
+  astrogator: {
+    label: "Astrogator", skill: "Astrogation", salary: 5_000, reducible: false,
+    commercial: (i) => (i.hasJump ? 1 : 0),
+    military: (i) => (i.hasJump ? 1 : 0),
+  },
+  engineer: {
+    label: "Engineer", skill: "Engineer", salary: 4_000, reducible: true,
+    commercial: (i) => Math.ceil(i.driveAndPlantTons / 35),
+    military: (i) => Math.ceil(i.driveAndPlantTons / 35),
+  },
+  maintenance: {
+    label: "Maintenance", skill: "Mechanic", salary: 1_000, reducible: true,
+    commercial: (i) => Math.floor(i.hullTons / 1_000),
+    military: (i) => Math.floor(i.hullTons / 500),
+  },
+  gunner: {
+    label: "Gunner", skill: "Gunner", salary: 2_000, reducible: true,
+    commercial: (i) => i.armedTurrets,
+    military: (i) => 2 * i.armedTurrets,
+  },
+  steward: {
+    label: "Steward", skill: "Steward", salary: 2_000, reducible: false,
+    commercial: (i) => Math.ceil(i.highPassengers / 10) + Math.ceil(i.middlePassengers / 100),
+    military: (i) => Math.ceil(i.highPassengers / 10) + Math.ceil(i.middlePassengers / 100),
+  },
+  administrator: {
+    label: "Administrator", skill: "Admin", salary: 1_500, reducible: true,
+    commercial: (i) => Math.floor(i.hullTons / 2_000),
+    military: (i) => Math.floor(i.hullTons / 1_000),
+  },
+  sensorOperator: {
+    label: "Sensor Operator", skill: "Electronics (sensors)", salary: 4_000, reducible: true,
+    commercial: (i) => Math.floor(i.hullTons / 7_500),
+    military: (i) => 3 * Math.floor(i.hullTons / 7_500),
+  },
+  medic: {
+    label: "Medic", skill: "Medic", salary: 4_000, reducible: false,
+    commercial: () => 0,
+    military: () => 0,
+  },
+  officer: {
+    label: "Officer", skill: "Leadership or Persuade", salary: 5_000, reducible: false,
+    commercial: () => 0,
+    military: () => 0,
+  },
+};
+
+/** Medics and officers read the rest of the crew. Page 24. */
+export const DERIVED_CREW = {
+  medic: {
+    commercial: (d: DerivedCrewInputs) => Math.floor((d.crew + d.passengers) / 120),
+    military: (d: DerivedCrewInputs) => Math.floor(d.crew / 120),
+  },
+  officer: {
+    commercial: (d: DerivedCrewInputs) => Math.floor(d.crew / 20),
+    military: (d: DerivedCrewInputs) => Math.floor(d.crew / 10),
+  },
+} as const;
+
+/** Salary rises by half for every skill level above 1. Page 23. */
+export const SALARY_PER_SKILL_LEVEL_ABOVE_1 = 0.5;
+
+/** Crew Reduction table, page 23. ShipSpec 4.10.3. The multiplier for a hull, or 1. */
+export function crewReductionMultiplier(hullTons: number): number {
+  if (hullTons >= 100_000) return 0.33;
+  if (hullTons >= 50_000) return 0.5;
+  if (hullTons >= 20_000) return 0.67;
+  if (hullTons > 5_000) return 0.75;
+  return 1;
+}

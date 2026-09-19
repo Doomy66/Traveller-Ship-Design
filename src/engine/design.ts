@@ -7,6 +7,7 @@
  */
 
 import type {
+  AdjustableHull,
   ArmourType,
   BarbetteWeapon,
   BaySize,
@@ -19,6 +20,7 @@ import type {
   HullOption,
   Missile,
   MountKind,
+  PerHullTonSystem,
   PerTonSystem,
   PointDefenceKind,
   PointDefenceType,
@@ -26,6 +28,7 @@ import type {
   Screen,
   SensorGrade,
   SoftwarePackage,
+  SolarGrade,
   SpecialisedHull,
   SpinalWeapon,
   StealthType,
@@ -44,6 +47,11 @@ export interface HullChoice {
   readonly specialised?: readonly SpecialisedHull[];
   readonly options?: readonly HullOption[];
   readonly stealth?: StealthType;
+  /** Structure options from Spacecraft Options, pages 44-45. ShipSpec 4.1.7. */
+  readonly adjustable?: AdjustableHull;
+  readonly pressureHull?: boolean;
+  /** The share of the ship that can be swapped out, up to three quarters. */
+  readonly modularFraction?: number;
 }
 
 export interface ArmourChoice {
@@ -79,6 +87,8 @@ export interface DriveSizing {
 export interface ManoeuvreChoice extends DriveSizing {
   readonly thrust: number;
   readonly customisation?: Customisation;
+  /** Thruster plates hidden behind bulkheads: dearer, bigger, and half the Thrust. */
+  readonly concealed?: boolean;
 }
 
 export interface JumpChoice extends DriveSizing {
@@ -109,6 +119,8 @@ export interface BridgeChoice {
   readonly kind: "standard" | "smaller" | CockpitKind;
   readonly command?: boolean;
   readonly holographic?: boolean;
+  /** Ejects as a lifeboat. Half again in cost, a fifth more room. ShipSpec 4.6.6. */
+  readonly detachable?: boolean;
 }
 
 export interface ComputerChoice {
@@ -176,12 +188,15 @@ export interface CraftChoice {
 
 export type SystemChoice =
   | { readonly flat: FlatSystem; readonly quantity?: number }
+  | { readonly perHullTon: PerHullTonSystem }
   /**
    * Tons may be left out where the rules size the system themselves: repair
    * drones from the hull, a cargo crane from the cargo. ShipSpec 4.11.2.
    */
   | { readonly perTon: PerTonSystem; readonly tons?: number }
   | { readonly fuelScoops: true }
+  /** Solar coating, in units of one per cent of the hull, or panels, in tons. */
+  | { readonly solar: SolarGrade; readonly coatingUnits?: number; readonly panelUnits?: number }
   /** Anything not yet transcribed, so a design is never blocked. ShipSpec 4.11.1.1. */
   | {
       readonly custom: {
@@ -215,6 +230,8 @@ export interface Design {
   readonly military?: boolean;
   readonly hull: HullChoice;
   readonly armour?: ArmourChoice;
+  /** A high-burn thruster: a reaction drive whose Thrust adds to the manoeuvre drive's. ShipSpec 4.3.6. */
+  readonly highBurnThruster?: ReactionChoice;
   /** Thrust, or a thrust with a customisation on the drive. */
   readonly manoeuvre?: number | ManoeuvreChoice;
   readonly reaction?: ReactionChoice;

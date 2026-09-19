@@ -148,3 +148,37 @@ export function armourTonnageMultiplier(hullTons: number): number {
   if (hullTons >= 16) return 3;
   return 4;
 }
+
+/**
+ * Structure options from Spacecraft Options, pages 44-45. These change the hull
+ * itself rather than adding a component, so they live here with it.
+ * ShipSpec 4.1.7.
+ */
+
+/**
+ * Adjustable Hull, page 44: bands and strips that let the ship take the outline
+ * of any other of the same tonnage and configuration. Every weapon on such a
+ * ship gets a pop-up mounting for nothing.
+ */
+export const ADJUSTABLE_HULLS = {
+  tl12: { label: "Adjustable Hull", tl: 12, hullFraction: 0.05, hullCost: 0.1 },
+  tl15: { label: "Adjustable Hull (TL15)", tl: 15, hullFraction: 0.01, hullCost: 1 },
+} as const;
+export type AdjustableHull = keyof typeof ADJUSTABLE_HULLS;
+
+/**
+ * Pressure Hull, page 44: built for the deeps of a gas giant. A quarter of the
+ * ship, ten times the hull price, and Protection 4 that comes with it.
+ */
+export const PRESSURE_HULL = {
+  label: "Pressure Hull",
+  hullFraction: 0.25,
+  hullCostFactor: 10,
+  protection: 4,
+} as const;
+
+/**
+ * Modular Hull, page 45: a share of the ship that can be swapped out. The hull
+ * costs that share more, so a ship a third modular pays a third again.
+ */
+export const MODULAR_HULL = { label: "Modular Hull", maxFraction: 0.75 } as const;

@@ -99,6 +99,8 @@ The thirteen steps of the checklist on page 10, each with the rule it applies an
 
 4.1.5 Additional hull types (double hull, hamster cage, breakaway, page 13) are **not in this version**. Open question 9.1.
 
+4.1.7 **Structure options** (pages 44-45) change the hull rather than adding a component, so they are settled with it. An **adjustable hull** takes 5% of the ship and adds a tenth to the hull price at TL12, or 1% and doubles it at TL15, and gives every weapon a pop-up mounting for nothing. A **pressure hull** takes a quarter of the ship, costs ten times the hull price and brings Protection 4 with it. A **modular hull** designates up to three quarters of the ship as swappable and adds that share to the hull price; a module of its own is Cr25000 a ton.
+
 4.1.6 **Hull options** (pages 14-15), each at most once, priced per ton of hull:
 
 | Option | TL | Cost per ton of hull | Tons |
@@ -153,6 +155,8 @@ Reflec and stealth exclude each other. Solar coating (page 44) is not in this ve
 
 4.3.4 A ship may have a manoeuvre drive, a reaction drive, both or neither.
 
+4.3.6 A **concealed manoeuvre drive** (page 46) hides its thruster plates behind bulkheads: a quarter more tonnage and price, and half the Thrust, rounding down. A **high-burn thruster** (page 46) is a reaction drive fitted as a booster, priced and sized as one, whose Thrust adds to the manoeuvre drive's and whose g-forces the crew feel in full, a manoeuvre drive compensating only for its own.
+
 4.3.5 A drive is sized against the hull unless the design says otherwise. A ship that carries drop tanks or external cargo has to recalculate its Thrust against the combined tonnage (page 49), so its drives are built to move the larger figure, and the design says which. Two of the book's ships do this: the Close Escort on page 182 carries "Thrust 5 (420 tons)" in a 400-ton hull, and the Laboratory Ship on page 186 carries "Thrust 2 (400t)" in a 360-ton one.
 
 ### 4.4 Install power plant (page 18)
@@ -199,6 +203,8 @@ Reflec and stealth exclude each other. Solar coating (page 44) is not in this ve
 4.6.4 A **cockpit** replaces the bridge on a ship of 50 tons or less: 1.5 tons and Cr10000, or 2.5 tons and Cr15000 for a dual cockpit. A cockpit gives no free airlock (4.14.2).
 
 4.6.5 **Holographic controls** (page 52-53) add 25% to the bridge's cost at TL9.
+
+4.6.6 A **detachable bridge** (page 52) ejects as a lifeboat. It costs half again, takes a fifth more room, and has a floor of its own: 15 tons to 200, 30 to 1,000, 50 to 2,000, then 80.
 
 ### 4.7 Install computer (page 21) and software (pages 74-76, Core page 161)
 
@@ -268,6 +274,8 @@ Reflec and stealth exclude each other. Solar coating (page 44) is not in this ve
 
 4.9.5 **Ordnance** is bought by the load. Twelve missiles to a ton, three torpedoes, twenty canisters, and the book's prices are per bundle. Every launcher comes with a magazine that costs nothing, so what a design buys here is the stock on top of that.
 
+4.9.5.1 **Ammunition takes room in the ship and is not part of its price.** The book's sheets print the tonnage and leave the cost column empty, and the Destroyer Escort settles it: its 384 missiles and 640 canisters come to MCr8.8, and adding that to the ship stops both the printed total and the printed purchase cost from working. The sheet reports the figure on its own.
+
 4.9.6 **Spinal mounts** (pages 35-37) are sized in multiples of a base size, and the multiple scales tonnage, power, damage and cost together. They take a hardpoint per 100 tons, rounded up, and cannot exceed half the ship. Building one above its own Tech Level shrinks it and raises its price, by 10, 15 or 20 per cent against 10, 20 or 30, and the table stops at three levels.
 
 4.9.7 **Screens** (page 42) are the meson screen and the nuclear damper, 10 tons each. They are not on the Hardpoints table, so they take none, but they do want a gunner. A **black globe generator** takes 50 tons and is not for sale at any price the rules set; its capacitors come free from a jump drive at a fifth of the drive's tonnage, and more can be bought.
@@ -317,7 +325,7 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 ### 4.11 Install optional systems (pages 44-64)
 
-4.11.1 Each system is a data entry with tons, cost, power and TL, or a small rule where the book gives one. This version carries only the systems the fixtures and the next few standard ships need:
+4.11.1 Each system is a data entry with tons, cost, power and TL, or a small rule where the book gives one. Three shapes cover nearly the whole chapter: **flat**, a fixed tonnage and price, like a six-ton workshop; **per ton**, where the designer says how big and both follow, like a fuel processor; and **per hull ton**, priced against the whole ship and taking no room of its own, like a holographic hull. Some of the notable entries:
 
 | System | Page | Tons | Cost | Power |
 |---|---|---|---|---|
@@ -338,9 +346,13 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 | Briefing room | 60 | 4 | MCr0.5 | |
 | Workshop | 64 | 6 | MCr0.9 | |
 
-4.11.1.1 A **custom** system with a name, tons, cost and power stands in for anything not yet transcribed, so a design is never blocked by the table being short.
+4.11.1.1 A **custom** system with a name, tons, cost and power stands in for anything the table does not carry, so a design is never blocked by it being short.
 
-4.11.2 The cargo crane is sized from the cargo the ship ends up with (4.14.1), which the crane itself reduces. The engine sizes the crane against cargo without it and checks once; the fixture Free Trader comes out at 3 tons either way.
+4.11.4 **Solar energy systems** (pages 45-46) are counted in Units. A coating's units are percentage points of the hull, at most 40, and take no room; panels' units are tons. A coating cannot go on a streamlined hull, which re-entry would strip, and yields half as much on a close or dispersed one, whose own structure shades it. Both produce Power rather than consuming it, so the sheet shows them among the requirements as negative draws.
+
+4.11.2 Several systems are sized by a rule rather than by choice, and a design that leaves the tonnage out gets the rule: repair drones at 1% of the hull, ramscoops at 1% plus five with a floor of ten, a solar sail and aerofins at 5%, a tow cable at 1%, a grav screen at a ton per 200, an emergency power system at a tenth of the power plant in both tonnage and price.
+
+4.11.2.1 The cargo crane is sized from the cargo the ship ends up with (4.14.1), which the crane itself reduces. The engine sizes the crane against cargo without it and checks once; the fixture Free Trader comes out at 3 tons either way.
 
 4.11.3 A **carried craft or vehicle** is a line with its own name, tons and cost, and is berthed in a docking space, a full hangar, or nowhere. Its cost is what the designer says: the book prices an air/raft at MCr0.25 on its ship sheets. Small craft add to the pilot count (4.10.2); vehicles do not.
 
@@ -437,7 +449,15 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 7.4.1 The book's crew list is not the Crew Requirements table's output and does not claim to be. It adds a medic and eight marines that no rule in the design sequence generates, and lists one pilot where the table asks for two, a carried small craft adding the second. The Subsidised Merchant on page 190 says outright what is going on: "the pilot also operates the launch". The sheets print a practical minimum crew. The fixture tests the table.
 
-7.5 Next in line: Launch and Ship's Boat (cockpits, small craft crew), Far Trader (page 170), Subsidised Merchant (190), and a capital ship once Customising Ships lands, since the Close Escort and the Destroyer Escort both use drive advantages and disadvantages.
+7.5 **Destroyer Escort, Chrysanthemum class** (page 208). The capital ship. TL15, 1,000 tons close structure and reinforced, bonded superdense 2, thrust 6, jump 4, 64 tons of TL15 fusion for power 1,280 and 8 weeks, a holographic bridge, Computer/35fib, advanced sensors, a fusion barbette and two particle barbettes, two triple turrets of missile racks and five of sandcasters, 384 missiles and 640 canisters, a pinnace in a docking space, fuel processor, scoops, two armouries, a medical bay, repair drones, twenty-four staterooms at double occupancy, 24 tons of common area, and software up to Fire Control/2; 32 tons of cargo. Total MCr621.78, standard design MCr559.602, Cr46634 a month, hull 440.
+
+7.5.1 Three rules earn their keep on this one ship. Its seven engineers come out of 229 tons of machinery only under the rounding of 4.10.2.1. Its twenty gunners are two apiece for three barbettes and seven turrets. Its 414 tons of fuel need the power plant's monthly round-up applied twice, for eight weeks.
+
+7.5.2 As with the Corvette, the printed crew list is not the table's output. It gives three pilots where the table gives four, the pinnace adding one; a medic the table does not call for; and seven administrators where the table gives one. Its own officer count contradicts the seven, since three officers at one per full ten crew only works if the administrators number one.
+
+7.5.3 The book prints twenty-four standard staterooms for a crew of thirty-nine, which only works two to a room. Page 25 calls double occupancy common on military ships and charges nothing for it. The fixture records the choice the sheet leaves unsaid.
+
+7.6 Next in line: Launch and Ship's Boat (cockpits, small craft crew), Far Trader (page 170), Subsidised Merchant (190). The Close Escort of page 182 stays out until 9.2.3 is understood.
 
 ## 8. Saving
 
@@ -449,7 +469,7 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 9.1 Additional hull types (double hull, hamster cage, breakaway) need per-section designs or spun-fraction inputs. Deferred until a standard ship needs one.
 
-9.2 What still stands between this and a capital-ship fixture is the handful of Spacecraft Options the big ships carry and this spec has not transcribed: high-efficiency batteries, drop tank mounts, medical bays and barracks among them.
+9.2 Space stations (pages 65-70) and exotic technology (80-85) are the chapters still untouched.
 
 9.2.3 **The Close Escort's jump drive does not reconcile and the others do.** Its manoeuvre drive and power plant both fall out of the customising rules to the ton and the credit. Its jump drive is 55 tons, which is right, at MCr60, where 55 tons at MCr1.5 less a quarter for Budget is MCr61.875. No combination of the printed modifiers reaches 60. Left as the book has it, and not made a fixture.
 

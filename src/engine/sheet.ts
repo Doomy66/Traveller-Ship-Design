@@ -6,6 +6,8 @@
  */
 
 import {
+  ADJUSTABLE_HULLS,
+  AEROFIN_HULL_FRACTION,
   ARCHITECT_FEE,
   ARMOUR_TYPES,
   BARBETTES,
@@ -19,22 +21,26 @@ import {
   CANISTERS,
   CANISTERS_PER_TON,
   CAPACITORS,
-  UNCUSTOMISED,
   CHEMICAL_FUEL_PER_TON_PER_FORTNIGHT,
   COCKPITS,
   COMMAND_BRIDGE,
   COMMON_AREA,
+  CONCEALED_MANOEUVRE_DRIVE,
   CONSTRUCTION_DAYS_PER_MCR,
   CREW_ROLES,
   DERIVED_CREW,
+  DETACHABLE_BRIDGE,
   DOCKING_SPACE_FACTOR,
   EMERGENCY_LOW_BERTH,
+  EMERGENCY_POWER_FRACTION,
   FIRMPOINT_POWER_FACTOR,
   FLAT_SYSTEMS,
   FUEL_PROCESSOR_TONS_PER_DAY,
   FUEL_SCOOPS,
   FULL_HANGAR_FACTOR,
+  GRAV_SCREEN_HULL_TONS_PER_TON,
   HARDENED_SYSTEMS,
+  HIGH_BURN_THRUSTER,
   HOLOGRAPHIC_CONTROLS,
   HULL_CONFIGURATIONS,
   HULL_COST_PER_TON,
@@ -58,10 +64,12 @@ import {
   MIN_JUMP_HULL_TONS,
   MISSILES,
   MISSILES_PER_TON,
+  MODULAR_HULL,
   MOUNTS,
   NON_GRAVITY_BASIC_POWER_FACTOR,
   NON_GRAVITY_MAX_TONS,
   NO_WEAPONS,
+  PER_HULL_TON_SYSTEMS,
   PER_TON_SYSTEMS,
   PLANETOID_COST_PER_TON,
   POINT_DEFENCE,
@@ -69,6 +77,7 @@ import {
   POP_UP_MOUNTING,
   POWER_PLANTS,
   POWER_PLANT_FUEL_PER_MONTH,
+  PRESSURE_HULL,
   REACTION_COST_PER_TON,
   REACTION_DRIVES,
   REACTION_FUEL_PER_THRUST_HOUR,
@@ -77,6 +86,10 @@ import {
   SENSORS,
   SMALLER_BRIDGE_COST_FACTOR,
   SMALLER_BRIDGE_DM,
+  SOLAR_COATING_AWKWARD_HULL_FACTOR,
+  SOLAR_COATING_MAX_HULL_FRACTION,
+  SOLAR_SAIL_HULL_FRACTION,
+  SOLAR_SYSTEMS,
   SPECIALISED_HULLS,
   SPINAL_MAX_SHARE_OF_HULL,
   SPINAL_TONS_PER_HARDPOINT,
@@ -88,7 +101,9 @@ import {
   TONS_PER_HARDPOINT,
   TORPEDOES,
   TORPEDOES_PER_TON,
+  TOW_CABLE_HULL_FRACTION,
   TURRET_WEAPONS,
+  UNCUSTOMISED,
   WEEKS_PER_MONTH,
   armourTonnageMultiplier,
   bridgeCost,
@@ -96,18 +111,20 @@ import {
   computerRule,
   constructionTimeFactor,
   crewReductionMultiplier,
+  customise,
+  detachableBridgeMinimum,
   driveRating,
   firmpoints,
   hardpoints,
   hullPointDivisor,
+  ramscoopTons,
   repairDroneTons,
   smallerBridgeTons,
-  customise,
   softwareRule,
   spinalImprovement,
   standardBridgeTons,
 } from "../rules/index";
-import type { CrewInputs, CrewRole, Customised, TraitCategory } from "../rules/index";
+import type { CrewInputs, CrewRole, Customised, PerTonSystem, TraitCategory } from "../rules/index";
 import type { Customisation, Design } from "./design";
 
 /** A line of the sheet. ShipSpec 5.2. */
@@ -163,6 +180,8 @@ export interface Sheet {
   /** Cr per month. ShipSpec 4.13.3. */
   readonly maintenanceCost: number;
   readonly constructionDays: number;
+  /** MCr of ammunition, which the ship's price does not include. ShipSpec 4.9.5.1. */
+  readonly ordnanceCost: number;
   readonly powerAvailable: number;
   readonly powerRequirements: readonly PowerEntry[];
   readonly fuel: {
@@ -239,8 +258,45 @@ export function sheet(design: Design): Sheet {
     fail(`A non-gravity hull is limited to ${NON_GRAVITY_MAX_TONS.toLocaleString()} tons.`, "4.1.4");
   }
 
-  const hullDetail = [`${hullTons} tons`, config.label, ...specialised.map((key) => SPECIALISED_HULLS[key].label)];
-  lines.push({ section: "Hull", label: hullDetail.join(", "), cost: cr(hullCost) });
+  // Structure options, pages 44-45. Each is a share of the ship and a change to
+  // the hull's own price, so both are settled here. ShipSpec 4.1.7.
+  let structureTons = 0;
+  let structureCost = 0;
+  const structureLabels: string[] = [];
+
+  if (design.hull.pressureHull === true) {
+    structureTons += hullTons * PRESSURE_HULL.hullFraction;
+    structureCost += hullCost * (PRESSURE_HULL.hullCostFactor - 1);
+    structureLabels.push(PRESSURE_HULL.label);
+  }
+  if (design.hull.adjustable !== undefined) {
+    const rule = ADJUSTABLE_HULLS[design.hull.adjustable];
+    if (design.tl < rule.tl) fail(`${rule.label} is TL${rule.tl}.`, "4.1.7");
+    structureTons += hullTons * rule.hullFraction;
+    structureCost += baseHullCost * rule.hullCost;
+    structureLabels.push(rule.label);
+  }
+  const modularFraction = design.hull.modularFraction ?? 0;
+  if (modularFraction > 0) {
+    if (modularFraction > MODULAR_HULL.maxFraction) {
+      fail(`At most ${MODULAR_HULL.maxFraction * 100}% of a ship may be modular.`, "4.1.7");
+    }
+    structureCost += hullCost * modularFraction;
+    structureLabels.push(`${MODULAR_HULL.label} ${Math.round(modularFraction * 100)}%`);
+  }
+
+  const hullDetail = [
+    `${hullTons} tons`,
+    config.label,
+    ...specialised.map((key) => SPECIALISED_HULLS[key].label),
+    ...structureLabels,
+  ];
+  lines.push({
+    section: "Hull",
+    label: hullDetail.join(", "),
+    ...(structureTons > 0 ? { tons: tons(structureTons) } : {}),
+    cost: cr(hullCost + structureCost),
+  });
 
   // Step 1c: hull options. ShipSpec 4.1.6.
   for (const option of design.hull.options ?? []) {
@@ -264,7 +320,7 @@ export function sheet(design: Design): Sheet {
   }
 
   // Step 1b: armour. ShipSpec 4.2.
-  let armourProtection = config.baseProtection ?? 0;
+  let armourProtection = (config.baseProtection ?? 0) + (design.hull.pressureHull === true ? PRESSURE_HULL.protection : 0);
   if (design.armour !== undefined) {
     const rule = ARMOUR_TYPES[design.armour.type];
     if (design.tl < rule.tl) fail(`${rule.label} is TL${rule.tl}.`, "4.2.1");
@@ -313,6 +369,8 @@ export function sheet(design: Design): Sheet {
   let jumpPowerFactor = 1;
   let reactionFuelFactor = 1;
   let jumpFuelFactor = 1;
+  let boosterFuelFactor = 1;
+  let boosterThrust = 0;
 
   if (manoeuvre !== undefined) {
     const rule = driveRating(MANOEUVRE_DRIVES, manoeuvre.thrust);
@@ -322,15 +380,22 @@ export function sheet(design: Design): Sheet {
       const custom = customisationOf(manoeuvre, "manoeuvre", rule.tl);
       if (design.tl < custom.tlRequired) fail(`Thrust ${rule.rating} here is TL${custom.tlRequired}.`, "4.3.1");
       // Cost follows the original size; tonnage follows the modified one. Page 72.
+      const concealed = manoeuvre.concealed === true;
       const base = (manoeuvre.sizedForTons ?? hullTons) * rule.hullFraction;
-      const t = base * custom.tonnage;
+      const t = base * custom.tonnage * (concealed ? 1 + CONCEALED_MANOEUVRE_DRIVE.tonnage : 1);
       manoeuvrePowerFactor = custom.power;
+      if (concealed) {
+        note(
+          `Concealed thruster plates halve Thrust ${rule.rating} to ${Math.floor(rule.rating * CONCEALED_MANOEUVRE_DRIVE.thrustFactor)}.`,
+          "4.3.6",
+        );
+      }
       driveTons += t;
       lines.push({
         section: "M-Drive",
-        label: `Thrust ${rule.rating}${manoeuvre.sizedForTons === undefined ? "" : ` (${manoeuvre.sizedForTons} tons)`}${custom.label === "" ? "" : ` (${custom.label})`}`,
+        label: `${concealed ? `${CONCEALED_MANOEUVRE_DRIVE.label} ` : ""}Thrust ${rule.rating}${manoeuvre.sizedForTons === undefined ? "" : ` (${manoeuvre.sizedForTons} tons)`}${custom.label === "" ? "" : ` (${custom.label})`}`,
         tons: tons(t),
-        cost: cr(base * MANOEUVRE_COST_PER_TON * custom.cost),
+        cost: cr(base * MANOEUVRE_COST_PER_TON * custom.cost * (concealed ? 1 + CONCEALED_MANOEUVRE_DRIVE.cost : 1)),
       });
     }
   }
@@ -376,6 +441,32 @@ export function sheet(design: Design): Sheet {
         label: `Jump ${rule.rating}${jump.sizedForTons === undefined ? "" : ` (${jump.sizedForTons} tons)`}${custom.label === "" ? "" : ` (${custom.label})`}`,
         tons: tons(t),
         cost: cr(base * JUMP_COST_PER_TON * custom.cost),
+      });
+    }
+  }
+
+  if (design.highBurnThruster !== undefined) {
+    const booster = design.highBurnThruster;
+    const rule = driveRating(REACTION_DRIVES, booster.thrust);
+    if (rule === undefined) {
+      fail(`There is no reaction drive of Thrust ${booster.thrust}.`, "4.3.6");
+    } else {
+      const custom = customisationOf(booster, "reaction", rule.tl);
+      if (design.tl < custom.tlRequired) fail(`A high-burn thruster of Thrust ${rule.rating} is TL${custom.tlRequired}.`, "4.3.6");
+      const base = (booster.sizedForTons ?? hullTons) * rule.hullFraction;
+      const t = base * custom.tonnage;
+      boosterFuelFactor = custom.fuel;
+      boosterThrust = rule.rating;
+      driveTons += t;
+      note(
+        "A high-burn thruster's Thrust adds to the manoeuvre drive's, and the crew feel every g of it.",
+        "4.3.6",
+      );
+      lines.push({
+        section: "R-Drive",
+        label: `${HIGH_BURN_THRUSTER.label} (Thrust ${rule.rating})`,
+        tons: tons(t),
+        cost: cr(base * REACTION_COST_PER_TON * custom.cost),
       });
     }
   }
@@ -427,8 +518,15 @@ export function sheet(design: Design): Sheet {
           design.reaction.thrust *
           design.reaction.hours *
           reactionFuelFactor;
+  const boosterFuel =
+    design.highBurnThruster === undefined
+      ? 0
+      : (boosterThrust === 0
+          ? REACTION_FUEL_THRUST_0_PER_HOUR * design.highBurnThruster.hours
+          : hullTons * REACTION_FUEL_PER_THRUST_HOUR * boosterThrust * design.highBurnThruster.hours) *
+        boosterFuelFactor;
   const extraFuel = design.extraFuelTons ?? 0;
-  const totalFuel = jumpFuel + plantFuel + reactionFuel + extraFuel;
+  const totalFuel = jumpFuel + plantFuel + reactionFuel + boosterFuel + extraFuel;
   const fuelDetail = [
     jump === undefined ? undefined : `J-${fuelledJump}`,
     `${design.powerPlant.weeks} weeks of operation`,
@@ -457,6 +555,12 @@ export function sheet(design: Design): Sheet {
     if (design.tl < HOLOGRAPHIC_CONTROLS.tl) fail(`Holographic controls are TL${HOLOGRAPHIC_CONTROLS.tl}.`, "4.6.5");
     bridgeCostTotal *= 1 + HOLOGRAPHIC_CONTROLS.costFactor;
     bridgeLabel += ", holographic";
+  }
+  if (design.bridge.detachable === true) {
+    if (cockpit) fail("A cockpit cannot be made detachable.", "4.6.6");
+    bridgeTons = Math.max(bridgeTons * (1 + DETACHABLE_BRIDGE.tonnage), detachableBridgeMinimum(hullTons));
+    bridgeCostTotal *= 1 + DETACHABLE_BRIDGE.costFactor;
+    bridgeLabel += ", detachable";
   }
   if (design.bridge.command === true) {
     if (hullTons <= COMMAND_BRIDGE.minHullTons) {
@@ -668,6 +772,7 @@ export function sheet(design: Design): Sheet {
   }
 
   // Ordnance beyond what the launchers hold. ShipSpec 4.9.5.
+  let ordnanceCost = 0;
   for (const choice of design.ordnance ?? []) {
     const [rule, perTon] =
       "missile" in choice
@@ -677,11 +782,14 @@ export function sheet(design: Design): Sheet {
           : [CANISTERS[choice.canister], CANISTERS_PER_TON];
     if (design.tl < rule.tl) fail(`${rule.label} is TL${rule.tl}.`, "4.9.5");
     const bundles = choice.count / perTon;
+    // Ordnance takes room in the ship and is not part of its price. The book's
+    // sheets print the tonnage and leave the cost column empty, and the
+    // Destroyer Escort's total only works that way. ShipSpec 4.9.5.1.
+    ordnanceCost += bundles * rule.cost;
     lines.push({
-      section: "Ordnance",
+      section: "Ammunition",
       label: `${rule.label} x${choice.count}`,
       tons: tons(bundles),
-      cost: cr(bundles * rule.cost),
     });
   }
 
@@ -712,6 +820,29 @@ export function sheet(design: Design): Sheet {
     }
     lines.push({ section: "Craft", label: craft.label, cost: cr(craft.cost) });
   }
+
+  // Systems the rules size themselves, so the designer need not measure them.
+  // ShipSpec 4.11.2.
+  const sizedByRule = (system: PerTonSystem): number | undefined => {
+    switch (system) {
+      case "repairDrones":
+        return repairDroneTons(hullTons);
+      case "ramscoops":
+        return ramscoopTons(hullTons);
+      case "solarSail":
+        return hullTons * SOLAR_SAIL_HULL_FRACTION;
+      case "aerofins":
+        return hullTons * AEROFIN_HULL_FRACTION;
+      case "towCable":
+        return hullTons * TOW_CABLE_HULL_FRACTION;
+      case "gravScreen":
+        return hullTons / GRAV_SCREEN_HULL_TONS_PER_TON;
+      case "emergencyPowerSystem":
+        return plantTons * EMERGENCY_POWER_FRACTION;
+      default:
+        return undefined;
+    }
+  };
 
   // Step 9, part two: optional systems. ShipSpec 4.11.
   // A cargo crane is sized from the cargo it serves, which is not known until
@@ -752,14 +883,20 @@ export function sheet(design: Design): Sheet {
         lines.push({ section: "Systems", label: rule.label, tons: 0, cost: 0 });
         continue;
       }
-      const chosen =
-        choice.tons ?? (choice.perTon === "repairDrones" ? repairDroneTons(hullTons) : undefined);
+      const chosen = choice.tons ?? sizedByRule(choice.perTon);
       if (chosen === undefined) {
         fail(`${rule.label} needs a tonnage.`, "4.11.1");
         continue;
       }
       const systemTons = Math.max(chosen, rule.minTons ?? 0);
-      const entryPower = (rule.powerPerTon ?? 0) * systemTons;
+      if (rule.maxHullFraction !== undefined && systemTons > hullTons * rule.maxHullFraction) {
+        fail(`${rule.label} may be at most ${rule.maxHullFraction * 100}% of the hull.`, "4.11.1");
+      }
+      const entryCost =
+        choice.perTon === "emergencyPowerSystem"
+          ? plantBaseTons * plant.costPerTon * plantCustom.cost * EMERGENCY_POWER_FRACTION
+          : systemTons * rule.costPerTon;
+      const entryPower = (rule.powerPerTon ?? 0) * systemTons + (rule.power ?? 0);
       if (entryPower > 0) systemPowerEntries.push({ label: rule.label, power: tons(entryPower) });
       const detail =
         choice.perTon === "fuelProcessor" ? ` (${systemTons * FUEL_PROCESSOR_TONS_PER_DAY} tons/day)` : "";
@@ -767,9 +904,55 @@ export function sheet(design: Design): Sheet {
         section: "Systems",
         label: `${rule.label}${detail}`,
         tons: tons(systemTons),
-        cost: cr(systemTons * rule.costPerTon),
+        cost: cr(entryCost),
+        ...(entryPower > 0 ? { power: tons(entryPower) } : {}),
+      });
+      continue;
+    }
+    if ("perHullTon" in choice) {
+      const rule = PER_HULL_TON_SYSTEMS[choice.perHullTon];
+      if (rule.tl !== undefined && design.tl < rule.tl) fail(`${rule.label} is TL${rule.tl}.`, "4.11.1");
+      const entryPower =
+        rule.hullTonsPerPower === undefined ? 0 : Math.ceil(hullTons / rule.hullTonsPerPower);
+      if (entryPower > 0) systemPowerEntries.push({ label: rule.label, power: entryPower });
+      lines.push({
+        section: "Systems",
+        label: rule.label,
+        cost: cr(hullTons * rule.costPerHullTon),
         ...(entryPower > 0 ? { power: entryPower } : {}),
       });
+      continue;
+    }
+    if ("solar" in choice) {
+      const rule = SOLAR_SYSTEMS[choice.solar];
+      if (design.tl < rule.tl) fail(`${rule.label} is TL${rule.tl}.`, "4.11.4");
+      const coating = choice.coatingUnits ?? 0;
+      const panels = choice.panelUnits ?? 0;
+      if (coating > hullTons * SOLAR_COATING_MAX_HULL_FRACTION) {
+        fail(`A solar coating covers at most ${SOLAR_COATING_MAX_HULL_FRACTION * 100}% of the hull.`, "4.11.4");
+      }
+      if (coating > 0 && config.streamlined === "yes") {
+        fail("A streamlined hull cannot carry a solar coating; re-entry destroys it.", "4.11.4");
+      }
+      // A close or dispersed hull hides too much of itself from the star. Page 46.
+      const awkward = design.hull.configuration === "closeStructure" || design.hull.configuration === "dispersedStructure";
+      const coatingPower =
+        coating * rule.coatingPower * (awkward ? SOLAR_COATING_AWKWARD_HULL_FACTOR : 1);
+      if (coating > 0) {
+        if (coatingPower > 0) systemPowerEntries.push({ label: `${rule.label} Coating`, power: tons(-coatingPower) });
+        lines.push({ section: "Systems", label: `${rule.label} Coating x${coating}`, cost: cr(coating * rule.cost) });
+      }
+      if (panels > 0) {
+        if (rule.panelPower > 0) {
+          systemPowerEntries.push({ label: `${rule.label} Panels`, power: tons(-panels * rule.panelPower) });
+        }
+        lines.push({
+          section: "Systems",
+          label: `${rule.label} Panels x${panels}`,
+          tons: tons(panels),
+          cost: cr(panels * rule.cost),
+        });
+      }
       continue;
     }
     const custom = choice.custom;
@@ -990,12 +1173,13 @@ export function sheet(design: Design): Sheet {
     purchaseCost,
     maintenanceCost,
     constructionDays,
+    ordnanceCost: cr(ordnanceCost),
     powerAvailable: tons(powerAvailable),
     powerRequirements: requirements,
     fuel: {
       jump: tons(jumpFuel),
       powerPlant: tons(plantFuel),
-      reaction: tons(reactionFuel),
+      reaction: tons(reactionFuel + boosterFuel),
       extra: tons(extraFuel),
       total: tons(totalFuel),
     },

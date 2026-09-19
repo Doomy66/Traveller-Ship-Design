@@ -65,3 +65,24 @@ export function smallerBridgeTons(hullTons: number): number {
 export function bridgeCost(hullTons: number): number {
   return BRIDGE_COST_PER_100_TONS * Math.ceil(hullTons / 100);
 }
+
+/**
+ * Detachable Bridge, page 52: a bridge that ejects as a lifeboat, with two
+ * weeks of life support and Thrust 0. It costs half again and takes a fifth
+ * more room, and it has a floor of its own by ship size. ShipSpec 4.6.6.
+ */
+export const DETACHABLE_BRIDGE = { label: "detachable", costFactor: 0.5, tonnage: 0.2 } as const;
+
+export const DETACHABLE_BRIDGE_MINIMUMS: readonly { readonly upToTons: number; readonly tons: number }[] = [
+  { upToTons: 200, tons: 15 },
+  { upToTons: 1_000, tons: 30 },
+  { upToTons: 2_000, tons: 50 },
+];
+
+/** The smallest a detachable bridge may be on a hull of this size. Page 52. */
+export function detachableBridgeMinimum(hullTons: number): number {
+  for (const row of DETACHABLE_BRIDGE_MINIMUMS) {
+    if (hullTons <= row.upToTons) return row.tons;
+  }
+  return 80;
+}

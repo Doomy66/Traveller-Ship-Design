@@ -72,3 +72,23 @@ export const JUMP_DRIVES: readonly DriveRating[] = [
 export function driveRating(table: readonly DriveRating[], rating: number): DriveRating | undefined {
   return table.find((row) => row.rating === rating);
 }
+
+/**
+ * Concealed Manoeuvre Drive, page 46: thruster plates hidden behind bulkheads
+ * for stealth's sake. A quarter more tonnage and price, and the drive's Thrust
+ * is halved, rounding down. ShipSpec 4.3.6.
+ */
+export const CONCEALED_MANOEUVRE_DRIVE = {
+  label: "Concealed",
+  tonnage: 0.25,
+  cost: 0.25,
+  thrustFactor: 0.5,
+} as const;
+
+/**
+ * High-Burn Thruster, page 46: a reaction drive fitted as a booster, whose
+ * Thrust adds to the manoeuvre drive's. It is priced and sized as an ordinary
+ * reaction drive; what differs is that its thrust is cumulative and its crew
+ * feel every g of it, since a manoeuvre drive compensates only for its own.
+ */
+export const HIGH_BURN_THRUSTER = { label: "High-Burn Thruster", page: 46 } as const;

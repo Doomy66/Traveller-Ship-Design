@@ -396,7 +396,7 @@ describe("the heavier weapons", () => {
     );
   });
 
-  it("buys ordnance by the ton it comes in", () => {
+  it("buys ordnance by the ton it comes in, and keeps it out of the ship's price", () => {
     const loaded = sheet({
       ...CAPITAL,
       ordnance: [
@@ -405,9 +405,15 @@ describe("the heavier weapons", () => {
         { canister: "sand", count: 40 },
       ],
     });
-    expect(line(loaded, "Standard Missile x24")).toMatchObject({ tons: 2, cost: 0.5 });
-    expect(line(loaded, "Nuclear Torpedo x6")).toMatchObject({ tons: 2, cost: 0.45 });
-    expect(line(loaded, "Sand Canister x40")).toMatchObject({ tons: 2, cost: 0.05 });
+    // Twelve missiles, three torpedoes and twenty canisters to a ton.
+    expect(line(loaded, "Standard Missile x24").tons).toBe(2);
+    expect(line(loaded, "Nuclear Torpedo x6").tons).toBe(2);
+    expect(line(loaded, "Sand Canister x40").tons).toBe(2);
+    // The cost is reported apart, and no ammunition line carries one.
+    expect(loaded.ordnanceCost).toBe(1);
+    for (const entry of loaded.lines.filter((l) => l.section === "Ammunition")) {
+      expect(entry.cost).toBeUndefined();
+    }
   });
 
   it("discounts the power of a weapon on a firmpoint by a quarter", () => {

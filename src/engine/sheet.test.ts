@@ -6,6 +6,7 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { DESTROYER_ESCORT } from "../fixtures/destroyerEscort";
 import { FREE_TRADER } from "../fixtures/freeTrader";
 import { PATROL_CORVETTE } from "../fixtures/patrolCorvette";
 import { SCOUT_COURIER } from "../fixtures/scoutCourier";
@@ -234,6 +235,103 @@ describe("Patrol Corvette, page 188", () => {
       "Gunner",
       "Gunner",
     ]);
+  });
+
+  it("has nothing wrong with it", () => {
+    expect(result.problems.filter((problem) => problem.severity !== "note")).toEqual([]);
+  });
+});
+
+describe("Destroyer Escort, page 208", () => {
+  const result = sheet(DESTROYER_ESCORT);
+
+  it("prints the sheet the book prints", () => {
+    expect(printed(result)).toEqual([
+      // The book gives the reinforcement a line of its own at MCr20; here it
+      // is folded into the hull, which comes to the same MCr60.
+      ["1000 tons, Close Structure, Reinforced Hull", undefined, 60],
+      ["Bonded Superdense, Armour: 2", 24, 12],
+      ["Thrust 6", 60, 120],
+      ["Jump 4", 105, 157.5],
+      ["Fusion (TL15), Power 1280", 64, 128],
+      ["J-4, 8 weeks of operation", 414, undefined],
+      ["Bridge, holographic", 20, 6.25],
+      ["Computer/35fib", undefined, 45],
+      ["Advanced", 5, 5.3],
+      ["Fusion Barbette", 5, 4],
+      ["Particle Barbette x2", 10, 16],
+      ["Triple Turret (Missile Rack x3) x2", 2, 6.5],
+      ["Triple Turret (Sandcaster x3) x5", 5, 8.75],
+      ["Standard Missile x384", 32, undefined],
+      ["Sand Canister x640", 32, undefined],
+      ["Docking Space (40 tons)", 44, 11],
+      ["Pinnace", undefined, 9.68],
+      ["Fuel Processor (200 tons/day)", 10, 0.5],
+      ["Fuel Scoops", undefined, 1],
+      ["Armoury x2", 2, 0.5],
+      ["Medical Bay", 4, 2],
+      ["Repair Drones", 10, 2],
+      // The book prints "Standard x24"; the sheet here records the double
+      // occupancy that a crew of thirty-nine in twenty-four rooms implies.
+      ["Standard x24 (double occupancy)", 96, 12],
+      ["Manoeuvre", undefined, undefined],
+      ["Intellect", undefined, undefined],
+      ["Library", undefined, undefined],
+      ["Jump Control/4", undefined, 0.4],
+      ["Auto-Repair/1", undefined, 5],
+      ["Evade/2", undefined, 2],
+      ["Fire Control/2", undefined, 4],
+      ["Common Areas", 24, 2.4],
+      ["Cargo", 32, undefined],
+    ]);
+  });
+
+  it("fills the hull exactly", () => {
+    expect(result.tonsUsed).toBe(968);
+    expect(result.cargoTons).toBe(32);
+    // A thousand tons at one Hull point per 2.5, and a tenth more for being reinforced.
+    expect(result.hullPoints).toBe(440);
+  });
+
+  it("costs what the book says", () => {
+    expect(result.totalCost).toBe(621.78);
+    expect(result.purchaseCost).toBe(559.602);
+    expect(result.maintenanceCost).toBe(46634);
+  });
+
+  it("keeps its ammunition out of its price", () => {
+    // Put this into the total and neither the printed total nor the purchase
+    // cost works any more. ShipSpec 4.9.5.1.
+    expect(result.ordnanceCost).toBe(8.8);
+  });
+
+  it("needs the power the book lists", () => {
+    expect(result.powerAvailable).toBe(1_280);
+    expect(requirements(result)).toEqual([
+      ["Basic Ship Systems", 200],
+      ["Manoeuvre Drive", 600],
+      ["Jump Drive", 400],
+      ["Sensors", 6],
+      ["Weapons", 57],
+      ["Fuel Processor", 10],
+      ["Medical Bay", 1],
+    ]);
+  });
+
+  it("is crewed as the Crew Requirements table says", () => {
+    const count = (role: string) => result.crew.find((entry) => entry.role === role)?.count ?? 0;
+    // The three the book's own figures turn on.
+    expect(count("engineer")).toBe(7);
+    expect(count("gunner")).toBe(20);
+    expect(count("maintenance")).toBe(2);
+    // And the rest of what the table gives.
+    expect(count("captain")).toBe(1);
+    expect(count("astrogator")).toBe(1);
+    expect(count("officer")).toBe(3);
+    // ShipSpec 7.5.1 on the three the printed list does not agree with.
+    expect(count("pilot")).toBe(4);
+    expect(count("administrator")).toBe(1);
+    expect(count("medic")).toBe(0);
   });
 
   it("has nothing wrong with it", () => {

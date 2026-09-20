@@ -20,6 +20,8 @@ export interface FlatSystemRule {
   readonly kind: "flat";
   readonly label: string;
   readonly page: number;
+  /** The heading it sits under in the chapter, so one list can be grouped. */
+  readonly group: string;
   readonly tl?: number;
   readonly tons: number;
   /** MCr. */
@@ -42,6 +44,8 @@ export interface PerTonSystemRule {
   readonly kind: "perTon";
   readonly label: string;
   readonly page: number;
+  /** The heading it sits under in the chapter, so one list can be grouped. */
+  readonly group: string;
   readonly tl?: number;
   /** MCr per ton. */
   readonly costPerTon: number;
@@ -60,6 +64,8 @@ export interface PerHullTonSystemRule {
   readonly kind: "perHullTon";
   readonly label: string;
   readonly page: number;
+  /** The heading it sits under in the chapter, so one list can be grouped. */
+  readonly group: string;
   readonly tl?: number;
   /** MCr per ton of hull. */
   readonly costPerHullTon: number;
@@ -130,63 +136,63 @@ export type FlatSystem =
   | "endlessPool";
 
 export const FLAT_SYSTEMS: Readonly<Record<FlatSystem, FlatSystemRule>> = {
-  cargoScoop: { kind: "flat", label: "Cargo Scoop", page: 53, tons: 2, cost: 0.5 },
-  cargoNet: { kind: "flat", label: "Cargo Net", page: 53, tons: 5, cost: 1 },
+  cargoScoop: { kind: "flat", label: "Cargo Scoop", page: 53, tons: 2, cost: 0.5, group: "Cargo" },
+  cargoNet: { kind: "flat", label: "Cargo Net", page: 53, tons: 5, cost: 1, group: "Cargo" },
 
-  sensorStation: { kind: "flat", label: "Sensor Station", page: 53, tons: 1, cost: 0.5, maxHullTons: 7_500 },
-  countermeasuresSuite: { kind: "flat", label: "Countermeasures Suite", page: 56, tl: 13, tons: 2, cost: 4, power: 1 },
-  militaryCountermeasuresSuite: { kind: "flat", label: "Military Countermeasures Suite", page: 56, tl: 15, tons: 15, cost: 28, power: 2 },
-  lifeScanner: { kind: "flat", label: "Life Scanner", page: 57, tl: 12, tons: 1, cost: 2, power: 1 },
-  lifeScannerAnalysisSuite: { kind: "flat", label: "Life Scanner Analysis Suite", page: 57, tl: 14, tons: 1, cost: 4, power: 1 },
-  mailDistributionArray: { kind: "flat", label: "Mail Distribution Array", page: 57, tl: 10, tons: 10, cost: 20 },
-  advancedMailDistributionArray: { kind: "flat", label: "Mail Distribution Array (TL13)", page: 57, tl: 13, tons: 20, cost: 10 },
-  mineralDetectionSuite: { kind: "flat", label: "Mineral Detection Suite", page: 57, tl: 12, tons: 1, cost: 5 },
-  shallowPenetrationSuite: { kind: "flat", label: "Shallow Penetration Suite", page: 57, tl: 10, tons: 10, cost: 5, power: 1 },
-  improvedSignalProcessing: { kind: "flat", label: "Improved Signal Processing", page: 57, tl: 11, tons: 1, cost: 4, power: 1 },
-  enhancedSignalProcessing: { kind: "flat", label: "Enhanced Signal Processing", page: 57, tl: 13, tons: 2, cost: 8, power: 2 },
+  sensorStation: { kind: "flat", label: "Sensor Station", page: 53, tons: 1, cost: 0.5, maxHullTons: 7_500, group: "Bridge" },
+  countermeasuresSuite: { kind: "flat", label: "Countermeasures Suite", page: 56, tl: 13, tons: 2, cost: 4, power: 1, group: "Sensors" },
+  militaryCountermeasuresSuite: { kind: "flat", label: "Military Countermeasures Suite", page: 56, tl: 15, tons: 15, cost: 28, power: 2, group: "Sensors" },
+  lifeScanner: { kind: "flat", label: "Life Scanner", page: 57, tl: 12, tons: 1, cost: 2, power: 1, group: "Sensors" },
+  lifeScannerAnalysisSuite: { kind: "flat", label: "Life Scanner Analysis Suite", page: 57, tl: 14, tons: 1, cost: 4, power: 1, group: "Sensors" },
+  mailDistributionArray: { kind: "flat", label: "Mail Distribution Array", page: 57, tl: 10, tons: 10, cost: 20, group: "Sensors" },
+  advancedMailDistributionArray: { kind: "flat", label: "Mail Distribution Array (TL13)", page: 57, tl: 13, tons: 20, cost: 10, group: "Sensors" },
+  mineralDetectionSuite: { kind: "flat", label: "Mineral Detection Suite", page: 57, tl: 12, tons: 1, cost: 5, group: "Sensors" },
+  shallowPenetrationSuite: { kind: "flat", label: "Shallow Penetration Suite", page: 57, tl: 10, tons: 10, cost: 5, power: 1, group: "Sensors" },
+  improvedSignalProcessing: { kind: "flat", label: "Improved Signal Processing", page: 57, tl: 11, tons: 1, cost: 4, power: 1, group: "Sensors" },
+  enhancedSignalProcessing: { kind: "flat", label: "Enhanced Signal Processing", page: 57, tl: 13, tons: 2, cost: 8, power: 2, group: "Sensors" },
 
-  probeDrones: { kind: "flat", label: "Probe Drones", page: 55, tl: 9, tons: 1, cost: 0.5, units: 5 },
-  advancedProbeDrones: { kind: "flat", label: "Advanced Probe Drones", page: 55, tl: 12, tons: 1, cost: 0.8, units: 5 },
-  miningDrones: { kind: "flat", label: "Mining Drones", page: 55, tl: 12, tons: 10, cost: 1, units: 5 },
+  probeDrones: { kind: "flat", label: "Probe Drones", page: 55, tl: 9, tons: 1, cost: 0.5, units: 5, group: "Drones" },
+  advancedProbeDrones: { kind: "flat", label: "Advanced Probe Drones", page: 55, tl: 12, tons: 1, cost: 0.8, units: 5, group: "Drones" },
+  miningDrones: { kind: "flat", label: "Mining Drones", page: 55, tl: 12, tons: 10, cost: 1, units: 5, group: "Drones" },
 
-  breachingTube: { kind: "flat", label: "Breaching Tube", page: 58, tons: 3, cost: 3 },
-  grapplingArm: { kind: "flat", label: "Grappling Arm", page: 59, tons: 2, cost: 1 },
-  heavyGrapplingArm: { kind: "flat", label: "Heavy Grappling Arm", page: 59, tons: 6, cost: 3 },
-  dockingClampI: { kind: "flat", label: "Docking Clamp (Type I)", page: 58, tons: 1, cost: 0.5 },
-  dockingClampII: { kind: "flat", label: "Docking Clamp (Type II)", page: 58, tons: 5, cost: 1 },
-  dockingClampIII: { kind: "flat", label: "Docking Clamp (Type III)", page: 58, tons: 10, cost: 2 },
-  dockingClampIV: { kind: "flat", label: "Docking Clamp (Type IV)", page: 58, tons: 20, cost: 4 },
-  dockingClampV: { kind: "flat", label: "Docking Clamp (Type V)", page: 58, tons: 50, cost: 8 },
-  forcedLinkageBasic: { kind: "flat", label: "Forced Linkage Apparatus (Basic)", page: 58, tl: 7, tons: 2, cost: 0.05 },
-  forcedLinkageImproved: { kind: "flat", label: "Forced Linkage Apparatus (Improved)", page: 58, tl: 9, tons: 2, cost: 0.075 },
-  forcedLinkageEnhanced: { kind: "flat", label: "Forced Linkage Apparatus (Enhanced)", page: 58, tl: 12, tons: 2, cost: 0.1 },
-  forcedLinkageAdvanced: { kind: "flat", label: "Forced Linkage Apparatus (Advanced)", page: 58, tl: 15, tons: 2, cost: 0.5 },
+  breachingTube: { kind: "flat", label: "Breaching Tube", page: 58, tons: 3, cost: 3, group: "External" },
+  grapplingArm: { kind: "flat", label: "Grappling Arm", page: 59, tons: 2, cost: 1, group: "External" },
+  heavyGrapplingArm: { kind: "flat", label: "Heavy Grappling Arm", page: 59, tons: 6, cost: 3, group: "External" },
+  dockingClampI: { kind: "flat", label: "Docking Clamp (Type I)", page: 58, tons: 1, cost: 0.5, group: "External" },
+  dockingClampII: { kind: "flat", label: "Docking Clamp (Type II)", page: 58, tons: 5, cost: 1, group: "External" },
+  dockingClampIII: { kind: "flat", label: "Docking Clamp (Type III)", page: 58, tons: 10, cost: 2, group: "External" },
+  dockingClampIV: { kind: "flat", label: "Docking Clamp (Type IV)", page: 58, tons: 20, cost: 4, group: "External" },
+  dockingClampV: { kind: "flat", label: "Docking Clamp (Type V)", page: 58, tons: 50, cost: 8, group: "External" },
+  forcedLinkageBasic: { kind: "flat", label: "Forced Linkage Apparatus (Basic)", page: 58, tl: 7, tons: 2, cost: 0.05, group: "External" },
+  forcedLinkageImproved: { kind: "flat", label: "Forced Linkage Apparatus (Improved)", page: 58, tl: 9, tons: 2, cost: 0.075, group: "External" },
+  forcedLinkageEnhanced: { kind: "flat", label: "Forced Linkage Apparatus (Enhanced)", page: 58, tl: 12, tons: 2, cost: 0.1, group: "External" },
+  forcedLinkageAdvanced: { kind: "flat", label: "Forced Linkage Apparatus (Advanced)", page: 58, tl: 15, tons: 2, cost: 0.5, group: "External" },
 
-  armoury: { kind: "flat", label: "Armoury", page: 59, tons: 1, cost: 0.25 },
-  briefingRoom: { kind: "flat", label: "Briefing Room", page: 60, tons: 4, cost: 0.5 },
-  brig: { kind: "flat", label: "Brig", page: 52, tons: 4, cost: 0.25, holds: 6, lifeSupport: 1_000 },
-  library: { kind: "flat", label: "Library", page: 63, tl: 8, tons: 4, cost: 4 },
-  medicalBay: { kind: "flat", label: "Medical Bay", page: 63, tons: 4, cost: 2, power: 1, holds: 3 },
-  workshop: { kind: "flat", label: "Workshop", page: 64, tons: 6, cost: 0.9 },
-  reEntryPod: { kind: "flat", label: "Re-entry Pod", page: 63, tl: 9, tons: 1, cost: 0.15, holds: 2 },
-  reEntryCapsule: { kind: "flat", label: "Re-entry Capsule", page: 63, tl: 8, tons: 0.5, cost: 0.02, holds: 1 },
-  assaultCapsule: { kind: "flat", label: "Assault Capsule", page: 63, tl: 10, tons: 0.5, cost: 0.05, holds: 1 },
-  highSurvivabilityCapsule: { kind: "flat", label: "High Survivability Capsule", page: 63, tl: 14, tons: 0.5, cost: 0.1, holds: 1 },
-  loadingBelt: { kind: "flat", label: "Loading Belt", page: 54, tl: 7, tons: 1, cost: 0.003, power: 1 },
-  advancedLoadingBelt: { kind: "flat", label: "Loading Belt (TL12)", page: 54, tl: 12, tons: 1, cost: 0.01, power: 1 },
+  armoury: { kind: "flat", label: "Armoury", page: 59, tons: 1, cost: 0.25, group: "Internal" },
+  briefingRoom: { kind: "flat", label: "Briefing Room", page: 60, tons: 4, cost: 0.5, group: "Internal" },
+  brig: { kind: "flat", label: "Brig", page: 52, tons: 4, cost: 0.25, holds: 6, lifeSupport: 1_000, group: "Accommodation" },
+  library: { kind: "flat", label: "Library", page: 63, tl: 8, tons: 4, cost: 4, group: "Internal" },
+  medicalBay: { kind: "flat", label: "Medical Bay", page: 63, tons: 4, cost: 2, power: 1, holds: 3, group: "Internal" },
+  workshop: { kind: "flat", label: "Workshop", page: 64, tons: 6, cost: 0.9, group: "Internal" },
+  reEntryPod: { kind: "flat", label: "Re-entry Pod", page: 63, tl: 9, tons: 1, cost: 0.15, holds: 2, group: "Internal" },
+  reEntryCapsule: { kind: "flat", label: "Re-entry Capsule", page: 63, tl: 8, tons: 0.5, cost: 0.02, holds: 1, group: "Internal" },
+  assaultCapsule: { kind: "flat", label: "Assault Capsule", page: 63, tl: 10, tons: 0.5, cost: 0.05, holds: 1, group: "Internal" },
+  highSurvivabilityCapsule: { kind: "flat", label: "High Survivability Capsule", page: 63, tl: 14, tons: 0.5, cost: 0.1, holds: 1, group: "Internal" },
+  loadingBelt: { kind: "flat", label: "Loading Belt", page: 54, tl: 7, tons: 1, cost: 0.003, power: 1, group: "Cargo" },
+  advancedLoadingBelt: { kind: "flat", label: "Loading Belt (TL12)", page: 54, tl: 12, tons: 1, cost: 0.01, power: 1, group: "Cargo" },
 
-  accelerationBench: { kind: "flat", label: "Acceleration Bench", page: 51, tons: 1, cost: 0.01, holds: 4 },
-  accelerationSeat: { kind: "flat", label: "Acceleration Seat", page: 51, tons: 0.5, cost: 0.03, holds: 1 },
-  highStateroom: { kind: "flat", label: "High Stateroom", page: 52, tons: 6, cost: 0.8, holds: 1, lifeSupport: 3_000 },
-  luxuryStateroom: { kind: "flat", label: "Luxury Stateroom", page: 52, tons: 10, cost: 1.5, holds: 1, lifeSupport: 5_000 },
+  accelerationBench: { kind: "flat", label: "Acceleration Bench", page: 51, tons: 1, cost: 0.01, holds: 4, group: "Accommodation" },
+  accelerationSeat: { kind: "flat", label: "Acceleration Seat", page: 51, tons: 0.5, cost: 0.03, holds: 1, group: "Accommodation" },
+  highStateroom: { kind: "flat", label: "High Stateroom", page: 52, tons: 6, cost: 0.8, holds: 1, lifeSupport: 3_000, group: "Accommodation" },
+  luxuryStateroom: { kind: "flat", label: "Luxury Stateroom", page: 52, tons: 10, cost: 1.5, holds: 1, lifeSupport: 5_000, group: "Accommodation" },
 
-  boobyTrappedAirlockBasic: { kind: "flat", label: "Booby-Trapped Airlock (Basic)", page: 60, tl: 6, tons: 0, cost: 0.1 },
-  boobyTrappedAirlockImproved: { kind: "flat", label: "Booby-Trapped Airlock (Improved)", page: 60, tl: 8, tons: 0, cost: 0.3 },
-  boobyTrappedAirlockEnhanced: { kind: "flat", label: "Booby-Trapped Airlock (Enhanced)", page: 60, tl: 10, tons: 0, cost: 0.5 },
-  boobyTrappedAirlockAdvanced: { kind: "flat", label: "Booby-Trapped Airlock (Advanced)", page: 60, tl: 12, tons: 0, cost: 1 },
-  wetBar: { kind: "flat", label: "Wet Bar", page: 61, tons: 0, cost: 0.002 },
-  zeroGRoom: { kind: "flat", label: "Zero-G Room", page: 61, tons: 0, cost: 0.05 },
-  endlessPool: { kind: "flat", label: "Endless Pool", page: 61, tons: 2, cost: 0.05 },
+  boobyTrappedAirlockBasic: { kind: "flat", label: "Booby-Trapped Airlock (Basic)", page: 60, tl: 6, tons: 0, cost: 0.1, group: "Internal" },
+  boobyTrappedAirlockImproved: { kind: "flat", label: "Booby-Trapped Airlock (Improved)", page: 60, tl: 8, tons: 0, cost: 0.3, group: "Internal" },
+  boobyTrappedAirlockEnhanced: { kind: "flat", label: "Booby-Trapped Airlock (Enhanced)", page: 60, tl: 10, tons: 0, cost: 0.5, group: "Internal" },
+  boobyTrappedAirlockAdvanced: { kind: "flat", label: "Booby-Trapped Airlock (Advanced)", page: 60, tl: 12, tons: 0, cost: 1, group: "Internal" },
+  wetBar: { kind: "flat", label: "Wet Bar", page: 61, tons: 0, cost: 0.002, group: "Common areas" },
+  zeroGRoom: { kind: "flat", label: "Zero-G Room", page: 61, tons: 0, cost: 0.05, group: "Common areas" },
+  endlessPool: { kind: "flat", label: "Endless Pool", page: 61, tons: 2, cost: 0.05, group: "Common areas" },
 };
 
 export type PerTonSystem =
@@ -250,78 +256,78 @@ export type PerTonSystem =
 
 export const PER_TON_SYSTEMS: Readonly<Record<PerTonSystem, PerTonSystemRule>> = {
   /** Sized at ARMOURED_BULKHEAD_FRACTION of whatever it protects. */
-  armouredBulkhead: { kind: "perTon", label: "Armoured Bulkhead", page: 44, costPerTon: 0.2 },
-  module: { kind: "perTon", label: "Module", page: 45, costPerTon: 0.025 },
+  armouredBulkhead: { kind: "perTon", label: "Armoured Bulkhead", page: 44, costPerTon: 0.2, group: "Structure" },
+  module: { kind: "perTon", label: "Module", page: 45, costPerTon: 0.025, group: "Structure" },
   /** Sized and priced at a tenth of the power plant. */
-  emergencyPowerSystem: { kind: "perTon", label: "Emergency Power System", page: 45, costPerTon: 0 },
-  highEfficiencyBatteries: { kind: "perTon", label: "High-Efficiency Batteries", page: 45, tl: 10, costPerTon: 0.1 },
-  advancedHighEfficiencyBatteries: { kind: "perTon", label: "High-Efficiency Batteries (TL12)", page: 45, tl: 12, costPerTon: 0.2 },
+  emergencyPowerSystem: { kind: "perTon", label: "Emergency Power System", page: 45, costPerTon: 0, group: "Power" },
+  highEfficiencyBatteries: { kind: "perTon", label: "High-Efficiency Batteries", page: 45, tl: 10, costPerTon: 0.1, group: "Power" },
+  advancedHighEfficiencyBatteries: { kind: "perTon", label: "High-Efficiency Batteries (TL12)", page: 45, tl: 12, costPerTon: 0.2, group: "Power" },
 
-  solarSail: { kind: "perTon", label: "Solar Sail", page: 49, costPerTon: 0.2 },
+  solarSail: { kind: "perTon", label: "Solar Sail", page: 49, costPerTon: 0.2, group: "Drives" },
 
-  collapsibleFuelTank: { kind: "perTon", label: "Collapsible Fuel Tank", page: 49, costPerTon: 0.0005 },
+  collapsibleFuelTank: { kind: "perTon", label: "Collapsible Fuel Tank", page: 49, costPerTon: 0.0005, group: "Fuel" },
   /** Sized at DROP_TANK_MOUNT_FRACTION of the tank it carries. */
-  dropTankMount: { kind: "perTon", label: "Drop Tanks Mount", page: 49, costPerTon: 0.5 },
+  dropTankMount: { kind: "perTon", label: "Drop Tanks Mount", page: 49, costPerTon: 0.5, group: "Fuel" },
   /** The tank itself hangs outside and takes none of the hull. */
-  dropTank: { kind: "perTon", label: "Drop Tank", page: 49, costPerTon: 0.025 },
-  fuelCargoContainer: { kind: "perTon", label: "Fuel/Cargo Container", page: 50, costPerTon: 0.005, overhead: 0.05 },
-  fuelProcessor: { kind: "perTon", label: "Fuel Processor", page: 50, costPerTon: 0.05, powerPerTon: 1 },
+  dropTank: { kind: "perTon", label: "Drop Tank", page: 49, costPerTon: 0.025, group: "Fuel" },
+  fuelCargoContainer: { kind: "perTon", label: "Fuel/Cargo Container", page: 50, costPerTon: 0.005, overhead: 0.05, group: "Fuel" },
+  fuelProcessor: { kind: "perTon", label: "Fuel Processor", page: 50, costPerTon: 0.05, powerPerTon: 1, group: "Fuel" },
   /** Its tonnage comes out of the fuel tankage, not the hull. */
-  fuelTankCompartment: { kind: "perTon", label: "Fuel Tank Compartment", page: 50, costPerTon: 0.004 },
-  metalHydrideStorage: { kind: "perTon", label: "Metal Hydride Storage", page: 51, tl: 9, costPerTon: 0.2 },
-  mountableTank: { kind: "perTon", label: "Mountable Tank", page: 51, costPerTon: 0.001 },
-  ramscoops: { kind: "perTon", label: "Ramscoops", page: 51, costPerTon: 0.25, minTons: 10 },
+  fuelTankCompartment: { kind: "perTon", label: "Fuel Tank Compartment", page: 50, costPerTon: 0.004, group: "Fuel" },
+  metalHydrideStorage: { kind: "perTon", label: "Metal Hydride Storage", page: 51, tl: 9, costPerTon: 0.2, group: "Fuel" },
+  mountableTank: { kind: "perTon", label: "Mountable Tank", page: 51, costPerTon: 0.001, group: "Fuel" },
+  ramscoops: { kind: "perTon", label: "Ramscoops", page: 51, costPerTon: 0.25, minTons: 10, group: "Fuel" },
 
-  barracks: { kind: "perTon", label: "Barracks", page: 51, costPerTon: 0.05, lifeSupportPerTon: 500 },
-  cabinSpace: { kind: "perTon", label: "Cabin Space", page: 52, costPerTon: 0.05, lifeSupportPerTon: 250 },
-  multiEnvironmentSpace: { kind: "perTon", label: "Multi-Environment Space", page: 52, costPerTon: 0.5, powerPerTon: 1, overhead: 0.05 },
-  stable: { kind: "perTon", label: "Stable", page: 64, costPerTon: 0.0025, minTons: 10, lifeSupportPerTon: 250 },
+  barracks: { kind: "perTon", label: "Barracks", page: 51, costPerTon: 0.05, lifeSupportPerTon: 500, group: "Accommodation" },
+  cabinSpace: { kind: "perTon", label: "Cabin Space", page: 52, costPerTon: 0.05, lifeSupportPerTon: 250, group: "Accommodation" },
+  multiEnvironmentSpace: { kind: "perTon", label: "Multi-Environment Space", page: 52, costPerTon: 0.5, powerPerTon: 1, overhead: 0.05, group: "Accommodation" },
+  stable: { kind: "perTon", label: "Stable", page: 64, costPerTon: 0.0025, minTons: 10, lifeSupportPerTon: 250, group: "Accommodation" },
 
   /** Sized by cargoCraneTons. */
-  cargoCrane: { kind: "perTon", label: "Cargo Crane", page: 53, costPerTon: 1 },
+  cargoCrane: { kind: "perTon", label: "Cargo Crane", page: 53, costPerTon: 1, group: "Cargo" },
   /** The cargo hangs outside and takes none of the hull. */
-  externalCargoMount: { kind: "perTon", label: "External Cargo Mount", page: 53, costPerTon: 0.001 },
-  interplanetaryJumpNet: { kind: "perTon", label: "Interplanetary Jump Net", page: 54, tl: 8, costPerTon: 0.1 },
-  interstellarJumpNet: { kind: "perTon", label: "Interstellar Jump Net", page: 54, tl: 10, costPerTon: 0.3 },
+  externalCargoMount: { kind: "perTon", label: "External Cargo Mount", page: 53, costPerTon: 0.001, group: "Cargo" },
+  interplanetaryJumpNet: { kind: "perTon", label: "Interplanetary Jump Net", page: 54, tl: 8, costPerTon: 0.1, group: "Cargo" },
+  interstellarJumpNet: { kind: "perTon", label: "Interstellar Jump Net", page: 54, tl: 10, costPerTon: 0.3, group: "Cargo" },
 
   /** Sized at REPAIR_DRONES_HULL_FRACTION of the hull, minimum 1. */
-  repairDrones: { kind: "perTon", label: "Repair Drones", page: 55, tl: 10, costPerTon: 0.2, minTons: 1 },
-  deepPenetrationScanners: { kind: "perTon", label: "Deep Penetration Scanners", page: 56, tl: 13, costPerTon: 1, power: 1 },
-  extensionNet: { kind: "perTon", label: "Extension Net", page: 56, tl: 10, costPerTon: 1, minTons: 1 },
+  repairDrones: { kind: "perTon", label: "Repair Drones", page: 55, tl: 10, costPerTon: 0.2, minTons: 1, group: "Drones" },
+  deepPenetrationScanners: { kind: "perTon", label: "Deep Penetration Scanners", page: 56, tl: 13, costPerTon: 1, power: 1, group: "Sensors" },
+  extensionNet: { kind: "perTon", label: "Extension Net", page: 56, tl: 10, costPerTon: 1, minTons: 1, group: "Sensors" },
 
-  aerofins: { kind: "perTon", label: "Aerofins", page: 57, costPerTon: 0.1 },
-  towCable: { kind: "perTon", label: "Tow Cable", page: 59, costPerTon: 0.005 },
+  aerofins: { kind: "perTon", label: "Aerofins", page: 57, costPerTon: 0.1, group: "External" },
+  towCable: { kind: "perTon", label: "Tow Cable", page: 59, costPerTon: 0.005, group: "External" },
 
-  additionalAirlock: { kind: "perTon", label: "Additional Airlock", page: 59, costPerTon: 0.1, minTons: 2 },
-  biosphere: { kind: "perTon", label: "Biosphere", page: 60, costPerTon: 0.2, power: 1 },
-  concealedCompartment: { kind: "perTon", label: "Concealed Compartment", page: 62, costPerTon: 0.02, maxHullFraction: 0.05 },
-  constructionDeck: { kind: "perTon", label: "Construction Deck", page: 62, costPerTon: 0.5, powerPerTon: 1 },
+  additionalAirlock: { kind: "perTon", label: "Additional Airlock", page: 59, costPerTon: 0.1, minTons: 2, group: "Internal" },
+  biosphere: { kind: "perTon", label: "Biosphere", page: 60, costPerTon: 0.2, power: 1, group: "Internal" },
+  concealedCompartment: { kind: "perTon", label: "Concealed Compartment", page: 62, costPerTon: 0.02, maxHullFraction: 0.05, group: "Internal" },
+  constructionDeck: { kind: "perTon", label: "Construction Deck", page: 62, costPerTon: 0.5, powerPerTon: 1, group: "Internal" },
   /** Sized at DOCKING_SPACE_FACTOR of the craft, rounded up. */
-  dockingSpace: { kind: "perTon", label: "Docking Space", page: 62, costPerTon: 0.25 },
+  dockingSpace: { kind: "perTon", label: "Docking Space", page: 62, costPerTon: 0.25, group: "Internal" },
   /** Sized at FULL_HANGAR_FACTOR of the craft, rounded up. */
-  fullHangar: { kind: "perTon", label: "Full Hangar", page: 62, costPerTon: 0.2 },
-  gravScreen: { kind: "perTon", label: "Grav Screen", page: 62, tl: 12, costPerTon: 1, powerPerTon: 2 },
-  laboratory: { kind: "perTon", label: "Laboratories", page: 62, costPerTon: 0.25 },
+  fullHangar: { kind: "perTon", label: "Full Hangar", page: 62, costPerTon: 0.2, group: "Internal" },
+  gravScreen: { kind: "perTon", label: "Grav Screen", page: 62, tl: 12, costPerTon: 1, powerPerTon: 2, group: "Internal" },
+  laboratory: { kind: "perTon", label: "Laboratories", page: 62, costPerTon: 0.25, group: "Internal" },
   /** Sized at LAUNCH_FACILITY_FACTOR of the largest craft it serves. */
-  launchTube: { kind: "perTon", label: "Launch Tube", page: 62, tl: 9, costPerTon: 0.5, powerPerTon: 1 },
-  recoveryDeck: { kind: "perTon", label: "Recovery Deck", page: 64, costPerTon: 0.5, powerPerTon: 1 },
-  studio: { kind: "perTon", label: "Studio", page: 64, costPerTon: 0.1 },
-  trainingFacilities: { kind: "perTon", label: "Training Facilities", page: 64, costPerTon: 0.2 },
-  unrepSystem: { kind: "perTon", label: "UNREP System", page: 64, costPerTon: 0.5, powerPerTon: 1 },
-  vault: { kind: "perTon", label: "Vault", page: 64, costPerTon: 0.5, minTons: 4 },
+  launchTube: { kind: "perTon", label: "Launch Tube", page: 62, tl: 9, costPerTon: 0.5, powerPerTon: 1, group: "Internal" },
+  recoveryDeck: { kind: "perTon", label: "Recovery Deck", page: 64, costPerTon: 0.5, powerPerTon: 1, group: "Internal" },
+  studio: { kind: "perTon", label: "Studio", page: 64, costPerTon: 0.1, group: "Internal" },
+  trainingFacilities: { kind: "perTon", label: "Training Facilities", page: 64, costPerTon: 0.2, group: "Internal" },
+  unrepSystem: { kind: "perTon", label: "UNREP System", page: 64, costPerTon: 0.5, powerPerTon: 1, group: "Internal" },
+  vault: { kind: "perTon", label: "Vault", page: 64, costPerTon: 0.5, minTons: 4, group: "Internal" },
 
-  brewery: { kind: "perTon", label: "Brewery or Distillery", page: 60, tl: 10, costPerTon: 0.1, minTons: 0.5 },
-  gourmetKitchen: { kind: "perTon", label: "Gourmet Kitchen", page: 60, costPerTon: 0.2 },
-  hotTub: { kind: "perTon", label: "Hot Tub", page: 61, costPerTon: 0.012 },
-  swimmingPool: { kind: "perTon", label: "Swimming Pool", page: 61, costPerTon: 0.02, minTons: 4 },
-  theatre: { kind: "perTon", label: "Theatre", page: 61, costPerTon: 0.1, minTons: 8 },
-  advancedTheatre: { kind: "perTon", label: "Advanced Theatre", page: 61, costPerTon: 0.2, minTons: 8 },
+  brewery: { kind: "perTon", label: "Brewery or Distillery", page: 60, tl: 10, costPerTon: 0.1, minTons: 0.5, group: "Common areas" },
+  gourmetKitchen: { kind: "perTon", label: "Gourmet Kitchen", page: 60, costPerTon: 0.2, group: "Common areas" },
+  hotTub: { kind: "perTon", label: "Hot Tub", page: 61, costPerTon: 0.012, group: "Common areas" },
+  swimmingPool: { kind: "perTon", label: "Swimming Pool", page: 61, costPerTon: 0.02, minTons: 4, group: "Common areas" },
+  theatre: { kind: "perTon", label: "Theatre", page: 61, costPerTon: 0.1, minTons: 8, group: "Common areas" },
+  advancedTheatre: { kind: "perTon", label: "Advanced Theatre", page: 61, costPerTon: 0.2, minTons: 8, group: "Common areas" },
 };
 
 export type PerHullTonSystem = "holographicHull";
 
 export const PER_HULL_TON_SYSTEMS: Readonly<Record<PerHullTonSystem, PerHullTonSystemRule>> = {
-  holographicHull: { kind: "perHullTon", label: "Holographic Hull", page: 59, tl: 10, costPerHullTon: 0.1, hullTonsPerPower: 2 },
+  holographicHull: { kind: "perHullTon", label: "Holographic Hull", page: 59, tl: 10, costPerHullTon: 0.1, hullTonsPerPower: 2, group: "External" },
 };
 
 /** Fuel Scoops, page 50: free on a streamlined hull, otherwise this, and no tons. */

@@ -57,6 +57,28 @@ export function select(
   return node;
 }
 
+/** A select whose options are gathered under headings. */
+export function grouped(
+  value: string | undefined,
+  options: readonly (Option & { group: string })[],
+  onChange: (value: string) => void,
+): HTMLSelectElement {
+  const node = el("select");
+  let current: string | undefined;
+  let into: HTMLElement = node;
+  for (const option of options) {
+    if (option.group !== current) {
+      current = option.group;
+      into = el("optgroup", { label: current });
+      node.append(into);
+    }
+    into.append(el("option", { value: option.value, selected: option.value === value }, [option.label]));
+  }
+  node.value = value ?? "";
+  node.addEventListener("change", () => onChange(node.value));
+  return node;
+}
+
 export function number(
   value: number | undefined,
   onChange: (value: number | undefined) => void,

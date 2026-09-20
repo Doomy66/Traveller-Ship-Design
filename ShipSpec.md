@@ -519,6 +519,10 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 10.9.4 A list row puts its controls on one line, each no wider than what it holds, wrapping only where the panel is too narrow. The grid a step is laid out on therefore ends in a flexible column: without it the grid is only as wide as its own fields, and a list editor spanning it has no room to lay a row out on.
 
+10.9.6 **The optional systems are one list under the book's own headings**, not two questions. Asking first how the rules happened to price a thing and only then which thing is bookkeeping rather than a question a designer has, and it buried fuel scoops behind a dropdown called "Sold by". Every entry therefore carries the heading it sits under in the chapter, beside the page it came from, and the list is built from the tables themselves.
+
+10.9.7 A figure on a summary panel is spaced from its unit, separated at the thousand, and carries no more than two decimals. Where two decimals is not the whole of it, as with a purchase price of MCr559.602, the exact figure is the tooltip and the line is marked as standing for more than it shows. The component table is not treated this way: it is the sheet proper and has to match what the book prints, down to a computer at MCr0.045.
+
 10.9.5 The steps run in the book's order with two placed where their numbers say they belong: software beside the computer that runs it, and carried craft after the optional systems that berth them. A hull is a round number of tons, so its spinner moves in hundreds while any figure may still be typed.
 
 10.10 The computer's Processing stands in the bandwidth column, where the software spends it, and the software's own demand is totalled under the last of it. That total is a sum of the column and nothing more: Jump Control is weighed against the computer on its own under 4.7.5, so it is the totals panel that says whether the computer can run any of it.

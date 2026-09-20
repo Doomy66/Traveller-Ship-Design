@@ -31,6 +31,7 @@ import {
   CANISTERS,
   COMPUTERS,
   FLAT_SYSTEMS,
+  FUEL_SCOOPS,
   GRADES,
   HULL_CONFIGURATIONS,
   HULL_OPTIONS,
@@ -51,7 +52,14 @@ import {
   TRAITS,
   TURRET_WEAPONS,
 } from "../rules/index";
-import type { Trait, TraitCategory, TurretWeapon } from "../rules/index";
+import type {
+  FlatSystem,
+  PerHullTonSystem,
+  PerTonSystem,
+  Trait,
+  TraitCategory,
+  TurretWeapon,
+} from "../rules/index";
 import type {
   CraftChoice,
   Customisation,
@@ -69,6 +77,7 @@ import {
   button,
   check,
   checkSet,
+  grouped,
   labelled,
   listEditor,
   number,
@@ -693,53 +702,89 @@ function craft(host: FormHost): Element {
 
 // ------------------------------------------------------------ optional systems
 
+/**
+ * Everything the Spacecraft Options chapter sells, in one list under the book's
+ * own headings.
+ *
+ * It used to be two questions: first how the rules happened to price the thing,
+ * then the thing. That is bookkeeping, not a question a designer has, and it
+ * buried fuel scoops behind a dropdown called "Sold by". One list, and the row
+ * asks for whatever that particular system still needs to know.
+ */
+interface CatalogueEntry extends Option {
+  readonly group: string;
+}
+
+function catalogue(): CatalogueEntry[] {
+  const entries: CatalogueEntry[] = [
+    ...Object.entries(FLAT_SYSTEMS).map(([key, rule]) => ({
+      value: `flat:${key}`, label: rule.label, group: rule.group,
+    })),
+    ...Object.entries(PER_TON_SYSTEMS).map(([key, rule]) => ({
+      value: `perTon:${key}`, label: rule.label, group: rule.group,
+    })),
+    ...Object.entries(PER_HULL_TON_SYSTEMS).map(([key, rule]) => ({
+      value: `perHullTon:${key}`, label: rule.label, group: rule.group,
+    })),
+    { value: "fuelScoops", label: FUEL_SCOOPS.label, group: "Fuel" },
+    { value: "solar", label: "Solar Coating or Panels", group: "Power" },
+    { value: "custom", label: "Something the list does not carry", group: "Anything else" },
+  ];
+  const order = [
+    "Structure", "Power", "Drives", "Fuel", "Accommodation", "Bridge", "Cargo",
+    "Drones", "Sensors", "External", "Internal", "Common areas", "Anything else",
+  ];
+  return entries.sort((a, b) =>
+    order.indexOf(a.group) - order.indexOf(b.group) || a.label.localeCompare(b.label));
+}
+
+/** Which entry of the catalogue a chosen system is. */
+function catalogueValue(choice: SystemChoice): string {
+  if ("flat" in choice) return `flat:${choice.flat}`;
+  if ("perTon" in choice) return `perTon:${choice.perTon}`;
+  if ("perHullTon" in choice) return `perHullTon:${choice.perHullTon}`;
+  if ("fuelScoops" in choice) return "fuelScoops";
+  if ("solar" in choice) return "solar";
+  return "custom";
+}
+
+/** A fresh choice for whatever was picked out of the catalogue. */
+function systemFor(value: string): SystemChoice {
+  const [kind, key] = value.split(":");
+  if (kind === "flat") return { flat: key as FlatSystem };
+  if (kind === "perTon") return { perTon: key as PerTonSystem };
+  if (kind === "perHullTon") return { perHullTon: key as PerHullTonSystem };
+  if (value === "fuelScoops") return { fuelScoops: true };
+  if (value === "solar") return { solar: "enhanced", panelUnits: 10 };
+  return { custom: { label: "Something", tons: 1, cost: 0.1 } };
+}
+
 function systems(host: FormHost): Element {
   const live = () => list<SystemChoice>(host, "systems");
   const set = (systems: SystemChoice[], how: "update" | "rebuild" = "rebuild") => host[how]({ systems });
   const replace = (i: number, entry: SystemChoice, how: "update" | "rebuild" = "rebuild") =>
     set(live().map((e, k) => (k === i ? entry : e)), how);
   const at = (i: number) => live()[i] as SystemChoice;
-
-  const kindOf = (choice: SystemChoice): string =>
-    "flat" in choice ? "flat"
-      : "perTon" in choice ? "perTon"
-        : "perHullTon" in choice ? "perHullTon"
-          : "fuelScoops" in choice ? "fuelScoops"
-            : "solar" in choice ? "solar" : "custom";
+  const options = catalogue();
 
   const rows = live().map((choice, i) => {
     const parts: (Element | null)[] = [
-      labelled("Sold by", select(kindOf(choice), [
-        { value: "flat", label: "The unit" },
-        { value: "perTon", label: "The ton" },
-        { value: "perHullTon", label: "The whole ship" },
-        { value: "fuelScoops", label: "Fuel scoops" },
-        { value: "solar", label: "Solar" },
-        { value: "custom", label: "Something else" },
-      ], (v) => replace(i, defaultSystem(v)))),
+      labelled("System", grouped(catalogueValue(choice), options, (v) => replace(i, systemFor(v)))),
     ];
 
     if ("flat" in choice) {
-      parts.push(labelled("System", select(choice.flat, optionsOf(FLAT_SYSTEMS), (v) => {
-        const now = at(i);
-        if ("flat" in now) replace(i, { ...now, flat: v as typeof now.flat });
-      })));
+      const rule = FLAT_SYSTEMS[choice.flat];
       parts.push(labelled("How many", number(choice.quantity ?? 1, (quantity) => {
         const now = at(i);
         if ("flat" in now) replace(i, { ...now, quantity: quantity ?? 1 });
-      }, { min: 1, step: 1 })));
+      }, { min: 1, step: 1 }), `${rule.tons} tons and MCr${rule.cost} each.`));
     } else if ("perTon" in choice) {
-      parts.push(labelled("System", select(choice.perTon, optionsOf(PER_TON_SYSTEMS), (v) => {
-        const now = at(i);
-        if ("perTon" in now) replace(i, { ...now, perTon: v as typeof now.perTon });
-      })));
+      const rule = PER_TON_SYSTEMS[choice.perTon];
       parts.push(labelled("Tons", number(choice.tons, (tons) => {
         const now = at(i);
         if ("perTon" in now) replace(i, { ...now, tons });
-      }, { min: 0, placeholder: "rule" }), "Left empty, the rules size it themselves where they can."));
-    } else if ("perHullTon" in choice) {
-      parts.push(labelled("System", select(choice.perHullTon, optionsOf(PER_HULL_TON_SYSTEMS), (v) =>
-        replace(i, { perHullTon: v as typeof choice.perHullTon }))));
+      }, { min: 0, placeholder: "rule" }),
+        `MCr${rule.costPerTon} a ton. Left empty, the rules size it themselves where they can.`));
     } else if ("solar" in choice) {
       parts.push(labelled("Grade", select(choice.solar, optionsOf(SOLAR_SYSTEMS), (v) => {
         const now = at(i);
@@ -773,17 +818,6 @@ function systems(host: FormHost): Element {
     ]]);
 }
 
-function defaultSystem(kind: string): SystemChoice {
-  switch (kind) {
-    case "perTon": return { perTon: "fuelProcessor", tons: 1 };
-    case "perHullTon": return { perHullTon: "holographicHull" };
-    case "fuelScoops": return { fuelScoops: true };
-    case "solar": return { solar: "enhanced", panelUnits: 10 };
-    case "custom": return { custom: { label: "Something", tons: 1, cost: 0.1 } };
-    default: return { flat: "workshop" };
-  }
-}
-
 // --------------------------------------------------------------- the quarters
 
 function accommodation(host: FormHost): Element {
@@ -800,15 +834,15 @@ function accommodation(host: FormHost): Element {
   return step("quarters", "11", "Install staterooms", precis, [
     [
       labelled("Staterooms", number(d.staterooms, (staterooms) => host.rebuild({ staterooms }), { min: 0, step: 1 })),
-      labelled("Low berths", number(d.lowBerths, (lowBerths) => host.rebuild({ lowBerths }), { min: 0, step: 1 })),
-      labelled("Emergency", number(d.emergencyLowBerths, (emergencyLowBerths) =>
-        host.rebuild({ emergencyLowBerths }), { min: 0, step: 1 }), "Emergency low berths, four to a berth."),
+      check(d.doubleOccupancy === true, "Two to a room", (doubleOccupancy) =>
+        host.rebuild({ doubleOccupancy }), "Free, and common on a military ship."),
       labelled("Common areas", number(d.commonAreaTons, (commonAreaTons) =>
         host.rebuild({ commonAreaTons }), { min: 0 }), "Tons. The book suggests a quarter of the staterooms."),
     ],
     [
-      check(d.doubleOccupancy === true, "Two to a room", (doubleOccupancy) =>
-        host.rebuild({ doubleOccupancy }), "Free, and common on a military ship."),
+      labelled("Low berths", number(d.lowBerths, (lowBerths) => host.rebuild({ lowBerths }), { min: 0, step: 1 })),
+      labelled("Emergency", number(d.emergencyLowBerths, (emergencyLowBerths) =>
+        host.rebuild({ emergencyLowBerths }), { min: 0, step: 1 }), "Emergency low berths, four to a berth."),
     ],
     [
       labelled("High passengers", number(p.high, (high) => setPassengers({ high: high ?? 0 }), { min: 0, step: 1 })),

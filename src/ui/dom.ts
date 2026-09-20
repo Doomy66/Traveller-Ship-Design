@@ -37,18 +37,60 @@ export function find<T extends Element = HTMLElement>(selector: string): T {
   return node;
 }
 
-/** MCr, shown the way the book shows it: enough places for the credit, no more. */
+/**
+ * Figures for the summary panels, where the reading matters more than the last
+ * credit. Units are spaced away from their numbers, nothing carries more than
+ * two decimals, and thousands are separated.
+ *
+ * The component table is not put through these: it is the sheet proper and has
+ * to match what the book prints, down to a computer at MCr0.045.
+ */
+
+function places(value: number, most = 2): string {
+  const rounded = Math.round(value * 10 ** most) / 10 ** most;
+  return rounded.toLocaleString("en-GB", { maximumFractionDigits: most });
+}
+
+/** MCr in the component table: exactly the book's figure, however many places. */
 export function mcr(value: number): string {
-  const rounded = Math.round(value * 1e6) / 1e6;
-  return Number.isInteger(rounded) ? String(rounded) : String(rounded);
+  return String(Math.round(value * 1e6) / 1e6);
 }
 
-/** Tons, likewise: whole where they are whole. */
+/** Tons in the component table, with float noise cleared. */
 export function tons(value: number): string {
-  const rounded = Math.round(value * 1e3) / 1e3;
-  return String(rounded);
+  return String(Math.round(value * 1e3) / 1e3);
 }
 
+/** A number for a summary line: separated, and never more than two decimals. */
+export function figure(value: number, most = 2): string {
+  return places(value, most);
+}
+
+/** Millions of credits, for a summary line. */
+export function millions(value: number): string {
+  return `MCr ${places(value)}`;
+}
+
+/**
+ * The exact figure behind a rounded one, or nothing when the two agree.
+ *
+ * Two decimals of MCr is a clean read but it is not always the whole number:
+ * the Destroyer Escort is bought for MCr559.602, and the book prints it that
+ * way. Rather than choose between the two, the summary shows the short form and
+ * keeps the exact one a hover away.
+ */
+export function exactly(value: number): string | undefined {
+  const shown = Math.round(value * 100) / 100;
+  if (shown === Math.round(value * 1e6) / 1e6) return undefined;
+  return `Exactly Cr ${(Math.round(value * 1e6)).toLocaleString("en-GB")}`;
+}
+
+/** Credits, for a summary line. Kept for callers that want no unit of time. */
 export function credits(value: number): string {
-  return value.toLocaleString("en-GB");
+  return `Cr ${places(value, 0)}`;
+}
+
+/** Credits a month, for a summary line. */
+export function monthly(value: number): string {
+  return `Cr ${places(value, 0)} / month`;
 }

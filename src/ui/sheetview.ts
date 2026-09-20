@@ -7,7 +7,7 @@
  */
 
 import type { Sheet } from "../engine/sheet";
-import { clear, credits, el, mcr, tons } from "./dom";
+import { clear, el, exactly, figure, mcr, millions, monthly, tons } from "./dom";
 
 export function renderSheet(into: Element, sheet: Sheet): void {
   clear(into);
@@ -15,7 +15,7 @@ export function renderSheet(into: Element, sheet: Sheet): void {
   into.append(
     el("header", { class: "sheet-head" }, [
       el("h2", {}, [sheet.name === "" ? "Untitled" : sheet.name]),
-      el("p", { class: "sheet-sub" }, [`TL${sheet.tl}, ${tons(sheet.hullTons)} tons`]),
+      el("p", { class: "sheet-sub" }, [`TL${sheet.tl}, ${figure(sheet.hullTons, 0)} tons`]),
     ]),
   );
 
@@ -88,33 +88,35 @@ function componentTable(sheet: Sheet): Element {
 }
 
 function totals(sheet: Sheet): Element {
-  const rows: [string, string][] = [
-    ["Tons used", `${tons(sheet.tonsUsed)} of ${tons(sheet.usableTons)}`],
-    ["Cargo", tons(sheet.cargoTons)],
-    ["Hull points", String(sheet.hullPoints)],
-    ["Armour", String(sheet.armourProtection)],
-    ["Airlocks", String(sheet.airlocks)],
+  const rows: [string, string, string?][] = [
+    ["Tons used", `${figure(sheet.tonsUsed)} of ${figure(sheet.usableTons)}`],
+    ["Cargo", figure(sheet.cargoTons)],
+    ["Hull points", figure(sheet.hullPoints, 0)],
+    ["Armour", figure(sheet.armourProtection, 0)],
+    ["Airlocks", figure(sheet.airlocks, 0)],
     [
       sheet.hardpoints.firmpoints ? "Firmpoints" : "Hardpoints",
       `${sheet.hardpoints.used} of ${sheet.hardpoints.available}`,
     ],
-    ["Fuel", tons(sheet.fuel.total)],
-    ["Total", `MCr${mcr(sheet.totalCost)}`],
-    ["Purchase", `MCr${mcr(sheet.purchaseCost)}`],
-    ["Maintenance", `Cr${credits(sheet.maintenanceCost)}/month`],
-    ["Wages", `Cr${credits(sheet.wageBill)}/month`],
-    ["Construction", `${credits(sheet.constructionDays)} days`],
+    ["Fuel", figure(sheet.fuel.total)],
+    ["Total", millions(sheet.totalCost), exactly(sheet.totalCost)],
+    ["Purchase", millions(sheet.purchaseCost), exactly(sheet.purchaseCost)],
+    ["Maintenance", monthly(sheet.maintenanceCost)],
+    ["Wages", monthly(sheet.wageBill)],
+    ["Construction", `${figure(sheet.constructionDays, 0)} days`],
   ];
-  if (sheet.ordnanceCost > 0) rows.push(["Ammunition", `MCr${mcr(sheet.ordnanceCost)}, bought apart`]);
+  if (sheet.ordnanceCost > 0) {
+    rows.push(["Ammunition", `${millions(sheet.ordnanceCost)}, bought apart`, exactly(sheet.ordnanceCost)]);
+  }
   if (sheet.software.processing > 0) {
     rows.push(["Bandwidth", `${sheet.software.bandwidth} of ${sheet.software.processing}`]);
     if (sheet.software.jumpControl > 0) {
       rows.push(["Jump Control", `${sheet.software.jumpControl} of ${sheet.software.jumpProcessing}`]);
     }
   }
-  return panel("Totals", el("dl", { class: "figures" }, rows.flatMap(([term, value]) => [
-    el("dt", {}, [term]),
-    el("dd", {}, [value]),
+  return panel("Totals", el("dl", { class: "figures" }, rows.flatMap(([term, value, exact]) => [
+    el("dt", { title: exact }, [term]),
+    el("dd", { title: exact, class: exact === undefined ? undefined : "rounded" }, [value]),
   ])));
 }
 
@@ -123,16 +125,16 @@ function powerPanel(sheet: Sheet): Element {
   const running = draws.reduce((sum, entry) => sum + entry.power, 0);
   const jumping = sheet.powerRequirements.reduce((sum, entry) => sum + entry.power, 0);
   return panel(
-    `Power: ${tons(sheet.powerAvailable)} available`,
+    `Power: ${figure(sheet.powerAvailable)} available`,
     el("dl", { class: "figures" }, [
       ...sheet.powerRequirements.flatMap((entry) => [
         el("dt", {}, [entry.whenJumping === true ? `${entry.label} (jumping)` : entry.label]),
-        el("dd", {}, [entry.power < 0 ? `+${tons(-entry.power)}` : tons(entry.power)]),
+        el("dd", {}, [entry.power < 0 ? `+ ${figure(-entry.power)}` : figure(entry.power)]),
       ]),
       el("dt", { class: "sum" }, ["Running"]),
-      el("dd", { class: "sum" }, [tons(running)]),
+      el("dd", { class: "sum" }, [figure(running)]),
       el("dt", { class: "sum" }, ["With a jump"]),
-      el("dd", { class: "sum" }, [tons(jumping)]),
+      el("dd", { class: "sum" }, [figure(jumping)]),
     ]),
   );
 }
@@ -143,7 +145,7 @@ function crewPanel(sheet: Sheet): Element {
     `Crew: ${sheet.crewTotal}`,
     el("dl", { class: "figures" }, sheet.crew.flatMap((entry) => [
       el("dt", {}, [entry.count > 1 ? `${entry.label} x${entry.count}` : entry.label]),
-      el("dd", {}, [`Cr${credits(entry.count * entry.salary)}/month`]),
+      el("dd", {}, [monthly(entry.count * entry.salary)]),
     ])),
   );
 }

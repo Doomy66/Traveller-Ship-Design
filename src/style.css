@@ -242,6 +242,8 @@ dl.figures { display: grid; grid-template-columns: 1fr auto; gap: 1px 12px; marg
 dl.figures dt { color: var(--muted); }
 dl.figures dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
 dl.figures .sum { padding-top: 4px; border-top: 1px solid var(--line); color: var(--text); }
+/* A figure shown short, with the exact one on hover. */
+dl.figures .rounded { border-bottom: 1px dotted var(--faint); cursor: help; }
 
 ul.problems { margin: 0; padding: 0; list-style: none; }
 ul.problems li { margin-bottom: 5px; }

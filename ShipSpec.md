@@ -471,13 +471,17 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 ## 8. Saving
 
-8.1 A design saves as its JSON, with a `version` field naming the spec version it was written under. Nothing from the sheet is saved, because a sheet is one pure call away from the design and storing one would only create something that could disagree with the book.
+8.1 A design saves as its JSON, under the extension `.ship`, with a `version` field naming the spec version it was written under. Nothing from the sheet is saved, because a sheet is one pure call away from the design and storing one would only create something that could disagree with the book.
 
 8.2 Loading a design written under an older version applies whatever migration that version needs and says so. There are none yet.
 
 8.3 The File System Access API is used where the browser has it, so a second Save rewrites the file the first one wrote. Where it is missing the same JSON goes out as an ordinary download and comes back through an ordinary file input, and every save is a new file.
 
 8.4 Anything that is not an object carrying a hull and a power plant is refused. Those two are the only fields every design has.
+
+8.5 The Open picker accepts `.json` as well as `.ship`, because designs saved before the extension changed are still designs.
+
+8.6 A save that succeeds says so. The place the design was written to is named where the state is shown, and a plain confirmation appears beside it for a few seconds: a save that goes out as a download has no filename to show afterwards, so without one there is nothing to tell a save from a dismissed picker.
 
 ## 9. Open questions
 

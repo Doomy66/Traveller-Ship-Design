@@ -43,6 +43,26 @@ let handle: FileHandle | undefined;
 let dirty = false;
 
 /**
+ * How long the confirmation of a save stays up. A save through the picker ends
+ * with the filename on show, but one that goes out as a download leaves nothing
+ * behind at all, and a dismissed picker looks exactly the same. Long enough to
+ * catch, short enough not to be mistaken for the state.
+ */
+const SAVED_FOR_MS = 3000;
+let savedUntil = 0;
+let savedTimer: number | undefined;
+
+/** Put up the confirmation, and take it down again when it has been seen. */
+function confirmSaved(): void {
+  savedUntil = Date.now() + SAVED_FOR_MS;
+  if (savedTimer !== undefined) clearTimeout(savedTimer);
+  savedTimer = setTimeout(() => {
+    savedTimer = undefined;
+    showState();
+  }, SAVED_FOR_MS) as unknown as number;
+}
+
+/**
  * The form reads the live design through this rather than a copy, so a handler
  * drawn ten edits ago still writes back against what is there now.
  */
@@ -81,6 +101,11 @@ function apply(patch: Partial<Design>): void {
 function showState(): void {
   find("#fold").textContent = anyOpen(find("#form")) ? "Collapse all" : "Expand all";
   find("#where").textContent = handle === undefined ? (dirty ? "Unsaved" : "") : handle.name;
+  // An edit during the three seconds takes the confirmation down with it: it
+  // would otherwise be saying "Saved" over a design that no longer is.
+  const saved = dirty === false && Date.now() < savedUntil;
+  find("#saved").textContent = saved ? "✓ Saved" : "";
+  find("#saved").classList.toggle("on", saved);
   document.title = `${design.name} — Traveller Ship Design`;
   find("#filename").textContent = fileNameFor(design);
 }
@@ -130,6 +155,7 @@ function wire(): void {
     try {
       handle = await save(design, asNew ? undefined : handle);
       dirty = false;
+      confirmSaved();
       render();
     } catch {
       // Dismissed, as above.

@@ -42,8 +42,8 @@ describe("saving a design", () => {
 
   it("names the file after the ship, and never after nothing", () => {
     // The Scout is "Scout/Courier", and a slash is no use in a filename.
-    expect(fileNameFor(SCOUT_COURIER)).toBe("ScoutCourier.json");
-    expect(fileNameFor({ ...SCOUT_COURIER, name: "  " })).toBe("ship.json");
-    expect(fileNameFor({ ...SCOUT_COURIER, name: "Beowulf/2" })).toBe("Beowulf2.json");
+    expect(fileNameFor(SCOUT_COURIER)).toBe("ScoutCourier.ship");
+    expect(fileNameFor({ ...SCOUT_COURIER, name: "  " })).toBe("ship.ship");
+    expect(fileNameFor({ ...SCOUT_COURIER, name: "Beowulf/2" })).toBe("Beowulf2.ship");
   });
 });

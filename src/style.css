@@ -19,6 +19,7 @@
   --error: #ff6b63;
   --warning: #e9a13b;
   --note: #6fb6d8;
+  --good: #6cc07a;
 }
 
 * { box-sizing: border-box; }
@@ -45,6 +46,10 @@ body {
 .bar h1 { margin: 0; font-size: 15px; font-weight: 600; }
 .bar-sub { color: var(--muted); }
 .where { color: var(--accent); font-variant-numeric: tabular-nums; }
+
+/* Said for three seconds after a save and empty the rest of the time, so it
+   holds its width and nothing in the bar moves when it comes and goes. */
+.saved { color: var(--good); min-width: 7ch; }
 .spacer { flex: 1; }
 
 button, select, input {

@@ -5,6 +5,10 @@
  * what the rules make of it. A sheet is always one call away from the design,
  * so storing one would only create something that could disagree with the book.
  *
+ * It is written under .ship rather than .json, so a folder of ships reads as a
+ * folder of ships. The contents are still JSON, and .json files saved before
+ * the change still open.
+ *
  * The File System Access API is used where the browser has it, because it lets
  * a second Save rewrite the file the first one wrote. Where it is missing, the
  * same JSON goes out as an ordinary download and comes back through an ordinary
@@ -51,13 +55,19 @@ export function parse(text: string): Design | null {
   return { name: "Untitled", tl: 12, ...candidate } as Design;
 }
 
+/** What a saved design is called. The contents are JSON; the name says what of. */
+export const EXTENSION = ".ship";
+
 /** A filename for a ship, safe on every platform this runs on. */
 export function fileNameFor(design: Design): string {
   const stem = design.name.replace(/[^A-Za-z0-9 _-]/g, "").trim();
-  return `${stem === "" ? "ship" : stem}.json`;
+  return `${stem === "" ? "ship" : stem}${EXTENSION}`;
 }
 
-const PICKER_TYPES = [{ description: "Ship design", accept: { "application/json": [".json"] } }];
+const SAVE_TYPES = [{ description: "Ship design", accept: { "application/json": [EXTENSION] } }];
+
+/** Designs saved before the extension changed are still designs. ShipSpec 8.5. */
+const OPEN_TYPES = [{ description: "Ship design", accept: { "application/json": [EXTENSION, ".json"] } }];
 
 /**
  * Write the design out. Returns the handle where the browser gave one, so the
@@ -73,7 +83,7 @@ export async function save(design: Design, existing?: FileHandle): Promise<FileH
     return existing;
   }
   if (typeof picker.showSaveFilePicker === "function") {
-    const handle = await picker.showSaveFilePicker({ suggestedName: fileNameFor(design), types: PICKER_TYPES });
+    const handle = await picker.showSaveFilePicker({ suggestedName: fileNameFor(design), types: SAVE_TYPES });
     const writable = await handle.createWritable();
     await writable.write(text);
     await writable.close();
@@ -87,7 +97,7 @@ export async function save(design: Design, existing?: FileHandle): Promise<FileH
 export async function open(): Promise<{ design: Design; handle?: FileHandle } | null> {
   const picker = window as unknown as PickerWindow;
   if (typeof picker.showOpenFilePicker === "function") {
-    const [handle] = await picker.showOpenFilePicker({ types: PICKER_TYPES, multiple: false });
+    const [handle] = await picker.showOpenFilePicker({ types: OPEN_TYPES, multiple: false });
     if (handle === undefined) return null;
     const design = parse(await (await handle.getFile()).text());
     return design === null ? null : { design, handle };
@@ -111,7 +121,7 @@ function chooseFile(): Promise<File | null> {
   return new Promise((resolve) => {
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = ".json,application/json";
+    input.accept = `${EXTENSION},.json,application/json`;
     input.addEventListener("change", () => resolve(input.files?.[0] ?? null), { once: true });
     input.addEventListener("cancel", () => resolve(null), { once: true });
     input.click();

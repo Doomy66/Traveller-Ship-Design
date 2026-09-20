@@ -133,8 +133,10 @@ input[type="checkbox"] { accent-color: var(--accent); margin: 0; padding: 0; }
  */
 .step-body {
   display: grid;
-  grid-template-columns: repeat(3, max-content max-content);
-  justify-content: start;
+  /* Three name-and-control pairs sized to their contents, then a column that
+     soaks up the rest. Without that last one the grid is only as wide as its
+     fields, and a list editor spanning it gets no room to lay a row out on. */
+  grid-template-columns: repeat(3, max-content max-content) minmax(0, 1fr);
   align-items: center;
   gap: 5px 8px;
   padding: 2px 0 12px 29px;
@@ -190,21 +192,24 @@ input[type="checkbox"] { accent-color: var(--accent); margin: 0; padding: 0; }
 }
 .list-row > :first-child { flex: 1; min-width: 0; }
 
+/* The controls a row needs sit on one line where they fit, each no wider than
+   what it holds, and wrap only when the panel is too narrow for them. */
 .row-fields {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(146px, max-content));
-  align-items: end;
-  gap: 6px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 6px 12px;
 }
-.row-fields .field { display: block; }
+.row-fields .field { display: block; flex: 0 0 auto; }
 .row-fields .field-name {
   display: block;
   justify-self: auto;
   padding: 0 0 1px;
   font-size: 11px;
 }
-.row-fields .field > input, .row-fields .field > select { width: 100%; }
-.row-fields .field > input.num { width: 100%; text-align: left; }
+.row-fields .field > select { width: auto; max-width: 15em; }
+.row-fields .field > input.num { width: 4.5em; text-align: left; }
+.row-fields .field > input.text { width: 9em; }
 .row-fields .check { grid-column: auto; padding: 0 0 4px; }
 
 .remove { flex: none; padding: 2px 8px; color: var(--muted); }
@@ -258,10 +263,10 @@ ul.problems .note .tag { background: var(--note); color: #14161a; }
 /* --------------------------------------------- a narrow window, and printing */
 
 @media (max-width: 1180px) {
-  .step-body { grid-template-columns: repeat(2, max-content max-content); }
+  .step-body { grid-template-columns: repeat(2, max-content max-content) minmax(0, 1fr); }
 }
 @media (max-width: 860px) {
-  .step-body { grid-template-columns: max-content max-content; padding-left: 18px; }
+  .step-body { grid-template-columns: max-content max-content minmax(0, 1fr); padding-left: 18px; }
 }
 
 @media print {

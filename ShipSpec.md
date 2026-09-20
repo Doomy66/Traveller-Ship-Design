@@ -413,6 +413,8 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 5.2 Each line has a label, tons or none, cost or none, and power where the component draws any.
 
+5.2.1 **Every draw is shown against the component that causes it.** Basic ship systems are what the hull itself costs to run, so they stand on the hull's line; the manoeuvre and jump drives carry their own. The power column then adds up to the whole of what the ship asks for, and a reader can see where it went without holding two lists in their head. The power panel remains, because it is the one that separates what runs all the time from what only runs during a jump.
+
 5.3 Totals: tons used, cargo, total cost, purchase cost, maintenance, construction days, hull points, airlocks, hardpoints.
 
 5.4 Power: the available figure and the list of requirements of 4.4.2.
@@ -514,5 +516,9 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 10.9.2 Within a step the fields sit in a grid whose columns size themselves to their widest member, each field rendering as `display: contents` so its name lands in one column and its control in the next. The names line up and the controls line up, and nothing is stretched to a width it has no use for: a Tech Level is not made as wide as a ship's name. A hint is the control's tooltip, because a screen with forty fields cannot afford a sentence under each.
 
 10.9.3 A mounting offers exactly as many weapon choices as it has room for: one for a single turret, three for a triple. Asking for three pulse lasers by typing 3 into one of nine numbered boxes, one per weapon in the book, was the wrong shape for the question. Shrinking a mount discards what the larger one held and cannot fit.
+
+10.9.4 A list row puts its controls on one line, each no wider than what it holds, wrapping only where the panel is too narrow. The grid a step is laid out on therefore ends in a flexible column: without it the grid is only as wide as its own fields, and a list editor spanning it has no room to lay a row out on.
+
+10.9.5 The steps run in the book's order with two placed where their numbers say they belong: software beside the computer that runs it, and carried craft after the optional systems that berth them. A hull is a round number of tons, so its spinner moves in hundreds while any figure may still be typed.
 
 10.10 The computer's Processing stands in the bandwidth column, where the software spends it, and the software's own demand is totalled under the last of it. That total is a sum of the column and nothing more: Jump Control is weighed against the computer on its own under 4.7.5, so it is the totals panel that says whether the computer can run any of it.

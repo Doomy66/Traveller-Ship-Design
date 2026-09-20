@@ -252,6 +252,11 @@ export function sheet(design: Design): Sheet {
     (hullTons / hullPointDivisor(hullTons)) * (1 + config.hullPoints + specialisedHullPoints),
   );
 
+  // Basic ship systems are what the hull itself costs to run, so the figure is
+  // worked out here and shown against the hull. ShipSpec 5.2.1.
+  const basicPower =
+    hullTons * BASIC_SYSTEMS_POWER * (specialised.includes("nonGravity") ? NON_GRAVITY_BASIC_POWER_FACTOR : 1);
+
   const military = specialised.includes("military");
   if (military && hullTons <= MILITARY_HULL_MIN_TONS) {
     fail(`A military hull needs more than ${MILITARY_HULL_MIN_TONS.toLocaleString()} tons.`, "4.1.4");
@@ -298,6 +303,7 @@ export function sheet(design: Design): Sheet {
     label: hullDetail.join(", "),
     ...(structureTons > 0 ? { tons: tons(structureTons) } : {}),
     cost: cr(hullCost + structureCost),
+    power: tons(basicPower),
   });
 
   // Step 1c: hull options. ShipSpec 4.1.6.
@@ -367,8 +373,8 @@ export function sheet(design: Design): Sheet {
   const manoeuvre = typeof design.manoeuvre === "number" ? { thrust: design.manoeuvre } : design.manoeuvre;
   const jump = typeof design.jump === "number" ? { rating: design.jump } : design.jump;
   let driveTons = 0;
-  let manoeuvrePowerFactor = 1;
-  let jumpPowerFactor = 1;
+  let manoeuvrePower = 0;
+  let jumpPower = 0;
   let reactionFuelFactor = 1;
   let jumpFuelFactor = 1;
   let boosterFuelFactor = 1;
@@ -385,7 +391,6 @@ export function sheet(design: Design): Sheet {
       const concealed = manoeuvre.concealed === true;
       const base = (manoeuvre.sizedForTons ?? hullTons) * rule.hullFraction;
       const t = base * custom.tonnage * (concealed ? 1 + CONCEALED_MANOEUVRE_DRIVE.tonnage : 1);
-      manoeuvrePowerFactor = custom.power;
       if (concealed) {
         note(
           `Concealed thruster plates halve Thrust ${rule.rating} to ${Math.floor(rule.rating * CONCEALED_MANOEUVRE_DRIVE.thrustFactor)}.`,
@@ -393,7 +398,12 @@ export function sheet(design: Design): Sheet {
         );
       }
       driveTons += t;
+      manoeuvrePower =
+        (rule.rating === 0
+          ? hullTons * MANOEUVRE_POWER_THRUST_0
+          : hullTons * MANOEUVRE_POWER_PER_THRUST * rule.rating) * custom.power;
       lines.push({
+        power: tons(manoeuvrePower),
         section: "M-Drive",
         label: `${concealed ? `${CONCEALED_MANOEUVRE_DRIVE.label} ` : ""}Thrust ${rule.rating}${manoeuvre.sizedForTons === undefined ? "" : ` (${manoeuvre.sizedForTons} tons)`}${custom.label === "" ? "" : ` (${custom.label})`}`,
         tons: tons(t),
@@ -435,10 +445,11 @@ export function sheet(design: Design): Sheet {
       const raw = base * custom.tonnage;
       const t = shrunk ? raw : Math.max(raw, JUMP_DRIVE_MIN_TONS);
       if (t > raw) note(`The jump drive is raised to its ${JUMP_DRIVE_MIN_TONS}-ton minimum.`, "6.4");
-      jumpPowerFactor = custom.power;
       jumpFuelFactor = custom.fuel;
       driveTons += t;
+      jumpPower = hullTons * JUMP_POWER_PER_RATING * rule.rating * custom.power;
       lines.push({
+        power: tons(jumpPower),
         section: "J-Drive",
         label: `Jump ${rule.rating}${jump.sizedForTons === undefined ? "" : ` (${jump.sizedForTons} tons)`}${custom.label === "" ? "" : ` (${custom.label})`}`,
         tons: tons(t),
@@ -1101,16 +1112,6 @@ export function sheet(design: Design): Sheet {
   const constructionDays = Math.ceil(totalCost * CONSTRUCTION_DAYS_PER_MCR * constructionTimeFactor(design.tl));
 
   // Power requirements, in the order the book's sheets print them. ShipSpec 4.4.2.
-  const basicPower =
-    hullTons * BASIC_SYSTEMS_POWER * (specialised.includes("nonGravity") ? NON_GRAVITY_BASIC_POWER_FACTOR : 1);
-  const manoeuvrePower =
-    manoeuvre === undefined
-      ? 0
-      : (manoeuvre.thrust === 0
-          ? hullTons * MANOEUVRE_POWER_THRUST_0
-          : hullTons * MANOEUVRE_POWER_PER_THRUST * manoeuvre.thrust) * manoeuvrePowerFactor;
-  const jumpPower =
-    jump === undefined ? 0 : hullTons * JUMP_POWER_PER_RATING * jump.rating * jumpPowerFactor;
   const requirements: PowerEntry[] = [{ label: "Basic Ship Systems", power: tons(basicPower) }];
   if (manoeuvrePower > 0) requirements.push({ label: "Manoeuvre Drive", power: tons(manoeuvrePower) });
   if (jumpPower > 0) requirements.push({ label: "Jump Drive", power: tons(jumpPower), whenJumping: true });

@@ -90,7 +90,7 @@ export interface FormHost {
 
 export const STEP_IDS = [
   "ship", "hull", "armour", "drives", "power", "fuel", "bridge", "computer",
-  "sensors", "weapons", "ordnance", "craft", "systems", "quarters", "software",
+  "software", "sensors", "weapons", "ordnance", "systems", "craft", "quarters",
 ] as const;
 
 /**
@@ -131,9 +131,12 @@ function readOpenState(into: Element): void {
 export function renderForm(into: Element, host: FormHost): void {
   readOpenState(into);
   clear(into);
+  // The book's order, with two things put where their numbers say they go:
+  // software beside the computer that runs it, and carried craft after the
+  // optional systems that berth them.
   for (const section of [
-    ship, hull, armour, drives, powerPlant, fuel, bridge, computer, sensors,
-    weapons, ordnance, craft, systems, accommodation, software,
+    ship, hull, armour, drives, powerPlant, fuel, bridge, computer, software,
+    sensors, weapons, ordnance, systems, craft, accommodation,
   ]) {
     into.append(section(host));
   }
@@ -231,7 +234,8 @@ function hull(host: FormHost): Element {
 
   return step("hull", "1", "Create a hull", precis, [
     [
-      labelled("Tons", number(h.tons, (tons) => set({ tons: tons ?? 100 }), { min: 5, step: 1 })),
+      labelled("Tons", number(h.tons, (tons) => set({ tons: tons ?? 100 }), { min: 0, step: 100 }),
+        "The book asks for round numbers. Type any figure; the arrows move in hundreds."),
       labelled("Configuration", select(h.configuration, optionsOf(HULL_CONFIGURATIONS), (v) =>
         set({ configuration: v as typeof h.configuration }))),
     ],

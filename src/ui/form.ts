@@ -308,6 +308,16 @@ function customisation(
 
 // ---------------------------------------------------------------- the drives
 
+/**
+ * A drive the designer has taken off the ship. Emptying the field says so, but
+ * so does spinning it down to nothing: the arrows stop at the minimum, and a
+ * drive of rating zero is no drive at all, so both have to mean the same thing
+ * or a drive once added could never be taken off again.
+ */
+function gone(rating: number | undefined): boolean {
+  return rating === undefined || rating <= 0;
+}
+
 function drives(host: FormHost): Element {
   const d = host.design;
   const m: ManoeuvreChoice | undefined = typeof d.manoeuvre === "number" ? { thrust: d.manoeuvre } : d.manoeuvre;
@@ -338,8 +348,8 @@ function drives(host: FormHost): Element {
   return step("drives", "2", "Install drives", precis, [
     [
       labelled("Thrust", number(m?.thrust, (thrust) =>
-        thrust === undefined ? host.rebuild({ manoeuvre: undefined }) : setM({ thrust }),
-        { min: 0, max: 11, step: 1 }), "The manoeuvre drive. Leave it empty for none."),
+        gone(thrust) ? host.rebuild({ manoeuvre: undefined }) : setM({ thrust: thrust! }),
+        { min: 0, max: 11, step: 1 }), "The manoeuvre drive. Zero or empty for none."),
       m === undefined ? null : labelled("Sized for", number(m.sizedForTons, (sizedForTons) =>
         setM({ sizedForTons }, "update"), { min: 5, step: 1, placeholder: "hull" }),
         "Tons the drive is built to move, where that is not the hull's own."),
@@ -351,8 +361,8 @@ function drives(host: FormHost): Element {
       (traits) => setM({ customisation: { grade: liveM()!.customisation!.grade, traits } }, "update")),
     [
       labelled("Jump", number(j?.rating, (rating) =>
-        rating === undefined ? host.rebuild({ jump: undefined }) : setJ({ rating }),
-        { min: 1, max: 9, step: 1 })),
+        gone(rating) ? host.rebuild({ jump: undefined }) : setJ({ rating: rating! }),
+        { min: 0, max: 9, step: 1 }), "The jump drive. Zero or empty for none."),
       j === undefined ? null : labelled("Sized for", number(j.sizedForTons, (sizedForTons) =>
         setJ({ sizedForTons }, "update"), { min: 100, step: 1, placeholder: "hull" })),
     ],
@@ -361,13 +371,15 @@ function drives(host: FormHost): Element {
       (traits) => setJ({ customisation: { grade: liveJ()!.customisation!.grade, traits } }, "update")),
     [
       labelled("Reaction", number(r?.thrust, (thrust) =>
-        thrust === undefined ? host.rebuild({ reaction: undefined }) : setR({ thrust }),
-        { min: 0, max: 16, step: 1 }), "A reaction drive, which burns fuel by the hour."),
+        gone(thrust) ? host.rebuild({ reaction: undefined }) : setR({ thrust: thrust! }),
+        { min: 0, max: 16, step: 1 }),
+        "A reaction drive, which burns fuel by the hour. Zero or empty for none."),
       r === undefined ? null : labelled("Hours", number(r.hours, (hours) =>
         setR({ hours: hours ?? 1 }, "update"), { min: 0, step: 1 })),
       labelled("High-burn", number(b?.thrust, (thrust) =>
-        thrust === undefined ? host.rebuild({ highBurnThruster: undefined }) : setB({ thrust }),
-        { min: 0, max: 16, step: 1 }), "A booster whose Thrust adds to the manoeuvre drive's."),
+        gone(thrust) ? host.rebuild({ highBurnThruster: undefined }) : setB({ thrust: thrust! }),
+        { min: 0, max: 16, step: 1 }),
+        "A booster whose Thrust adds to the manoeuvre drive's. Zero or empty for none."),
       b === undefined ? null : labelled("Hours", number(b.hours, (hours) =>
         setB({ hours: hours ?? 1 }, "update"), { min: 0, step: 1 })),
     ],

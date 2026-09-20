@@ -576,3 +576,51 @@ describe("advantages and disadvantages", () => {
     expect(refitCost("minor", 10)).toBe(1);
   });
 });
+
+describe("passengers", () => {
+  const LINER: Design = {
+    ...BASE,
+    hull: { tons: 400, configuration: "standard" },
+    jump: 1,
+    staterooms: 20,
+    lowBerths: 10,
+  };
+
+  it("wants a steward for high passengers and reports who is aboard", () => {
+    const empty = sheet(LINER);
+    expect(empty.crew.find((c) => c.role === "steward")).toBeUndefined();
+
+    const carrying = sheet({ ...LINER, passengers: { high: 5, middle: 0, low: 0 } });
+    expect(carrying.crew.find((c) => c.role === "steward")?.count).toBe(1);
+    expect(carrying.passengers).toEqual({ high: 5, middle: 0, low: 0 });
+  });
+
+  it("wants one steward per ten high and per hundred middle", () => {
+    const busy = sheet({ ...LINER, staterooms: 60, passengers: { high: 25, middle: 150, low: 0 } });
+    // Three for the high passengers, two for the middle.
+    expect(busy.crew.find((c) => c.role === "steward")?.count).toBe(5);
+  });
+
+  it("says when there are not berths enough for the people aboard", () => {
+    // Twenty high passengers want two stewards, so there are twenty-five aboard:
+    // pilot, astrogator, engineer, two stewards and the passengers themselves.
+    const crowded = sheet({ ...LINER, staterooms: 4, passengers: { high: 20, middle: 0, low: 0 } });
+    expect(crowded.problems.map((p) => p.message)).toContain("4 stateroom berths for 25 people.");
+  });
+
+  it("says when low passengers outnumber the berths to freeze them in", () => {
+    const oversold = sheet({ ...LINER, passengers: { high: 0, middle: 0, low: 30 } });
+    expect(oversold.problems.map((p) => p.message)).toContain("10 low berths for 30 low passengers.");
+
+    // Emergency berths hold four apiece and count towards it.
+    const fitted = sheet({ ...LINER, emergencyLowBerths: 5, passengers: { high: 0, middle: 0, low: 30 } });
+    expect(fitted.problems.map((p) => p.message)).not.toContain("10 low berths for 30 low passengers.");
+  });
+
+  it("wants a medic once there are enough souls aboard", () => {
+    const small = sheet({ ...LINER, staterooms: 60, passengers: { high: 50, middle: 0, low: 0 } });
+    expect(small.crew.find((c) => c.role === "medic")).toBeUndefined();
+    const large = sheet({ ...LINER, staterooms: 200, passengers: { high: 150, middle: 0, low: 0 } });
+    expect(large.crew.find((c) => c.role === "medic")?.count).toBe(1);
+  });
+});

@@ -244,6 +244,8 @@ dl.figures dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums
 dl.figures .sum { padding-top: 4px; border-top: 1px solid var(--line); color: var(--text); }
 /* A figure shown short, with the exact one on hover. */
 dl.figures .rounded { border-bottom: 1px dotted var(--faint); cursor: help; }
+/* Not crew, but listed with them because they are why some of the crew is there. */
+dl.figures .aside { padding-top: 4px; color: var(--faint); }
 
 ul.problems { margin: 0; padding: 0; list-style: none; }
 ul.problems li { margin-bottom: 5px; }

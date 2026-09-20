@@ -829,6 +829,7 @@ function accommodation(host: FormHost): Element {
     d.staterooms === undefined || d.staterooms === 0 ? undefined : count(d.staterooms, "stateroom"),
     d.lowBerths === undefined || d.lowBerths === 0 ? undefined : count(d.lowBerths, "low berth"),
     d.commonAreaTons === undefined || d.commonAreaTons === 0 ? undefined : `${d.commonAreaTons} tons common`,
+    p.high + p.middle + p.low === 0 ? undefined : count(p.high + p.middle + p.low, "passenger"),
   ], "none");
 
   return step("quarters", "11", "Install staterooms", precis, [

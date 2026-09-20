@@ -140,13 +140,24 @@ function powerPanel(sheet: Sheet): Element {
 }
 
 function crewPanel(sheet: Sheet): Element {
-  if (sheet.crew.length === 0) return panel("Crew", el("p", { class: "muted" }, ["None."]));
+  const { high, middle, low } = sheet.passengers;
+  const carried = high + middle + low;
+  const rows = sheet.crew.flatMap((entry) => [
+    el("dt", {}, [entry.count > 1 ? `${entry.label} x${entry.count}` : entry.label]),
+    el("dd", {}, [monthly(entry.count * entry.salary)]),
+  ]);
+  // Passengers are not crew, but they are why some of the crew is there, so
+  // they are named under it rather than left to be inferred from a steward.
+  if (carried > 0) {
+    for (const [label, count] of [["High", high], ["Middle", middle], ["Low", low]] as const) {
+      if (count === 0) continue;
+      rows.push(el("dt", { class: "aside" }, [`${label} passengers`]), el("dd", { class: "aside" }, [figure(count, 0)]));
+    }
+  }
+  if (rows.length === 0) return panel("Crew", el("p", { class: "muted" }, ["None."]));
   return panel(
-    `Crew: ${sheet.crewTotal}`,
-    el("dl", { class: "figures" }, sheet.crew.flatMap((entry) => [
-      el("dt", {}, [entry.count > 1 ? `${entry.label} x${entry.count}` : entry.label]),
-      el("dd", {}, [monthly(entry.count * entry.salary)]),
-    ])),
+    carried === 0 ? `Crew: ${sheet.crewTotal}` : `Crew: ${sheet.crewTotal}, carrying ${carried}`,
+    el("dl", { class: "figures" }, rows),
   );
 }
 

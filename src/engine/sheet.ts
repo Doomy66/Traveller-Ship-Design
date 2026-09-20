@@ -195,6 +195,8 @@ export interface Sheet {
   };
   readonly crew: readonly CrewEntry[];
   readonly crewTotal: number;
+  /** What the ship is meant to carry, which the crew rules read. ShipSpec 4.10.2. */
+  readonly passengers: { readonly high: number; readonly middle: number; readonly low: number };
   /** Cr per month at skill 1. */
   readonly wageBill: number;
   readonly airlocks: number;
@@ -1172,6 +1174,11 @@ export function sheet(design: Design): Sheet {
   if (berths < crewTotal + passengers.high + passengers.middle) {
     warn(`${berths} stateroom berths for ${crewTotal + passengers.high + passengers.middle} people.`, "6.2");
   }
+  // A low passenger travels frozen, so the berths have to be there for them.
+  const lowCapacity = lowBerthCount * LOW_BERTH.occupants + emergencyCount * EMERGENCY_LOW_BERTH.occupants;
+  if (passengers.low > lowCapacity) {
+    warn(`${lowCapacity} low berths for ${passengers.low} low passengers.`, "6.2");
+  }
 
   const airlocks = cockpit || hullTons < TONS_PER_FREE_AIRLOCK ? 0 : Math.floor(hullTons / TONS_PER_FREE_AIRLOCK);
 
@@ -1201,6 +1208,7 @@ export function sheet(design: Design): Sheet {
     },
     crew,
     crewTotal,
+    passengers,
     wageBill,
     airlocks,
     hardpoints: { available: pointsAvailable, used: mountsUsed, firmpoints: hullTons < 100 },

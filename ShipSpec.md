@@ -421,7 +421,7 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 5.5 Fuel: jump, plant, reaction, extra, total.
 
-5.6 Crew: each role with its count and monthly salary, the total crew, and the monthly wage bill.
+5.6 Crew: each role with its count and monthly salary, the total crew, and the monthly wage bill. The passengers the ship is meant to carry are named under it. They are not crew, but they are the reason some of the crew is there, and a figure typed into the design should be echoed back somewhere rather than only felt through a steward appearing.
 
 5.7 Problems, section 6, in the order the sequence would have met them.
 
@@ -432,6 +432,8 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 6.2 A **warning** is a design that will work badly: fewer stateroom berths than crew, software over total processing, power short of basic systems plus manoeuvre drive plus everything else that runs in combat.
 
 6.3 Power short of the jump drive on top of all that is a **note**, since the book calls running everything at once good practice rather than a requirement (page 18).
+
+6.2.1 Low passengers travel frozen, so the low berths have to be there for them. An emergency low berth counts, holding four. The stateroom check is for those awake: the crew, the high passengers and the middle ones.
 
 6.4 Other notes: a smaller bridge's DM−1, common areas under a quarter of stateroom tonnage, a jump drive raised to its 10-ton minimum.
 

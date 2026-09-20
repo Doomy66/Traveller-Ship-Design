@@ -36,6 +36,12 @@ export interface FlatSystemRule {
   readonly maxHullTons?: number;
   /** People it holds, where that is the point of it. */
   readonly holds?: number;
+  /**
+   * Somewhere a person lives for the voyage, so it counts towards having a
+   * place for everyone aboard. A brig holds six and a medical bay three, but
+   * neither is where a passenger sleeps. ShipSpec 4.12.4.
+   */
+  readonly accommodation?: boolean;
   /** Cr per month, on top of the ship's own. */
   readonly lifeSupport?: number;
 }
@@ -54,6 +60,8 @@ export interface PerTonSystemRule {
   readonly power?: number;
   readonly minTons?: number;
   readonly maxHullFraction?: number;
+  /** Tons of it that make one place for a person. ShipSpec 4.12.4. */
+  readonly tonsPerBerth?: number;
   /** Cr per ton per month, on top of the ship's own. */
   readonly lifeSupportPerTon?: number;
   /** Tons of machinery per ton of capacity, on top of the capacity itself. */
@@ -181,10 +189,10 @@ export const FLAT_SYSTEMS: Readonly<Record<FlatSystem, FlatSystemRule>> = {
   loadingBelt: { kind: "flat", label: "Loading Belt", page: 54, tl: 7, tons: 1, cost: 0.003, power: 1, group: "Cargo" },
   advancedLoadingBelt: { kind: "flat", label: "Loading Belt (TL12)", page: 54, tl: 12, tons: 1, cost: 0.01, power: 1, group: "Cargo" },
 
-  accelerationBench: { kind: "flat", label: "Acceleration Bench", page: 51, tons: 1, cost: 0.01, holds: 4, group: "Accommodation" },
-  accelerationSeat: { kind: "flat", label: "Acceleration Seat", page: 51, tons: 0.5, cost: 0.03, holds: 1, group: "Accommodation" },
-  highStateroom: { kind: "flat", label: "High Stateroom", page: 52, tons: 6, cost: 0.8, holds: 1, lifeSupport: 3_000, group: "Accommodation" },
-  luxuryStateroom: { kind: "flat", label: "Luxury Stateroom", page: 52, tons: 10, cost: 1.5, holds: 1, lifeSupport: 5_000, group: "Accommodation" },
+  accelerationBench: { kind: "flat", label: "Acceleration Bench", page: 51, tons: 1, cost: 0.01, holds: 4, group: "Accommodation", accommodation: true },
+  accelerationSeat: { kind: "flat", label: "Acceleration Seat", page: 51, tons: 0.5, cost: 0.03, holds: 1, group: "Accommodation", accommodation: true },
+  highStateroom: { kind: "flat", label: "High Stateroom", page: 52, tons: 6, cost: 0.8, holds: 1, lifeSupport: 3_000, group: "Accommodation", accommodation: true },
+  luxuryStateroom: { kind: "flat", label: "Luxury Stateroom", page: 52, tons: 10, cost: 1.5, holds: 1, lifeSupport: 5_000, group: "Accommodation", accommodation: true },
 
   boobyTrappedAirlockBasic: { kind: "flat", label: "Booby-Trapped Airlock (Basic)", page: 60, tl: 6, tons: 0, cost: 0.1, group: "Internal" },
   boobyTrappedAirlockImproved: { kind: "flat", label: "Booby-Trapped Airlock (Improved)", page: 60, tl: 8, tons: 0, cost: 0.3, group: "Internal" },
@@ -278,8 +286,8 @@ export const PER_TON_SYSTEMS: Readonly<Record<PerTonSystem, PerTonSystemRule>> =
   mountableTank: { kind: "perTon", label: "Mountable Tank", page: 51, costPerTon: 0.001, group: "Fuel" },
   ramscoops: { kind: "perTon", label: "Ramscoops", page: 51, costPerTon: 0.25, minTons: 10, group: "Fuel" },
 
-  barracks: { kind: "perTon", label: "Barracks", page: 51, costPerTon: 0.05, lifeSupportPerTon: 500, group: "Accommodation" },
-  cabinSpace: { kind: "perTon", label: "Cabin Space", page: 52, costPerTon: 0.05, lifeSupportPerTon: 250, group: "Accommodation" },
+  barracks: { kind: "perTon", label: "Barracks", page: 51, costPerTon: 0.05, lifeSupportPerTon: 500, tonsPerBerth: 1, group: "Accommodation" },
+  cabinSpace: { kind: "perTon", label: "Cabin Space", page: 52, costPerTon: 0.05, lifeSupportPerTon: 250, tonsPerBerth: 1.5, group: "Accommodation" },
   multiEnvironmentSpace: { kind: "perTon", label: "Multi-Environment Space", page: 52, costPerTon: 0.5, powerPerTon: 1, overhead: 0.05, group: "Accommodation" },
   stable: { kind: "perTon", label: "Stable", page: 64, costPerTon: 0.0025, minTons: 10, lifeSupportPerTon: 250, group: "Accommodation" },
 
@@ -366,9 +374,9 @@ export const RAMSCOOP = { hullFraction: 0.01, extraTons: 5, minTons: 10, tonsPer
 export const COLLAPSIBLE_TANK_EMPTY_FRACTION = 0.01;
 /** Page 51: hydride tankage takes twice the room ordinary tankage would. */
 export const METAL_HYDRIDE_TONNAGE_FACTOR = 2;
-/** Page 52: 1.5 tons of cabin space carries one passenger. */
+/** Page 52: 1.5 tons of cabin space carries one passenger, as `tonsPerBerth` says. */
 export const CABIN_SPACE_TONS_PER_PASSENGER = 1.5;
-/** Page 51: a ton of barracks carries one. */
+/** Page 51: a ton of barracks carries one, as `tonsPerBerth` says. */
 export const BARRACKS_TONS_PER_PASSENGER = 1;
 /** Page 60: a ton of armoury per this many crew, or this many marines. */
 export const ARMOURY_PER_CREW = 25;

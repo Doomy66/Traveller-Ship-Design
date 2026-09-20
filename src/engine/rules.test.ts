@@ -605,7 +605,46 @@ describe("passengers", () => {
     // Twenty high passengers want two stewards, so there are twenty-five aboard:
     // pilot, astrogator, engineer, two stewards and the passengers themselves.
     const crowded = sheet({ ...LINER, staterooms: 4, passengers: { high: 20, middle: 0, low: 0 } });
-    expect(crowded.problems.map((p) => p.message)).toContain("4 stateroom berths for 25 people.");
+    expect(crowded.problems.map((p) => p.message)).toContain("4 berths for 25 people awake aboard.");
+  });
+
+  it("counts a high or luxury stateroom bought among the systems", () => {
+    // A ship with one standard stateroom for its pilot and a luxury one for the
+    // passenger has somewhere for both, however the second was bought.
+    const yacht: Design = {
+      ...BASE,
+      hull: { tons: 100, configuration: "standard" },
+      staterooms: 1,
+      passengers: { high: 1, middle: 0, low: 0 },
+      systems: [{ flat: "luxuryStateroom" }],
+    };
+    expect(sheet(yacht).problems.map((p) => p.message).filter((m) => m.includes("awake"))).toEqual([]);
+    // Take the luxury stateroom away and there is nowhere for them.
+    expect(sheet({ ...yacht, systems: [] }).problems.map((p) => p.message))
+      .toContain("1 berth for 2 people awake aboard.");
+  });
+
+  it("counts barracks and cabin space by the tons they take", () => {
+    const trooper = sheet({
+      ...BASE,
+      hull: { tons: 400, configuration: "standard" },
+      staterooms: 4,
+      passengers: { high: 0, middle: 20, low: 0 },
+      // Twenty tons of barracks is twenty places, one to the ton.
+      systems: [{ perTon: "barracks", tons: 20 }],
+    });
+    expect(trooper.problems.map((p) => p.message).filter((m) => m.includes("awake"))).toEqual([]);
+  });
+
+  it("does not count a brig or a medical bay as somewhere to sleep", () => {
+    const wrong = sheet({
+      ...BASE,
+      hull: { tons: 200, configuration: "standard" },
+      staterooms: 1,
+      passengers: { high: 4, middle: 0, low: 0 },
+      systems: [{ flat: "brig" }, { flat: "medicalBay" }],
+    });
+    expect(wrong.problems.map((p) => p.message).some((m) => m.includes("awake"))).toBe(true);
   });
 
   it("says when low passengers outnumber the berths to freeze them in", () => {

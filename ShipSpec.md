@@ -364,6 +364,8 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 4.12.2 A low berth is 0.5 tons and Cr50000, 1 power per 10 berths or part. An emergency low berth is 1 ton, MCr1, 1 power, and holds four.
 
+4.12.4 **A berth is anywhere a person lives for the voyage, however it was bought.** The standard staterooms of 4.12.1 are only some of them: a high or luxury stateroom, an acceleration bench or seat, barracks by the ton and cabin space at a ton and a half each accommodate somebody too, and all are bought among the optional systems of 4.11. The check of 6.2 counts them all. A brig holds six and a medical bay three, but neither is where anyone sleeps, so neither counts.
+
 4.12.3 Common areas cost MCr0.1 per ton. The book suggests a quarter of stateroom tonnage and the sheet notes when there is less (6.4).
 
 ### 4.13 Allocate cargo and finalise (page 26)

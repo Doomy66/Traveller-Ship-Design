@@ -871,6 +871,9 @@ export function sheet(design: Design): Sheet {
   // A cargo crane is sized from the cargo it serves, which is not known until
   // everything else has been counted, so its line is filled in below.
   let craneLine: number | undefined;
+  // Places for a person bought among the optional systems: a high or luxury
+  // stateroom, barracks, cabin space. ShipSpec 4.12.4.
+  let systemBerths = 0;
   for (const choice of design.systems ?? []) {
     if ("fuelScoops" in choice) {
       const free = config.streamlined === "yes";
@@ -887,6 +890,7 @@ export function sheet(design: Design): Sheet {
       if (rule.tl !== undefined && design.tl < rule.tl) fail(`${rule.label} is TL${rule.tl}.`, "4.11.1");
       const count = (rule.units ?? 1) * quantity;
       const label = rule.units !== undefined || quantity > 1 ? `${rule.label} x${count}` : rule.label;
+      if (rule.accommodation === true) systemBerths += (rule.holds ?? 1) * quantity;
       const entryPower = (rule.power ?? 0) * quantity;
       if (entryPower > 0) systemPowerEntries.push({ label: rule.label, power: entryPower });
       lines.push({
@@ -919,6 +923,7 @@ export function sheet(design: Design): Sheet {
         choice.perTon === "emergencyPowerSystem"
           ? plantBaseTons * plant.costPerTon * plantCustom.cost * EMERGENCY_POWER_FRACTION
           : systemTons * rule.costPerTon;
+      if (rule.tonsPerBerth !== undefined) systemBerths += Math.floor(systemTons / rule.tonsPerBerth);
       const entryPower = (rule.powerPerTon ?? 0) * systemTons + (rule.power ?? 0);
       if (entryPower > 0) systemPowerEntries.push({ label: rule.label, power: tons(entryPower) });
       const detail =
@@ -1170,9 +1175,14 @@ export function sheet(design: Design): Sheet {
   const crewTotal = crew.reduce((sum, entry) => sum + entry.count, 0);
   const wageBill = crew.reduce((sum, entry) => sum + entry.count * entry.salary, 0);
 
-  const berths = stateroomCount * (design.doubleOccupancy === true ? STATEROOM.doubleOccupants : STATEROOM.occupants);
-  if (berths < crewTotal + passengers.high + passengers.middle) {
-    warn(`${berths} stateroom berths for ${crewTotal + passengers.high + passengers.middle} people.`, "6.2");
+  // Everyone awake needs somewhere of their own: the standard staterooms, and
+  // whatever accommodation was bought among the optional systems. ShipSpec 4.12.4.
+  const berths =
+    stateroomCount * (design.doubleOccupancy === true ? STATEROOM.doubleOccupants : STATEROOM.occupants) +
+    systemBerths;
+  const awake = crewTotal + passengers.high + passengers.middle;
+  if (berths < awake) {
+    warn(`${berths} ${berths === 1 ? "berth" : "berths"} for ${awake} people awake aboard.`, "6.2");
   }
   // A low passenger travels frozen, so the berths have to be there for them.
   const lowCapacity = lowBerthCount * LOW_BERTH.occupants + emergencyCount * EMERGENCY_LOW_BERTH.occupants;

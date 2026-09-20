@@ -166,6 +166,8 @@ export interface Problem {
 
 export interface Sheet {
   readonly name: string;
+  /** The designer's own description, carried through so the sheet can print it. */
+  readonly notes: string;
   readonly tl: number;
   readonly lines: readonly SheetLine[];
   readonly hullTons: number;
@@ -1194,6 +1196,7 @@ export function sheet(design: Design): Sheet {
 
   return {
     name: design.name,
+    notes: design.notes ?? "",
     tl: design.tl,
     lines,
     hullTons,

@@ -22,6 +22,8 @@ import type { Design } from "../engine/design";
 
 export const DESTROYER_ESCORT: Design = {
   name: "Destroyer Escort",
+  notes:
+    "Fleet and squadron escort: small, fast, old, and still in service everywhere. Three barbettes and seven turrets on a thousand tons, with the magazines to keep them fed.",
   tl: 15,
   standardDesign: true,
   military: true,

@@ -52,7 +52,7 @@ const host: FormHost = {
   },
   update(patch) {
     apply(patch);
-    renderSheet(find("#sheet"), sheet(design));
+    drawSheet();
     showState();
   },
   rebuild(patch) {
@@ -60,6 +60,18 @@ const host: FormHost = {
     render();
   },
 };
+
+/**
+ * The sheet, with the notes wired back to the design. A note commits on leaving
+ * the box, and redrawing then would only replace the box the cursor has already
+ * left, so the state is marked and nothing is thrown away.
+ */
+function drawSheet(): void {
+  renderSheet(find("#sheet"), sheet(design), (notes) => {
+    apply({ notes });
+    showState();
+  });
+}
 
 function apply(patch: Partial<Design>): void {
   design = { ...design, ...patch };
@@ -83,7 +95,7 @@ function render(): void {
   const scroll = panel.scrollTop;
   renderForm(find("#form"), host);
   panel.scrollTop = scroll;
-  renderSheet(find("#sheet"), sheet(design));
+  drawSheet();
   showState();
 }
 

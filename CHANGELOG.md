@@ -21,6 +21,8 @@ and its sheet comes out beside it, redrawn on every change.
   sheet to be told.
 - **The sheet carries power and bandwidth** beside tonnage and cost, so what a
   component draws is read off the same row as what it costs.
+- **A place to say what the ship is for**, under its name on the sheet, where the
+  book puts its own prose. It saves with the design and prints with the sheet.
 - **Save and load** as JSON through the File System Access API where the browser
   has it, and as a download where it does not. Print gives the sheet the page.
 

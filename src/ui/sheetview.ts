@@ -9,7 +9,7 @@
 import type { Sheet } from "../engine/sheet";
 import { clear, el, exactly, figure, mcr, millions, monthly, tons } from "./dom";
 
-export function renderSheet(into: Element, sheet: Sheet): void {
+export function renderSheet(into: Element, sheet: Sheet, onNotes: (notes: string) => void): void {
   clear(into);
 
   into.append(
@@ -18,6 +18,7 @@ export function renderSheet(into: Element, sheet: Sheet): void {
       el("p", { class: "sheet-sub" }, [`TL${sheet.tl}, ${figure(sheet.hullTons, 0)} tons`]),
     ]),
   );
+  into.append(notesBox(sheet.notes, onNotes));
 
   // Problems first. A designer who has just broken something should not have to
   // scroll past a correct-looking sheet to be told.
@@ -26,6 +27,31 @@ export function renderSheet(into: Element, sheet: Sheet): void {
   into.append(totals(sheet));
   into.append(powerPanel(sheet));
   into.append(crewPanel(sheet));
+}
+
+/**
+ * What the ship is for, in the designer's own words, where the book puts it.
+ *
+ * It grows to hold what is typed so that printing gets all of it rather than
+ * the first few lines, and it commits on leaving rather than on every
+ * keystroke, so the sheet beneath is not redrawn under the cursor.
+ */
+function notesBox(notes: string, onNotes: (notes: string) => void): Element {
+  const box = el("textarea", {
+    class: "notes",
+    rows: 1,
+    placeholder: "What this ship is for…",
+  }) as HTMLTextAreaElement;
+  box.value = notes;
+  const grow = () => {
+    box.style.height = "auto";
+    box.style.height = `${box.scrollHeight}px`;
+  };
+  box.addEventListener("input", grow);
+  box.addEventListener("change", () => onNotes(box.value));
+  // The box is not in the document yet, so its height is measured once it is.
+  queueMicrotask(grow);
+  return box;
 }
 
 function componentTable(sheet: Sheet): Element {

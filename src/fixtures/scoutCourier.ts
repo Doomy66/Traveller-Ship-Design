@@ -11,6 +11,8 @@ import type { Design } from "../engine/design";
 
 export const SCOUT_COURIER: Design = {
   name: "Scout/Courier",
+  notes:
+    "Exploration, survey and courier work, in about the smallest hull that will carry a jump drive. Four staterooms, a workshop and a fuel processor make it self-sufficient a long way from a starport.",
   tl: 12,
   standardDesign: true,
   hull: { tons: 100, configuration: "streamlined" },

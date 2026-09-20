@@ -222,6 +222,11 @@ export interface PassengerChoice {
 export interface Design {
   readonly version?: number;
   readonly name: string;
+  /**
+   * What the ship is for, in the designer's own words. The book gives every
+   * ship a paragraph of it and nothing in the rules reads it. ShipSpec 3.4.
+   */
+  readonly notes?: string;
   /** The shipyard's TL, which caps every component. ShipSpec 2.4. */
   readonly tl: number;
   /** A design in production takes the 10% discount. ShipSpec 4.13.2. */

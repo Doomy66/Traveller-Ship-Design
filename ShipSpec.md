@@ -66,6 +66,8 @@ Clauses are numbered so they can be cited from code and tests. Page numbers are 
 | `passengers` | High, middle and low passengers the ship is meant to carry, for the steward and medic rules | 4.10 |
 | `software[]` | Packages and their levels | 4.7 |
 
+3.4 A design also carries **notes**: what the ship is for, in the designer's own words. No rule reads them, but the book gives every ship a paragraph of it and a sheet without one is only a list of parts. They save with the design and print with the sheet.
+
 3.3 A field that is absent means "none", never a default the rules did not give. The one exception is the power plant, which every ship has.
 
 ## 4. The sequence
@@ -503,7 +505,9 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 10.4 The book's four reproduced ships are offered to open, because the fastest way to understand the sequence is to take a ship apart that is known to be right.
 
-10.5 Printing gives the sheet the page and drops everything else.
+10.5 Printing gives the sheet the page and drops everything else. The notes box prints as its text, with its frame gone and an empty one left out entirely.
+
+10.5.1 The notes are typed on the sheet, under the ship's name where the book puts its own prose. The box grows to hold what is in it, so printing gets all of it rather than the first few lines, and it commits on leaving rather than on every keystroke, so the sheet beneath is never redrawn under the cursor.
 
 10.6 Changing a value redraws the sheet and leaves the form standing, so the scroll position and whatever has focus survive. Only a change that adds or removes a control, such as choosing an armour type where there was none, draws the form again, and even then the scroll position is put back.
 

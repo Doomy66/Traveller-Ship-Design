@@ -16,6 +16,8 @@ import type { Design } from "../engine/design";
 
 export const FREE_TRADER: Design = {
   name: "Free Trader",
+  notes:
+    "Cargo and passengers along the space lanes, on the cheapest jump-capable hull that pays its way. Ten staterooms and twenty low berths against eighty tons of hold.",
   tl: 12,
   standardDesign: true,
   hull: { tons: 200, configuration: "streamlined" },

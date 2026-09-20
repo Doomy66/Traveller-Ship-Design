@@ -41,6 +41,7 @@ body {
   border-bottom: 1px solid var(--line);
 }
 
+.bar-icon { display: block; flex: none; }
 .bar h1 { margin: 0; font-size: 15px; font-weight: 600; }
 .bar-sub { color: var(--muted); }
 .where { color: var(--accent); font-variant-numeric: tabular-nums; }
@@ -224,7 +225,26 @@ input[type="checkbox"] { accent-color: var(--accent); margin: 0; padding: 0; }
 /* ---------------------------------------------------------------- the sheet */
 
 .sheet-head h2 { margin: 0; font-size: 16px; }
-.sheet-sub { margin: 2px 0 14px; color: var(--muted); }
+.sheet-sub { margin: 2px 0 8px; color: var(--muted); }
+
+/* What the ship is for, in the designer's own words. It grows to what is typed
+   so printing gets the whole of it. */
+textarea.notes {
+  display: block;
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 5px 7px;
+  overflow: hidden;
+  color: var(--text);
+  font: inherit;
+  line-height: 1.45;
+  background: var(--sunk);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  resize: none;
+}
+textarea.notes::placeholder { color: var(--faint); font-style: italic; }
+textarea.notes:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 table.components { width: max-content; max-width: 100%; border-collapse: collapse; margin-bottom: 14px; }
 table.components th, table.components td { padding: 2px 5px; text-align: left; vertical-align: top; }
@@ -279,6 +299,8 @@ ul.problems .note .tag { background: var(--note); color: #14161a; }
   .bar, .panel-form { display: none; }
   .layout { display: block; height: auto; }
   .panel-sheet { background: #fff; max-width: none; overflow: visible; padding: 0; }
+  textarea.notes { background: none; border: none; padding: 0; color: #111; }
+  textarea.notes:placeholder-shown { display: none; }
   .sheet-panel h3, table.components tbody th, .sheet-head h2 { color: #111; }
   table.components thead th, dl.figures dt, .sheet-sub { color: #555; }
   table.components thead th, dl.figures .sum, table.components tr.subtotal td:last-child { border-color: #ccc; }

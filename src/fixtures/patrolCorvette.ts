@@ -21,6 +21,8 @@ import type { Design } from "../engine/design";
 
 export const PATROL_CORVETTE: Design = {
   name: "Patrol Corvette",
+  notes:
+    "Customs patrol, anti-piracy and system defence. Four turrets, a ship's boat to board with and a G/carrier to follow anyone who runs for the ground.",
   tl: 12,
   standardDesign: true,
   hull: { tons: 400, configuration: "streamlined" },

@@ -21,6 +21,13 @@ describe("saving a design", () => {
     }
   });
 
+  it("carries the designer's own notes there and back, newlines and all", () => {
+    const written = { ...SCOUT_COURIER, notes: "Sold off at Regina.\nRefitted 1104." };
+    const back = parse(serialise(written));
+    expect(back?.notes).toBe(written.notes);
+    expect(sheet(back!).notes).toBe(written.notes);
+  });
+
   it("stamps the design with the spec version it was written under", () => {
     expect(JSON.parse(serialise(SCOUT_COURIER)).version).toBe(1);
   });

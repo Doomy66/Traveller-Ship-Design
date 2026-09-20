@@ -7,11 +7,16 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'"
     />
+    <!-- The icon is the `rocket` glyph from Tabler Icons by Pawel Kuna, used
+         under the MIT licence, on the same frame PlanetHex gives its own. The
+         licence text ships with the site as /LICENSE-tabler-icons.txt. -->
+    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
     <title>Traveller Ship Design</title>
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
     <header class="bar">
+      <img class="bar-icon" src="./icon.svg" alt="" width="20" height="20" />
       <h1>Ship Design</h1>
       <span class="bar-sub">High Guard Update 2022</span>
       <span id="where" class="where"></span>
@@ -40,7 +45,9 @@
           <p class="muted">
             An unofficial tool. <em>Traveller</em> is a trade mark of Mongoose Publishing and
             the rules are theirs; this carries none of their text and you need your own copy of
-            the book.
+            the book. The icon is the <i>rocket</i> glyph from Tabler Icons by Pawel Kuna, under
+            the MIT licence, whose text ships as
+            <code>LICENSE-tabler-icons.txt</code>.
           </p>
         </footer>
       </section>

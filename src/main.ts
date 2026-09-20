@@ -108,6 +108,9 @@ function showState(): void {
   find("#saved").classList.toggle("on", saved);
   document.title = `${design.name} — Traveller Ship Design`;
   find("#filename").textContent = fileNameFor(design);
+  // Rebuilt here rather than wired once, so the issue it opens names the ship
+  // being designed now and not whatever was on screen when the page loaded.
+  find<HTMLAnchorElement>("#suggest").href = suggestionLink({ ship: design.name });
 }
 
 /**
@@ -194,7 +197,6 @@ function wire(): void {
 
   find("#version").textContent = APP_VERSION;
   find<HTMLAnchorElement>("#notes").href = RELEASE_NOTES;
-  find<HTMLAnchorElement>("#suggest").href = suggestionLink({ ship: design.name });
 
   window.addEventListener("beforeunload", (event) => {
     if (!dirty) return;

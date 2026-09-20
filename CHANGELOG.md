@@ -3,7 +3,7 @@
 The version in [package.json](package.json) is the one number that reaches a
 user. Dates are the day the release was tagged.
 
-## 0.1.0 — 2026-09-19
+## 0.1.0 — 2026-09-20
 
 The first thing that runs. A ship goes in through the book's own thirteen steps
 and its sheet comes out beside it, redrawn on every change.
@@ -23,8 +23,11 @@ and its sheet comes out beside it, redrawn on every change.
   component draws is read off the same row as what it costs.
 - **A place to say what the ship is for**, under its name on the sheet, where the
   book puts its own prose. It saves with the design and prints with the sheet.
-- **Save and load** as JSON through the File System Access API where the browser
-  has it, and as a download where it does not. Print gives the sheet the page.
+- **Save and load** through the File System Access API where the browser has it,
+  and as a download where it does not. A design is written as `.ship`, so a
+  folder of them reads as a folder of ships; the contents are JSON. A save that
+  works says so, which the download path has no other way to tell you. Print
+  gives the sheet the page.
 
 Three things the book gets wrong or leaves unsaid, found by making its own ships
 add up, are recorded in the spec rather than quietly accommodated: the Free

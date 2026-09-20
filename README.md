@@ -5,6 +5,10 @@ back the design sheet the book would print: every component with its tonnage,
 cost and power draw, then hull points, crew, fuel, cargo, purchase price and
 monthly maintenance.
 
+**[Use it here.](https://doomy66.github.io/Traveller-Ship-Design/)** It runs in
+the browser, keeps nothing and sends nothing anywhere; your ships are files on
+your own machine.
+
 The book's own ships are the proof. Four of them come out to the ton and the
 credit, from the 100-ton Scout/Courier to the 1,000-ton Chrysanthemum
 Destroyer Escort, and each is in the application to open and pull apart.
@@ -32,8 +36,8 @@ of writing, this is 100% Claude generated to my exacting requirements.
   under `src/rules/`, each entry carrying the page it came from, and the engine
   reads those tables rather than restating them.
 - **A design is a small piece of JSON** holding what you chose, never what the
-  rules make of it, so it cannot drift from the book. Print gives you the sheet
-  on its own.
+  rules make of it, so it cannot drift from the book. It saves as a `.ship`
+  file. Print gives you the sheet on its own.
 
 ## Where the numbers come from
 
@@ -57,7 +61,14 @@ npm run dev
 ```
 
 `npm test` runs the suite, which is mostly the book's ships checked line by
-line. `npm run build` typechecks and bundles.
+line. `npm run build` typechecks and bundles. Every push to `main` runs the
+tests and publishes the build to GitHub Pages; see
+[.github/workflows/deploy.yml](.github/workflows/deploy.yml).
+
+Found something wrong, or want something it does not do?
+[Open an issue.](https://github.com/Doomy66/Traveller-Ship-Design/issues/new)
+The Suggest something link in the application does the same, with the version
+and the ship's name filled in.
 
 ## What it is not
 

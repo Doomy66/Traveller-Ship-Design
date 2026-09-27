@@ -12,6 +12,7 @@ import { DESTROYER_ESCORT } from "./fixtures/destroyerEscort";
 import { FREE_TRADER } from "./fixtures/freeTrader";
 import { PATROL_CORVETTE } from "./fixtures/patrolCorvette";
 import { SCOUT_COURIER } from "./fixtures/scoutCourier";
+import { CATALOGUE, GROUP_LABELS, type CatalogueGroup } from "./catalogue/index";
 import { canRewrite, fileNameFor, open as openDesign, save, type FileHandle } from "./io/save";
 import { find } from "./ui/dom";
 import { anyOpen, renderForm, setAllOpen } from "./ui/form";
@@ -30,13 +31,34 @@ const EMPTY: Design = {
   software: [{ software: "manoeuvre" }],
 };
 
-/** The book's own ships, to open and pull apart. */
-const EXAMPLES: readonly { readonly label: string; readonly design: Design }[] = [
+/** The book's own ships, which reproduce their printed sheets and are tested against them. */
+const BOOK: readonly { readonly label: string; readonly design: Design }[] = [
   { label: "Scout/Courier", design: SCOUT_COURIER },
   { label: "Free Trader", design: FREE_TRADER },
   { label: "Patrol Corvette", design: PATROL_CORVETTE },
   { label: "Destroyer Escort", design: DESTROYER_ESCORT },
 ];
+
+/**
+ * Every ship there is to open: the book's four first, then the catalogue. The
+ * index into this list is what the menus carry as their value.
+ */
+const EXAMPLES: readonly { readonly label: string; readonly group: CatalogueGroup; readonly design: Design }[] = [
+  ...BOOK.map((example) => ({ ...example, group: "highGuard" as const })),
+  ...CATALOGUE.map((entry) => ({ label: entry.design.name, group: entry.group, design: entry.design })),
+];
+
+/** Fill a menu with the examples under their groups, leaving out any the caller has elsewhere. */
+function fillExamples(menu: HTMLSelectElement, skip: (at: number) => boolean = () => false): void {
+  for (const group of Object.keys(GROUP_LABELS) as CatalogueGroup[]) {
+    const holder = document.createElement("optgroup");
+    holder.label = GROUP_LABELS[group];
+    for (const [at, example] of EXAMPLES.entries()) {
+      if (example.group === group && !skip(at)) holder.append(new Option(example.label, String(at)));
+    }
+    if (holder.children.length > 0) menu.append(holder);
+  }
+}
 
 let design: Design = EMPTY;
 let handle: FileHandle | undefined;
@@ -226,9 +248,7 @@ function wire(): void {
   });
 
   const examples = find<HTMLSelectElement>("#examples");
-  for (const [at, example] of EXAMPLES.entries()) {
-    examples.append(new Option(example.label, String(at)));
-  }
+  fillExamples(examples);
   examples.addEventListener("change", () => {
     const chosen = EXAMPLES[Number(examples.value)];
     examples.value = "";
@@ -253,8 +273,11 @@ function wire(): void {
   find("#landing-open").addEventListener("click", () => {
     if (keep("Open another ship")) void openFromFile();
   });
+  // The book's four as buttons, since they are the ones worth starting from,
+  // and the rest of the catalogue in a menu beside them: thirty-odd buttons
+  // would bury the landing.
   const book = find("#landing-book");
-  for (const example of EXAMPLES) {
+  for (const example of BOOK) {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = example.label;
@@ -263,6 +286,18 @@ function wire(): void {
     });
     book.append(button);
   }
+  const more = document.createElement("select");
+  more.className = "examples";
+  more.setAttribute("aria-label", "Open another example ship");
+  more.append(new Option(`${CATALOGUE.length} more…`, ""));
+  fillExamples(more, (at) => at < BOOK.length);
+  more.addEventListener("change", () => {
+    const chosen = EXAMPLES[Number(more.value)];
+    more.value = "";
+    if (chosen === undefined) return;
+    if (keep(`Open the ${chosen.label}`)) load(structuredClone(chosen.design));
+  });
+  book.append(more);
   find("#landing-version").textContent = `v${APP_VERSION}`;
   find<HTMLAnchorElement>("#landing-notes").href = RELEASE_NOTES;
   find<HTMLAnchorElement>("#landing-help").href = HELP;

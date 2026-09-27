@@ -1,0 +1,107 @@
+{
+  "name": "Dragon System Defence Boat",
+  "notes": "The Dragon class, High Guard's system defence boat: four hundred tons with no jump drive, the space spent instead on armour, drives and guns. Stationed in orbit of a main world, lurking in gas giants, or hidden in belts and oceans to strike later. Source: Mongoose Traveller High Guard Update 2022, page 193 (TL13, Thrust 7, crystaliron 13, two particle barbettes, a small missile bay and a point defence battery); the book's size-reduced missile bay is built here at full size, and Intellect left out for want of computer bandwidth.",
+  "tl": 13,
+  "standardDesign": true,
+  "military": true,
+  "hull": {
+    "tons": 400,
+    "configuration": "streamlined",
+    "specialised": [
+      "reinforced"
+    ],
+    "options": [
+      "radiationShielding"
+    ],
+    "stealth": "improved"
+  },
+  "armour": {
+    "type": "crystaliron",
+    "protection": 13
+  },
+  "manoeuvre": 7,
+  "powerPlant": {
+    "type": "fusion12",
+    "tons": 30,
+    "weeks": 16
+  },
+  "bridge": {
+    "kind": "standard",
+    "holographic": true
+  },
+  "computer": {
+    "processing": 25,
+    "fib": true
+  },
+  "sensors": "improved",
+  "weapons": [
+    {
+      "kind": "barbette",
+      "weapon": "particle",
+      "quantity": 2
+    },
+    {
+      "kind": "bay",
+      "size": "small",
+      "weapon": "missile"
+    },
+    {
+      "kind": "pointDefence",
+      "battery": "laser",
+      "type": "typeII"
+    }
+  ],
+  "ordnance": [
+    {
+      "missile": "standard",
+      "count": 336
+    }
+  ],
+  "systems": [
+    {
+      "fuelScoops": true
+    },
+    {
+      "perTon": "repairDrones"
+    },
+    {
+      "flat": "sensorStation",
+      "quantity": 2
+    },
+    {
+      "flat": "enhancedSignalProcessing"
+    },
+    {
+      "flat": "armoury"
+    },
+    {
+      "flat": "medicalBay"
+    },
+    {
+      "flat": "workshop"
+    }
+  ],
+  "staterooms": 12,
+  "commonAreaTons": 10,
+  "software": [
+    {
+      "software": "manoeuvre"
+    },
+    {
+      "software": "library"
+    },
+    {
+      "software": "autoRepair",
+      "level": 1
+    },
+    {
+      "software": "evade",
+      "level": 1
+    },
+    {
+      "software": "fireControl",
+      "level": 2
+    }
+  ],
+  "version": 1
+}

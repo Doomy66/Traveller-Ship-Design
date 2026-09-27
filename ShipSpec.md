@@ -60,7 +60,7 @@ Clauses are numbered so they can be cited from code and tests. Page numbers are 
 | `sensors` | Grade | 4.8 |
 | `weapons[]` | Turrets, barbettes, bays, spinal mounts, point defence, screens, a black globe | 4.9 |
 | `ordnance[]`, `extraCapacitorTons` | Missiles, torpedoes and canisters; capacitors for a black globe | 4.9.5, 4.9.7 |
-| `craft[]` | Carried small craft and vehicles, each with how it is berthed | 4.11 |
+| `craft[]` | Carried small craft and vehicles, each with how many and how they are berthed | 4.11 |
 | `systems[]` | Optional systems | 4.11 |
 | `staterooms`, `doubleOccupancy`, `lowBerths`, `emergencyLowBerths`, `commonAreaTons` | Accommodation | 4.12 |
 | `passengers` | High, middle and low passengers the ship is meant to carry, for the steward and medic rules | 4.10 |
@@ -360,6 +360,10 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 4.11.3 A **carried craft or vehicle** is a line with its own name, tons and cost, and is berthed in a docking space, a full hangar, or nowhere. Its cost is what the designer says: the book prices an air/raft at MCr0.25 on its ship sheets. Small craft add to the pilot count (4.10.2); vehicles do not.
 
+4.11.3.1 A line may stand for **any number of identical craft**. Each has a berth of its own, rounded up on its own, and a pilot of its own, and each engine room counts (4.10.2.1.1), so twelve fighters on one line come to exactly what twelve lines of one would. The sheet prints one berth line and one craft line with the number beside them, as it does a battery of turrets.
+
+4.11.3.2 **A craft's cost is its full price.** The standard design discount of 4.13.2 is taken off the whole ship, carried craft included: the Patrol Corvette's standard design price is 90% of a total that includes its ship's boat and G/carrier. A craft whose own sheet shows a standard design price, entered at that price, is discounted twice. A craft taken from another saved design takes that design's total, before any discount, along with its tonnage and the weight of its drives and plant.
+
 ### 4.12 Install staterooms (page 25)
 
 4.12.1 A stateroom is 4 tons and MCr0.5 and holds one person, or two under double occupancy at no cost.
@@ -438,6 +442,8 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 6.3 Power short of the jump drive on top of all that is a **note**, since the book calls running everything at once good practice rather than a requirement (page 18).
 
 6.2.1 Low passengers travel frozen, so the low berths have to be there for them. An emergency low berth counts, holding four. The stateroom check is for those awake: the crew, the high passengers and the middle ones.
+
+6.2.2 **A small craft is not checked for staterooms.** Nobody lives aboard a fighter, a launch or a shuttle: its crew and anyone it carries sleep aboard the ship that carries it, or wherever it is going. None of the book's small craft has a stateroom. The line is the one 2.2 draws, under 100 tons with no jump drive, and not the crew table's, which takes in a 100-ton hull: a 100-ton yacht is somewhere people live, and is checked. Low passengers are checked on anything.
 
 6.4 Other notes: a smaller bridge's DM−1, common areas under a quarter of stateroom tonnage, a jump drive raised to its 10-ton minimum.
 

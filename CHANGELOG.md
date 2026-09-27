@@ -13,6 +13,16 @@ user. Dates are the day the release was tagged.
 - **One header across the family.** The start screen's mark and name, and the
   20px mark and gold name heading the working screens, the same size in
   MainLine, PlanetHex and the Traveller Ship Designer.
+- **Squadrons of craft.** A carried craft has a number, so 24 fighters are one
+  line in the form and two on the sheet rather than forty-eight. Each still has
+  its own berth, pilot and engine room.
+- **Carry one of your own designs.** *From a saved design* adds a craft with its
+  tonnage, price and engine room read from its file. The price is the design's
+  full one: the carrier's standard design discount covers its craft, so the
+  discounted price on the craft's own sheet would be discounted twice.
+- **No stateroom wanted for a fighter pilot.** A small craft under 100 tons
+  without a jump drive is not somewhere anyone lives, and is no longer warned
+  about berths. A 100-ton yacht still is.
 
 ## 0.1.0 — 2026-09-20
 

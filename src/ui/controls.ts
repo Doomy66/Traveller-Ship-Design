@@ -142,11 +142,14 @@ export function listEditor(
   onRemove: (at: number) => void,
   addLabel: string,
   onAdd: () => void,
+  /** Other ways to add a row, set beside the usual one. */
+  otherAdds: readonly Element[] = [],
 ): Element {
+  const add = button(`+ ${addLabel}`, onAdd, "add");
   return el("div", { class: "list-editor" }, [
     ...rows.map((row, at) =>
       el("div", { class: "list-row" }, [row, button("×", () => onRemove(at), "remove")]),
     ),
-    button(`+ ${addLabel}`, onAdd, "add"),
+    otherAdds.length === 0 ? add : el("div", { class: "list-adds" }, [add, ...otherAdds]),
   ]);
 }

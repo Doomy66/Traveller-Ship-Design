@@ -72,6 +72,7 @@ import type {
   SystemChoice,
   WeaponChoice,
 } from "../engine/design";
+import { sheet } from "../engine/sheet";
 import { clear, el } from "./dom";
 import {
   button,
@@ -95,6 +96,11 @@ export interface FormHost {
   update(patch: Partial<Design>): void;
   /** A control appeared or vanished, or a précis moved. Draw the form again. */
   rebuild(patch: Partial<Design>): void;
+  /**
+   * Another saved design, to carry aboard this one as a craft. Undefined where
+   * the designer thought better of it or the file was not a design.
+   */
+  chooseDesign(): Promise<Design | undefined>;
 }
 
 export const STEP_IDS = [
@@ -688,8 +694,12 @@ function craft(host: FormHost): Element {
   const rows = live().map((entry, i) =>
     el("div", { class: "row-fields" }, [
       labelled("Name", text(entry.label, (label) => merge(i, { label }))),
-      labelled("Tons", number(entry.tons, (tons) => merge(i, { tons: tons ?? 0 }), { min: 0, step: 1 })),
-      labelled("Cost MCr", number(entry.cost, (cost) => merge(i, { cost: cost ?? 0 }), { min: 0 })),
+      labelled("Number", number(entry.quantity ?? 1, (quantity) =>
+        merge(i, { quantity: quantity === undefined || quantity <= 1 ? undefined : Math.floor(quantity) }),
+        { min: 1, step: 1 }), "How many of this craft, each with its own berth."),
+      labelled("Tons", number(entry.tons, (tons) => merge(i, { tons: tons ?? 0 }), { min: 0, step: 1 }), "Each."),
+      labelled("Cost MCr", number(entry.cost, (cost) => merge(i, { cost: cost ?? 0 }), { min: 0 }),
+        "Each, at full price. This ship's own standard-design discount covers its craft, so a craft entered at a discounted price is discounted twice."),
       labelled("Kind", select(entry.kind, [
         { value: "smallCraft", label: "Small craft" },
         { value: "vehicle", label: "Vehicle" },
@@ -705,10 +715,30 @@ function craft(host: FormHost): Element {
     ]),
   );
 
+  // A craft designed here already has a price, a tonnage and an engine room,
+  // and copying them across by hand is where the discount gets taken twice:
+  // the price on a craft's own sheet is the discounted one. This reads its
+  // total instead, which is what the carrying ship's discount expects.
+  const fromDesign = async () => {
+    const chosen = await host.chooseDesign();
+    if (chosen === undefined) return;
+    const its = sheet(chosen);
+    set([...live(), {
+      label: chosen.name,
+      tons: its.hullTons,
+      cost: its.totalCost,
+      kind: "smallCraft",
+      berth: "dockingSpace",
+      ...(its.driveAndPlantTons > 0 ? { driveAndPlantTons: its.driveAndPlantTons } : {}),
+    }]);
+  };
+
+  const carried = live().reduce((sum, entry) => sum + (entry.quantity ?? 1), 0);
   return step("craft", "9b", "Carry craft",
-    live().length === 0 ? "none" : count(live().length, "craft", "craft"), [[
+    carried === 0 ? "none" : count(carried, "craft", "craft"), [[
       listEditor(rows, (i) => set(live().filter((_, k) => k !== i)), "Add a craft", () =>
-        set([...live(), { label: "Air/Raft", tons: 4, cost: 0.25, kind: "vehicle", berth: "dockingSpace" }])),
+        set([...live(), { label: "Air/Raft", tons: 4, cost: 0.25, kind: "vehicle", berth: "dockingSpace" }]),
+        [button("+ From a saved design…", () => void fromDesign(), "add")]),
     ]]);
 }
 

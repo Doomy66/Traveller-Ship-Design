@@ -354,6 +354,7 @@ input[type="checkbox"] { accent-color: var(--accent); margin: 0; padding: 0; }
 .remove { flex: none; padding: 2px 8px; color: var(--muted); }
 .remove:hover { color: var(--error); border-color: var(--error); }
 .add { color: var(--muted); }
+.list-adds { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .colophon { margin-top: 16px; color: var(--faint); font-size: 11px; }
 .colophon a { color: var(--muted); }

@@ -81,6 +81,19 @@ const host: FormHost = {
     apply(patch);
     render();
   },
+  async chooseDesign() {
+    try {
+      const opened = await openDesign();
+      if (opened === null) {
+        alert("That file is not a ship design.");
+        return undefined;
+      }
+      return opened.design;
+    } catch {
+      // The picker was dismissed.
+      return undefined;
+    }
+  },
 };
 
 /**

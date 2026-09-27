@@ -663,3 +663,78 @@ describe("passengers", () => {
     expect(large.crew.find((c) => c.role === "medic")?.count).toBe(1);
   });
 });
+
+describe("carried craft", () => {
+  const FIGHTER = { label: "Fighter", tons: 40, cost: 27.8, kind: "smallCraft", berth: "fullHangar" } as const;
+  const CARRIER: Design = {
+    ...BASE,
+    military: true,
+    hull: { tons: 2_000, configuration: "standard" },
+    manoeuvre: 2,
+    jump: 1,
+    powerPlant: { type: "fusion12", tons: 100, weeks: 4 },
+    staterooms: 40,
+  };
+
+  it("carries a squadron on one line exactly as it would that many single craft", () => {
+    const squadron = sheet({ ...CARRIER, craft: [{ ...FIGHTER, quantity: 12 }] });
+    const singly = sheet({ ...CARRIER, craft: Array.from({ length: 12 }, () => ({ ...FIGHTER })) });
+    expect(squadron.tonsUsed).toBe(singly.tonsUsed);
+    expect(squadron.totalCost).toBeCloseTo(singly.totalCost, 6);
+    expect(squadron.crew).toEqual(singly.crew);
+    // One hangar line and one craft line, not twelve of each.
+    expect(line(squadron, "Full Hangar (40 tons) x12").tons).toBe(960);
+    expect(line(squadron, "Fighter x12").cost).toBeCloseTo(333.6, 6);
+    expect(squadron.lines.filter((l) => l.section === "Craft")).toHaveLength(2);
+  });
+
+  it("gives every craft in a squadron a pilot and counts every engine room", () => {
+    const pilots = (result: Sheet) => result.crew.find((c) => c.role === "pilot")?.count ?? 0;
+    const engineers = (result: Sheet) => result.crew.find((c) => c.role === "engineer")?.count ?? 0;
+    const bare = sheet(CARRIER);
+    const carrying = sheet({ ...CARRIER, craft: [{ ...FIGHTER, quantity: 12, driveAndPlantTons: 6.4 }] });
+    expect(pilots(carrying)).toBe(pilots(bare) + 12);
+    // Twelve engine rooms of 6.4 tons is 76.8 tons, about two engineers more.
+    expect(engineers(carrying)).toBe(engineers(bare) + 2);
+  });
+
+  it("reports what a design's own engine room weighs, for a carrier to count", () => {
+    const fighter = sheet({
+      ...BASE,
+      tl: 12,
+      hull: { tons: 40, configuration: "streamlined" },
+      manoeuvre: 6,
+      powerPlant: { type: "fusion12", tons: 4, weeks: 4 },
+      bridge: { kind: "cockpit" },
+    });
+    // Thrust 6 is 6% of 40 tons, and the plant is 4.
+    expect(fighter.driveAndPlantTons).toBeCloseTo(6.4, 6);
+  });
+
+  it("takes the standard design discount off the craft once, with the rest of the ship", () => {
+    const standard = sheet({ ...CARRIER, standardDesign: true, craft: [{ ...FIGHTER, quantity: 12 }] });
+    expect(standard.purchaseCost).toBeCloseTo(standard.totalCost * 0.9, 6);
+  });
+});
+
+describe("small craft", () => {
+  const FIGHTER: Design = {
+    ...BASE,
+    tl: 12,
+    hull: { tons: 40, configuration: "streamlined" },
+    manoeuvre: 6,
+    powerPlant: { type: "fusion12", tons: 4, weeks: 4 },
+    bridge: { kind: "cockpit" },
+  };
+  const awake = (result: Sheet) => result.problems.map((p) => p.message).filter((m) => m.includes("awake"));
+
+  it("does not want a stateroom for a pilot who lives aboard the carrier", () => {
+    expect(awake(sheet(FIGHTER))).toEqual([]);
+  });
+
+  it("still wants one on anything with a jump drive, and on a 100-ton hull", () => {
+    expect(awake(sheet({ ...FIGHTER, hull: { tons: 100, configuration: "streamlined" }, bridge: { kind: "standard" } })))
+      .not.toEqual([]);
+    expect(awake(sheet({ ...FIGHTER, jump: 1, bridge: { kind: "standard" } }))).not.toEqual([]);
+  });
+});

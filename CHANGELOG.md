@@ -10,6 +10,9 @@ user. Dates are the day the release was tagged.
   in the bar returns to it without losing anything.
 - **A standard footer.** Help, release notes, suggestions and the version; links
   to PlanetHex and MainLine; and Mongoose Publishing's fair use notice in full.
+- **One header across the family.** The start screen's mark and name, and the
+  20px mark and gold name heading the working screens, the same size in
+  MainLine, PlanetHex and the Traveller Ship Designer.
 
 ## 0.1.0 — 2026-09-20
 

@@ -14,6 +14,9 @@ export const REPOSITORY = "https://github.com/Doomy66/Traveller-Ship-Design";
 
 export const RELEASE_NOTES = `${REPOSITORY}/blob/main/CHANGELOG.md`;
 
+/** What there is of a manual: the README, which says what it does and how. */
+export const HELP = `${REPOSITORY}#readme`;
+
 /**
  * A new issue, with the version and the ship already filled in. A link rather
  * than a form in the application: a form would need somewhere to send to, a way

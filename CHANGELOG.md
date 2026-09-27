@@ -3,6 +3,14 @@
 The version in [package.json](package.json) is the one number that reaches a
 user. Dates are the day the release was tagged.
 
+## Unreleased
+
+- **A way in.** A landing screen in the style PlanetHex and MainLine share: a
+  new design, a file, one of the book's ships, or back to the one open. The name
+  in the bar returns to it without losing anything.
+- **A standard footer.** Help, release notes, suggestions and the version; links
+  to PlanetHex and MainLine; and Mongoose Publishing's fair use notice in full.
+
 ## 0.1.0 — 2026-09-20
 
 The first thing that runs. A ship goes in through the book's own thirteen steps

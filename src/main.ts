@@ -17,7 +17,7 @@ import { find } from "./ui/dom";
 import { anyOpen, renderForm, setAllOpen } from "./ui/form";
 import type { FormHost } from "./ui/form";
 import { renderSheet } from "./ui/sheetview";
-import { APP_VERSION, RELEASE_NOTES, suggestionLink } from "./version";
+import { APP_VERSION, HELP, RELEASE_NOTES, suggestionLink } from "./version";
 
 /** A bare hull to start from: the smallest thing the rules will price. */
 const EMPTY: Design = {
@@ -41,6 +41,8 @@ const EXAMPLES: readonly { readonly label: string; readonly design: Design }[] =
 let design: Design = EMPTY;
 let handle: FileHandle | undefined;
 let dirty = false;
+/** Whether a design has been opened yet, which is what Carry on goes back to. */
+let started = false;
 
 /**
  * How long the confirmation of a save stays up. A save through the picker ends
@@ -106,7 +108,7 @@ function showState(): void {
   const saved = dirty === false && Date.now() < savedUntil;
   find("#saved").textContent = saved ? "✓ Saved" : "";
   find("#saved").classList.toggle("on", saved);
-  document.title = `${design.name} — Traveller Ship Design`;
+  document.title = `${design.name} — Traveller Ship Designer`;
   find("#filename").textContent = fileNameFor(design);
   // Rebuilt here rather than wired once, so the issue it opens names the ship
   // being designed now and not whatever was on screen when the page loaded.
@@ -131,7 +133,43 @@ function load(next: Design, from?: FileHandle): void {
   design = next;
   handle = from;
   dirty = false;
+  showEditor();
   render();
+}
+
+/**
+ * The way in, over the editor. Going back to it keeps the design open, so
+ * Carry on returns to it with nothing lost; the page keeps nothing once closed.
+ */
+function showLanding(): void {
+  document.body.classList.add("at-landing");
+  find<HTMLButtonElement>("#landing-resume").disabled = !started;
+  if (started) {
+    const s = sheet(design);
+    find("#landing-current").textContent = `${design.name}, ${s.hullTons.toLocaleString()} tons.`;
+    find("#landing-current-extra").textContent = `TL${s.tl} · MCr${s.purchaseCost.toFixed(1)}${dirty ? " · not saved" : ""}`;
+  }
+  find<HTMLAnchorElement>("#landing-suggest").href = suggestionLink(started ? { ship: design.name } : {});
+  document.title = "Traveller Ship Designer";
+}
+
+function showEditor(): void {
+  started = true;
+  document.body.classList.remove("at-landing");
+}
+
+/** Open a ship from its file, from either the bar or the landing. */
+async function openFromFile(): Promise<void> {
+  try {
+    const opened = await openDesign();
+    if (opened === null) {
+      alert("That file is not a ship design.");
+      return;
+    }
+    load(opened.design, opened.handle);
+  } catch {
+    // The picker was dismissed. Nothing to report.
+  }
 }
 
 function wire(): void {
@@ -142,16 +180,7 @@ function wire(): void {
 
   find("#open").addEventListener("click", async () => {
     if (dirty && !confirm("Open another ship and lose the changes to this one?")) return;
-    try {
-      const opened = await openDesign();
-      if (opened === null) {
-        alert("That file is not a ship design.");
-        return;
-      }
-      load(opened.design, opened.handle);
-    } catch {
-      // The picker was dismissed. Nothing to report.
-    }
+    await openFromFile();
   });
 
   const write = async (asNew: boolean) => {
@@ -198,6 +227,33 @@ function wire(): void {
   find("#version").textContent = APP_VERSION;
   find<HTMLAnchorElement>("#notes").href = RELEASE_NOTES;
 
+  // The landing's own ways in. Each asks before losing changes, as the bar does.
+  const keep = (what: string) => !dirty || confirm(`${what} and lose the changes to ${design.name}?`);
+  find("#home").addEventListener("click", showLanding);
+  find("#landing-resume").addEventListener("click", () => {
+    showEditor();
+    showState();
+  });
+  find("#landing-new").addEventListener("click", () => {
+    if (keep("Start a new ship")) load({ ...EMPTY });
+  });
+  find("#landing-open").addEventListener("click", () => {
+    if (keep("Open another ship")) void openFromFile();
+  });
+  const book = find("#landing-book");
+  for (const example of EXAMPLES) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = example.label;
+    button.addEventListener("click", () => {
+      if (keep(`Open the ${example.label}`)) load(structuredClone(example.design));
+    });
+    book.append(button);
+  }
+  find("#landing-version").textContent = `v${APP_VERSION}`;
+  find<HTMLAnchorElement>("#landing-notes").href = RELEASE_NOTES;
+  find<HTMLAnchorElement>("#landing-help").href = HELP;
+
   window.addEventListener("beforeunload", (event) => {
     if (!dirty) return;
     event.preventDefault();
@@ -207,3 +263,4 @@ function wire(): void {
 
 wire();
 render();
+showLanding();

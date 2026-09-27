@@ -7,12 +7,8 @@
   "hull": {
     "tons": 400,
     "configuration": "streamlined",
-    "specialised": [
-      "reinforced"
-    ],
-    "options": [
-      "radiationShielding"
-    ],
+    "specialised": ["reinforced"],
+    "options": ["radiationShielding"],
     "stealth": "improved"
   },
   "armour": {
@@ -35,73 +31,30 @@
   },
   "sensors": "improved",
   "weapons": [
-    {
-      "kind": "barbette",
-      "weapon": "particle",
-      "quantity": 2
-    },
-    {
-      "kind": "bay",
-      "size": "small",
-      "weapon": "missile"
-    },
-    {
-      "kind": "pointDefence",
-      "battery": "laser",
-      "type": "typeII"
-    }
+    { "kind": "barbette", "weapon": "particle", "quantity": 2 },
+    { "kind": "bay", "size": "small", "weapon": "missile" },
+    { "kind": "pointDefence", "battery": "laser", "type": "typeII" }
   ],
   "ordnance": [
-    {
-      "missile": "standard",
-      "count": 336
-    }
+    { "missile": "standard", "count": 336 }
   ],
   "systems": [
-    {
-      "fuelScoops": true
-    },
-    {
-      "perTon": "repairDrones"
-    },
-    {
-      "flat": "sensorStation",
-      "quantity": 2
-    },
-    {
-      "flat": "enhancedSignalProcessing"
-    },
-    {
-      "flat": "armoury"
-    },
-    {
-      "flat": "medicalBay"
-    },
-    {
-      "flat": "workshop"
-    }
+    { "fuelScoops": true },
+    { "perTon": "repairDrones" },
+    { "flat": "sensorStation", "quantity": 2 },
+    { "flat": "enhancedSignalProcessing" },
+    { "flat": "armoury" },
+    { "flat": "medicalBay" },
+    { "flat": "workshop" }
   ],
   "staterooms": 12,
   "commonAreaTons": 10,
   "software": [
-    {
-      "software": "manoeuvre"
-    },
-    {
-      "software": "library"
-    },
-    {
-      "software": "autoRepair",
-      "level": 1
-    },
-    {
-      "software": "evade",
-      "level": 1
-    },
-    {
-      "software": "fireControl",
-      "level": 2
-    }
+    { "software": "manoeuvre" },
+    { "software": "library" },
+    { "software": "autoRepair", "level": 1 },
+    { "software": "evade", "level": 1 },
+    { "software": "fireControl", "level": 2 }
   ],
   "version": 1
 }

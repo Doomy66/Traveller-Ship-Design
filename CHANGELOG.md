@@ -20,9 +20,10 @@ user. Dates are the day the release was tagged.
   tonnage, price and engine room read from its file. The price is the design's
   full one: the carrier's standard design discount covers its craft, so the
   discounted price on the craft's own sheet would be discounted twice.
-- **A catalogue of 34 more ships**, from Mainline: the Dragon from High Guard,
+- **A catalogue of 36 more ships**, from Mainline: the Dragon from High Guard,
   28 classic and fan designs rebuilt to High Guard 2022 (Rampart to Azhanti High
-  Lightning), and five original designs. They sit under *Example ships* beside
+  Lightning), and seven original designs, among them the Snub and Snub 2
+  fighters. They sit under *Example ships* beside
   the book's four, grouped, and `src/catalogue/SOURCES.md` says where each one
   came from and what was changed to make it legal.
 - **No stateroom wanted for a fighter pilot.** A small craft under 100 tons

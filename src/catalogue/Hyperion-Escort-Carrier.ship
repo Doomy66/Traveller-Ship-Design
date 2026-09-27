@@ -72,9 +72,9 @@
   ],
   "craft": [
     {
-      "label": "Snub Fighter (20t)",
+      "label": "Snub Fighter",
       "tons": 20,
-      "cost": 8,
+      "cost": 7.66,
       "kind": "smallCraft",
       "berth": "dockingSpace",
       "quantity": 10

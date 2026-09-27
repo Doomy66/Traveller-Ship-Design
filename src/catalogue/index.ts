@@ -35,6 +35,8 @@ const ORIGINAL = new Set([
   "FOO3.ship",
   "Maul-class-Bombardment-Ship.ship",
   "Roam-Pod.ship",
+  "Snub.ship",
+  "Snub-2.ship",
   "Tern-class-Fighter-Carrier.ship",
   "Wasp-Heavy-Fighter.ship",
 ]);

@@ -13,7 +13,7 @@ The descriptions in each design's notes are summaries written for the catalogue,
 Two things were changed when the files were copied from Mainline. Neither moves a ton.
 
 - **Repeated craft became one line.** The Arakoine's hundred fighters were a hundred craft lines, and the Azhanti's sixty were sixty. Identical craft are now one line with a number (ShipSpec 4.11.3.1). Tonnage, price and crew are exactly what they were.
-- **Craft priced from another design's sheet now use its full price.** Mainline priced a carried Kia, Rampart, modular cutter, pinnace or ship's boat at that design's standard design price. The carrying ship's own discount then took 10% off again (ShipSpec 4.11.3.2). Those craft now cost the design's total: Kia Heavy Fighter MCr36.285, Rampart Light Fighter MCr14.108, Modular Cutter MCr18.19, Pinnace MCr15.66, Ship's Boat MCr11.59. Craft at a printed or assumed price are unchanged.
+- **Craft priced from another design's sheet now use its full price.** Mainline priced a carried Kia, Rampart, modular cutter, pinnace or ship's boat at that design's standard design price. The carrying ship's own discount then took 10% off again (ShipSpec 4.11.3.2). Those craft now cost the design's total: Kia Heavy Fighter MCr36.285, Rampart Light Fighter MCr14.108, Modular Cutter MCr18.19, Pinnace MCr15.66, Ship's Boat MCr11.59, Snub MCr7.66. Craft at a printed or assumed price are unchanged.
 
 ## Sources
 
@@ -43,7 +43,7 @@ Two things were changed when the files were copied from Mainline. Neither moves 
 | Kinunir Battle Cruiser | Kinunir-Battle-Cruiser.ship | https://wiki.travellerrpg.com/Kinunir_class_Battle_Cruiser | Classic | The CT 35-ton pinnace becomes the standard 40-ton one. "Dual lasers" become double beam laser turrets. Nuclear damper and black globe kept. |
 | Broadsword Mercenary Cruiser | Broadsword-Mercenary-Cruiser.ship | https://wiki.travellerrpg.com/Broadsword_class_Mercenary_Cruiser | Classic | Close translation. A sphere hull (the source's spheroid, unstreamlined). Berths for a 20-strong mercenary platoon. |
 | Musuna Frigate | Musuna-Frigate.ship | https://wiki.travellerrpg.com/Musuna_class_Frigate | Fan design (Classic High Guard) | Kept at TL11. The missile bay is a medium bay. Drop tanks replaced by internal fuel for a second jump-2. 162 marines in barracks. |
-| Hyperion Escort Carrier | Hyperion-Escort-Carrier.ship | https://wiki.travellerrpg.com/Hyperion_class_Escort_Carrier | Fan design (Classic High Guard) | Kept at TL9, so the beam laser turrets become pulse lasers (HG2022 puts beam lasers at TL10). The 20-ton snub fighters are carried at an assumed MCr8 each. |
+| Hyperion Escort Carrier | Hyperion-Escort-Carrier.ship | https://wiki.travellerrpg.com/Hyperion_class_Escort_Carrier | Fan design (Classic High Guard) | Kept at TL9, so the beam laser turrets become pulse lasers (HG2022 puts beam lasers at TL10). The ten 20-ton snub fighters are this catalogue's Snub. |
 | Shibash Light Cruiser | Shibash-Light-Cruiser.ship | https://wiki.travellerrpg.com/Shibash_class_Light_Cruiser | GURPS Traveller: Interstellar Wars | Kept at TL11, so the weapons are swapped for ones HG2022 allows there: 2 small particle bays for the 100-ton particle bay, 2 plasma barbettes for the plasma bay, a Type I point defence laser for the repulsor. Extra fuel for a second jump. |
 | Gionetti Light Cruiser | Gionetti-Light-Cruiser.ship | https://wiki.travellerrpg.com/Gionetti_class_Light_Cruiser | Classic (Fighting Ships) | The meson spinal mount takes 60 of the 300 hardpoints, so the 200 triple missile turrets become 150 turrets plus 5 small missile bays. The 100-ton repulsor is a medium repulsor bay. No armour, as in the source. |
 | Arakoine Strike Cruiser | Arakoine-Strike-Cruiser.ship | https://wiki.travellerrpg.com/Arakoine_class_Strike_Cruiser | Classic (Fighting Ships) | Military hull and bonded superdense armour 6 (the source gives none). The 100 heavy fighters are priced as this catalogue's Kia heavy fighter. Two launch tubes. |
@@ -53,7 +53,9 @@ Two things were changed when the files were copied from Mainline. Neither moves 
 | Roam Pod | Roam-Pod.ship | Steve Burrows, made in the Traveller Ship Designer | Mongoose 2e | Own design: a 50-ton private runabout. |
 | Tern-class Fighter Carrier | Tern-class-Fighter-Carrier.ship | Steve Burrows, made in the Traveller Ship Designer | Mongoose 2e | Own design: 5,000 tons, two squadrons of twelve Wasp heavy fighters. |
 | Wasp Heavy Fighter | Wasp-Heavy-Fighter.ship | Steve Burrows, made in the Traveller Ship Designer | Mongoose 2e | Own design: the Tern's 40-ton strike fighter. |
+| Snub | Snub.ship | Steve Burrows, made in the Traveller Ship Designer | Mongoose 2e | Own design: a 20-ton TL9 fighter. Thrust 1 is all a TL9 manoeuvre drive gives, so a reaction booster adds thrust 5 for two hours of combat. |
+| Snub 2 | Snub-2.ship | Steve Burrows, made in the Traveller Ship Designer | Mongoose 2e | Own design: the Snub rebuilt at TL12, with a thrust 6 manoeuvre drive and crystaliron. |
 
 ## Assumed craft prices
 
-The 20-ton launch (MCr3.6), 20-ton gig (MCr5.5), 95-ton shuttle (MCr25), 20-ton snub fighter (MCr8) and 400-ton fuel shuttle (MCr90) have no design here, and their prices are assumed.
+The 20-ton launch (MCr3.6), 20-ton gig (MCr5.5), 95-ton shuttle (MCr25) and 400-ton fuel shuttle (MCr90) have no design here, and their prices are assumed. The Hyperion's snub fighters were assumed at MCr8 until the Snub was designed; they now cost its MCr7.66.

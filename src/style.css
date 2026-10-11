@@ -37,7 +37,7 @@ body {
 
 .landing { display: none; }
 body.at-landing { overflow: hidden; }
-body.at-landing .bar, body.at-landing .layout { display: none; }
+body.at-landing .bar, body.at-landing .layout, body.at-landing .floorplan-screen { display: none; }
 body.at-landing .landing {
   position: fixed;
   inset: 0;
@@ -185,6 +185,15 @@ body.at-landing .landing {
 .saved { color: var(--good); min-width: 7ch; }
 .spacer { flex: 1; }
 
+/* The design and its floor plan, one button each, side by side. */
+
+.views { display: inline-flex; }
+.views button { border-radius: 0; padding: 3px 11px; }
+.views button:first-child { border-radius: 4px 0 0 4px; }
+.views button:last-child { border-radius: 0 4px 4px 0; border-left: 0; }
+.views button.on { border-color: var(--accent); background: #3a3015; color: #f4dfa6; }
+
+
 button, select, input {
   font: inherit;
   color: var(--text);
@@ -213,6 +222,12 @@ input[type="checkbox"] { accent-color: var(--accent); margin: 0; padding: 0; }
 }
 
 .panel { overflow: auto; padding: 12px 16px; }
+
+/* The floor plan replaces the design and the sheet, under the same bar. */
+.floorplan-screen { display: none; }
+body.at-plan .layout { display: none; }
+body.at-plan .floorplan-screen { display: block; }
+body.at-plan #fold { display: none; }
 .panel-form { border-right: 1px solid var(--line); }
 .panel-sheet { background: var(--panel); max-width: 600px; }
 

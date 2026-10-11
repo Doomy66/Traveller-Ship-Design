@@ -18,6 +18,12 @@ import { find } from "./ui/dom";
 import { anyOpen, renderForm, setAllOpen } from "./ui/form";
 import type { FormHost } from "./ui/form";
 import { renderSheet } from "./ui/sheetview";
+import type { Manifest } from "./floorplan/manifest";
+import { manifest as manifestOf } from "./floorplan/manifest";
+import type { FloorPlan } from "./floorplan/plan";
+import { emptyPlan, readPlan, remember } from "./floorplan/plan";
+import type { FloorPlanHost, FloorPlanView } from "./floorplan/view";
+import { renderFloorPlan } from "./floorplan/view";
 import { APP_VERSION, HELP, RELEASE_NOTES, suggestionLink } from "./version";
 
 /** A bare hull to start from: the smallest thing the rules will price. */
@@ -65,6 +71,9 @@ let handle: FileHandle | undefined;
 let dirty = false;
 /** Whether a design has been opened yet, which is what Carry on goes back to. */
 let started = false;
+/** Which screen is up under the bar. */
+let screen: "design" | "plan" = "design";
+let planView: FloorPlanView | undefined;
 
 /**
  * How long the confirmation of a save stays up. A save through the picker ends
@@ -130,6 +139,68 @@ function drawSheet(): void {
   });
 }
 
+// ------------------------------------------------------------ the floor plan
+
+/**
+ * The manifest, worked out once per design. The floor plan screen asks for it
+ * many times a drawing, and every change to the design is a new object, so
+ * the design itself is the key.
+ */
+let manifestFor: { design: Design; manifest: Manifest } | undefined;
+function currentManifest(): Manifest {
+  if (manifestFor?.design !== design) manifestFor = { design, manifest: manifestOf(design) };
+  return manifestFor.manifest;
+}
+
+/**
+ * The plan, read once per saved value. A plan made on the screen is stored as
+ * the object it is and comes straight back; one loaded from a file is read and
+ * checked the first time it is asked for. FloorPlanSpec 4.4.
+ */
+let planFor: { raw: unknown; plan: FloorPlan } | undefined;
+function currentPlan(): FloorPlan {
+  if (planFor === undefined || planFor.raw !== design.floorPlan) {
+    planFor = { raw: design.floorPlan, plan: readPlan(design.floorPlan) ?? emptyPlan() };
+  }
+  return planFor.plan;
+}
+
+const planHost: FloorPlanHost = {
+  get manifest() {
+    return currentManifest();
+  },
+  get plan() {
+    return currentPlan();
+  },
+  setPlan(plan) {
+    apply({ floorPlan: plan });
+    planFor = { raw: plan, plan };
+    showState();
+  },
+};
+
+function showScreen(next: "design" | "plan"): void {
+  screen = next;
+  document.body.classList.toggle("at-plan", next === "plan");
+  find("#view-design").classList.toggle("on", next === "design");
+  find("#view-plan").classList.toggle("on", next === "plan");
+  if (next === "design") {
+    render();
+    return;
+  }
+  // A ship opening its floor plan for the first time starts with one empty
+  // deck that already knows the components, so a later change to the design
+  // shows up. Starting a plan is not an edit, so nothing is marked unsaved.
+  if (design.floorPlan === undefined) {
+    const plan = remember(emptyPlan(), currentManifest().components);
+    design = { ...design, floorPlan: plan };
+    planFor = { raw: plan, plan };
+  }
+  if (planView === undefined) planView = renderFloorPlan(find("#floorplan"), planHost);
+  else planView.refresh();
+  showState();
+}
+
 function apply(patch: Partial<Design>): void {
   design = { ...design, ...patch };
   dirty = true;
@@ -170,6 +241,10 @@ function load(next: Design, from?: FileHandle): void {
   dirty = false;
   showEditor();
   render();
+  if (screen === "plan") {
+    showScreen("plan");
+    planView?.fit();
+  }
 }
 
 /**
@@ -219,6 +294,13 @@ function wire(): void {
   });
 
   const write = async (asNew: boolean) => {
+    // The plan remembers what each component was when it was saved, so a
+    // change made to the design afterwards is noticed. FloorPlanSpec 9.1.
+    if (design.floorPlan !== undefined) {
+      const plan = remember(currentPlan(), currentManifest().components);
+      design = { ...design, floorPlan: plan };
+      planFor = { raw: plan, plan };
+    }
     try {
       handle = await save(design, asNew ? undefined : handle);
       dirty = false;
@@ -233,6 +315,16 @@ function wire(): void {
   if (!canRewrite()) find("#save-as").remove();
 
   find("#print").addEventListener("click", () => window.print());
+
+  find("#view-design").addEventListener("click", () => showScreen("design"));
+  find("#view-plan").addEventListener("click", () => showScreen("plan"));
+  // The floor plan's own keys: undo, turning a fitting, holding Space to move.
+  for (const type of ["keydown", "keyup"] as const) {
+    window.addEventListener(type, (event) => {
+      if (screen !== "plan" || document.body.classList.contains("at-landing")) return;
+      if (planView?.key(event) === true) event.preventDefault();
+    });
+  }
 
   // One control for all fifteen steps, which is quicker than fifteen clicks
   // whichever way the designer wants them.

@@ -130,6 +130,12 @@ describe("check", () => {
     expect(met.problems.some((p) => p.message.startsWith("Jump 1"))).toBe(false);
   });
 
+  it("lists every component not yet started in one warning", () => {
+    const report = check(SHIP, emptyPlan());
+    expect(report.problems.map((p) => p.message)).toEqual(["Not placed yet: Jump 1, Standard x2."]);
+    expect(report.tallies.find((t) => t.key === "jump")!.status).toBe("short");
+  });
+
   it("does not call unplaced fuel short, but counts fuel that is placed", () => {
     const none = check(SHIP, emptyPlan());
     expect(none.tallies.find((t) => t.key === "fuel")!.status).toBe("unplaced");
@@ -152,15 +158,31 @@ describe("check", () => {
   });
 
   it("holds the whole ship to two squares a ton, ten per cent either way", () => {
-    const report = check(SHIP, block(emptyPlan(), CORRIDOR, 0, 0, 9, 2));
+    // Every component in place: ten of drive, two staterooms of six.
+    const placed = () => {
+      let plan = block(emptyPlan(), "jump", 0, 0, 4, 1);
+      plan = block(plan, instanceOwner("staterooms", 1), 0, 2, 2, 3);
+      return block(plan, instanceOwner("staterooms", 2), 3, 2, 5, 3);
+    };
+    const report = check(SHIP, block(placed(), CORRIDOR, 0, 4, 7, 4));
     expect(report.ship).toEqual({ target: 40, low: 36, high: 44 });
     expect(report.total).toBe(30);
-    expect(report.corridor).toBe(30);
+    expect(report.corridor).toBe(8);
     expect(report.problems.map((p) => p.message)).toContain(
       "The plan covers 30 squares, outside the 36 to 44 a 20-ton ship allows.",
     );
-    const fits = check(SHIP, block(emptyPlan(), CORRIDOR, 0, 0, 9, 3));
+    const fits = check(SHIP, block(placed(), CORRIDOR, 0, 4, 7, 5));
     expect(fits.problems.some((p) => p.clause === "5.3")).toBe(false);
+  });
+
+  it("says nothing of the ship's total while components are still to be placed", () => {
+    const report = check(SHIP, block(emptyPlan(), CORRIDOR, 0, 0, 9, 2));
+    expect(report.problems.some((p) => p.clause === "5.3")).toBe(false);
+  });
+
+  it("waits for all the stateroom squares before saying there are too few rooms", () => {
+    const half = check(SHIP, block(emptyPlan(), instanceOwner("staterooms", 1), 0, 0, 2, 1));
+    expect(half.problems.some((p) => p.clause === "5.4")).toBe(false);
   });
 
   it("says when squares belong to something the design no longer has", () => {

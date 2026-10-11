@@ -1,0 +1,114 @@
+/*
+ * The floor plan screen. The components and tools on the left at a fixed
+ * width, the deck taking everything else, because the deck is where the work
+ * is and it wants every pixel it can get.
+ *
+ * It borrows the application's colour variables and nothing else, so the
+ * screen could be lifted out with only these to supply.
+ */
+
+.fp {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  height: calc(100vh - 39px);
+}
+
+/* ---------------------------------------------------------- the left panel */
+
+.fp-side {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.fp-tools { padding: 10px 12px 8px; border-bottom: 1px solid var(--line); display: grid; gap: 6px; }
+.fp-toolrow { display: flex; gap: 6px; flex-wrap: wrap; }
+.fp-tool { padding: 3px 9px; }
+.fp-tool.on, .fp-tab.on, .fp-symbol.on, .fp-chip.on { border-color: var(--accent); background: #3a3015; color: #f4dfa6; }
+.fp-tool[disabled], .fp-small[disabled] { opacity: 0.4; cursor: default; border-color: var(--line); }
+
+.fp-heading { font-size: 13px; font-weight: 600; margin: 10px 12px 2px; color: var(--accent); }
+
+.fp-list { overflow: auto; flex: 1; min-height: 0; padding: 0 8px 8px; }
+.fp-group { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint); margin: 10px 4px 3px; }
+
+.fp-row { border-radius: 4px; }
+.fp-row.on { background: #2a2618; }
+.fp-pick {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 1px solid transparent;
+  padding: 3px 6px;
+}
+.fp-pick:hover { border-color: var(--line); }
+.fp-row.on .fp-pick { border-color: var(--accent); }
+.fp-swatch { width: 12px; height: 12px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12); }
+.fp-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fp-count { font-variant-numeric: tabular-nums; color: var(--muted); }
+.fp-met .fp-count, .fp-totals .fp-met { color: var(--good); }
+.fp-short .fp-count, .fp-totals .fp-short { color: var(--warning); }
+.fp-over .fp-count { color: var(--error); }
+.fp-unplaced .fp-count { color: var(--faint); }
+
+.fp-chips { display: flex; flex-wrap: wrap; gap: 3px; padding: 2px 6px 6px 26px; }
+.fp-chip { min-width: 26px; padding: 0 4px; font-size: 11px; font-variant-numeric: tabular-nums; }
+.fp-chip.fp-met { color: var(--good); border-color: rgba(108, 192, 122, 0.5); }
+.fp-chip.fp-short { color: var(--warning); }
+.fp-chip.fp-over { color: var(--error); }
+.fp-chip.fp-empty { color: var(--faint); }
+
+.fp-orphaned { display: grid; grid-template-columns: minmax(0, 1fr) max-content max-content; gap: 8px; align-items: center; padding: 3px 6px; color: var(--error); }
+.fp-clear { padding: 0 6px; font-size: 11px; }
+
+.fp-totals { padding: 8px 12px; border-top: 1px solid var(--line); color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.fp-furniture { border-top: 1px solid var(--line); max-height: 45%; overflow: auto; }
+.fp-furniture > summary { cursor: pointer; padding: 7px 12px; color: var(--muted); }
+.fp-library { padding: 0 8px 10px; }
+.fp-symbols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.fp-symbol { display: grid; justify-items: center; gap: 2px; padding: 4px 2px; font-size: 10px; color: var(--muted); }
+.fp-symbol img { width: 40px; height: 40px; object-fit: contain; filter: invert(0.92); }
+.fp-symbol span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+
+/* ------------------------------------------------------------ the deck side */
+
+.fp-main { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; min-width: 0; min-height: 0; }
+
+.fp-problems { padding: 6px 14px; border-bottom: 1px solid var(--line); max-height: 96px; overflow: auto; }
+.fp-problems ul { margin: 0; padding: 0; list-style: none; }
+.fp-problem { padding-left: 14px; position: relative; }
+.fp-problem::before { content: ""; position: absolute; left: 2px; top: 0.62em; width: 6px; height: 6px; border-radius: 50%; }
+.fp-warning::before { background: var(--warning); }
+.fp-note::before { background: var(--note); }
+.fp-clause { color: var(--faint); font-size: 11px; }
+.fp-ok { margin: 0; color: var(--muted); }
+
+.fp-deckbar { padding: 6px 14px; border-bottom: 1px solid var(--line); display: grid; gap: 6px; background: var(--panel); }
+.fp-tabs, .fp-decktools { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.fp-tab { padding: 3px 12px; }
+.fp-tab.fp-cut { color: var(--warning); }
+.fp-add { color: var(--muted); }
+.fp-deckname { width: 11em; }
+.fp-small { padding: 2px 8px; }
+.fp-shift { display: inline-flex; gap: 2px; }
+.fp-shift button { padding: 2px 6px; }
+
+.fp-canvas { position: relative; overflow: hidden; background: var(--bg); cursor: crosshair; touch-action: none; }
+.fp-canvas[data-tool="edge"], .fp-canvas[data-tool="access"], .fp-canvas[data-tool="symbol"] { cursor: pointer; }
+.fp-canvas.fp-grab, .fp-canvas.fp-panning { cursor: grabbing; }
+.fp-svg { display: block; width: 100%; height: 100%; user-select: none; }
+.fp-label { font-family: "Segoe UI", system-ui, sans-serif; font-weight: 600; paint-order: stroke; stroke: rgba(0, 0, 0, 0.55); stroke-width: 0.06px; }
+.fp-unmatched { animation: fp-pulse 1.4s ease-in-out infinite; }
+@keyframes fp-pulse { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .fp-unmatched { animation: none; } }
+
+.fp-status { padding: 4px 14px; border-top: 1px solid var(--line); color: var(--faint); font-size: 12px; min-height: 26px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fp-credit { margin: 8px 4px 0; font-size: 10px; color: var(--faint); }
+.fp-credit a { color: var(--muted); }

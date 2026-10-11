@@ -1,0 +1,534 @@
+[
+ {
+  "id": "lift",
+  "name": "Lift",
+  "category": "access",
+  "file": "floorplan/symbols/lift.png",
+  "feet": [
+   5,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   180,
+   180
+  ],
+  "source": "Misc/Elevator 002 [5x5].png"
+ },
+ {
+  "id": "lift-large",
+  "name": "Lift, large",
+  "category": "access",
+  "file": "floorplan/symbols/lift-large.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   240,
+   240
+  ],
+  "source": "Misc/Elevator 005 [10x10].png"
+ },
+ {
+  "id": "stairs",
+  "name": "Stairs",
+  "category": "access",
+  "file": "floorplan/symbols/stairs.png",
+  "feet": [
+   5,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   180,
+   180
+  ],
+  "source": "Misc/Stairs 005 [5x5].png"
+ },
+ {
+  "id": "stairs-long",
+  "name": "Stairs, long",
+  "category": "access",
+  "file": "floorplan/symbols/stairs-long.png",
+  "feet": [
+   10,
+   5
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   240,
+   240
+  ],
+  "source": "Misc/Stairs 002 [5x10].png"
+ },
+ {
+  "id": "airlock",
+  "name": "Airlock",
+  "category": "access",
+  "file": "floorplan/symbols/airlock.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   240,
+   240
+  ],
+  "source": "Misc/Airlock 001 [10x10].png"
+ },
+ {
+  "id": "stateroom-1",
+  "name": "Stateroom",
+  "category": "rooms",
+  "file": "floorplan/symbols/stateroom-1.png",
+  "feet": [
+   10,
+   15
+  ],
+  "squares": [
+   2,
+   3
+  ],
+  "pixels": [
+   240,
+   300
+  ],
+  "source": "Staterooms/Stateroom 015 [10x15].png"
+ },
+ {
+  "id": "stateroom-2",
+  "name": "Stateroom, alternative",
+  "category": "rooms",
+  "file": "floorplan/symbols/stateroom-2.png",
+  "feet": [
+   10,
+   15
+  ],
+  "squares": [
+   2,
+   3
+  ],
+  "pixels": [
+   240,
+   300
+  ],
+  "source": "Staterooms/Stateroom 016 [10x15].png"
+ },
+ {
+  "id": "stateroom-3",
+  "name": "Stateroom, double",
+  "category": "rooms",
+  "file": "floorplan/symbols/stateroom-3.png",
+  "feet": [
+   10,
+   15
+  ],
+  "squares": [
+   2,
+   3
+  ],
+  "pixels": [
+   240,
+   300
+  ],
+  "source": "Staterooms/Stateroom 020 [10x15].png"
+ },
+ {
+  "id": "stateroom-small",
+  "name": "Stateroom, small",
+  "category": "rooms",
+  "file": "floorplan/symbols/stateroom-small.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   240,
+   240
+  ],
+  "source": "Staterooms/Stateroom 005 [10x10].png"
+ },
+ {
+  "id": "low-berth",
+  "name": "Low berth",
+  "category": "rooms",
+  "file": "floorplan/symbols/low-berth.png",
+  "feet": [
+   5,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   180,
+   180
+  ],
+  "source": "Low Berth/Low Berth 003 [5x5].png"
+ },
+ {
+  "id": "fresher",
+  "name": "Fresher",
+  "category": "rooms",
+  "file": "floorplan/symbols/fresher.png",
+  "feet": [
+   5,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   180,
+   180
+  ],
+  "source": "Fresher/Fresher 001 [5x5].png"
+ },
+ {
+  "id": "bed",
+  "name": "Bed",
+  "category": "furniture",
+  "file": "floorplan/symbols/bed.png",
+  "feet": [
+   10,
+   5
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   116,
+   61
+  ],
+  "source": "Furniture, Consoles, & Equipment/Bed 001 [5x10].png"
+ },
+ {
+  "id": "bed-small",
+  "name": "Bed, small",
+  "category": "furniture",
+  "file": "floorplan/symbols/bed-small.png",
+  "feet": [
+   7,
+   5
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   81,
+   61
+  ],
+  "source": "Furniture, Consoles, & Equipment/Bed 006 [5x7].png"
+ },
+ {
+  "id": "medical-bed",
+  "name": "Medical bed",
+  "category": "furniture",
+  "file": "floorplan/symbols/medical-bed.png",
+  "feet": [
+   6,
+   4
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   76,
+   44
+  ],
+  "source": "Furniture, Consoles, & Equipment/Medical Bed 001 [4x6].png"
+ },
+ {
+  "id": "chair",
+  "name": "Chair",
+  "category": "furniture",
+  "file": "floorplan/symbols/chair.png",
+  "feet": [
+   3,
+   2
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   31,
+   27
+  ],
+  "source": "Furniture, Consoles, & Equipment/Couch & Chairs 003 [2x3].png"
+ },
+ {
+  "id": "armchair",
+  "name": "Armchair",
+  "category": "furniture",
+  "file": "floorplan/symbols/armchair.png",
+  "feet": [
+   6,
+   6
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   70,
+   70
+  ],
+  "source": "Furniture, Consoles, & Equipment/Couch & Chairs 016 [6x6].png"
+ },
+ {
+  "id": "couch",
+  "name": "Couch",
+  "category": "furniture",
+  "file": "floorplan/symbols/couch.png",
+  "feet": [
+   10,
+   5
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   121,
+   61
+  ],
+  "source": "Furniture, Consoles, & Equipment/Couch & Chairs 017 [5x10].png"
+ },
+ {
+  "id": "lounge",
+  "name": "Lounge seating",
+  "category": "furniture",
+  "file": "floorplan/symbols/lounge.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   120,
+   120
+  ],
+  "source": "Furniture, Consoles, & Equipment/Couch & Chairs 012 [10x10].png"
+ },
+ {
+  "id": "table-small",
+  "name": "Table, small",
+  "category": "furniture",
+  "file": "floorplan/symbols/table-small.png",
+  "feet": [
+   5,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   55,
+   56
+  ],
+  "source": "Furniture, Consoles, & Equipment/Table 010 [5x5].png"
+ },
+ {
+  "id": "table",
+  "name": "Table",
+  "category": "furniture",
+  "file": "floorplan/symbols/table.png",
+  "feet": [
+   6,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   68,
+   120
+  ],
+  "source": "Furniture, Consoles, & Equipment/Table 003 [6x10].png"
+ },
+ {
+  "id": "table-long",
+  "name": "Table, long",
+  "category": "furniture",
+  "file": "floorplan/symbols/table-long.png",
+  "feet": [
+   20,
+   10
+  ],
+  "squares": [
+   4,
+   2
+  ],
+  "pixels": [
+   241,
+   121
+  ],
+  "source": "Furniture, Consoles, & Equipment/Table 001 [10x20].png"
+ },
+ {
+  "id": "desk",
+  "name": "Desk",
+  "category": "furniture",
+  "file": "floorplan/symbols/desk.png",
+  "feet": [
+   4,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   45,
+   61
+  ],
+  "source": "Furniture, Consoles, & Equipment/Desk 002 [4x5].png"
+ },
+ {
+  "id": "desk-large",
+  "name": "Desk, large",
+  "category": "furniture",
+  "file": "floorplan/symbols/desk-large.png",
+  "feet": [
+   5,
+   10
+  ],
+  "squares": [
+   1,
+   2
+  ],
+  "pixels": [
+   55,
+   121
+  ],
+  "source": "Furniture, Consoles, & Equipment/Desk 008 [5x10].png"
+ },
+ {
+  "id": "counter",
+  "name": "Counter",
+  "category": "furniture",
+  "file": "floorplan/symbols/counter.png",
+  "feet": [
+   5,
+   2
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   61,
+   25
+  ],
+  "source": "Furniture, Consoles, & Equipment/Counter 007 [2x5].png"
+ },
+ {
+  "id": "console",
+  "name": "Console",
+  "category": "consoles",
+  "file": "floorplan/symbols/console.png",
+  "feet": [
+   5,
+   10
+  ],
+  "squares": [
+   1,
+   2
+  ],
+  "pixels": [
+   61,
+   121
+  ],
+  "source": "Furniture, Consoles, & Equipment/Console 008 [5x10].png"
+ },
+ {
+  "id": "console-wide",
+  "name": "Console, wide",
+  "category": "consoles",
+  "file": "floorplan/symbols/console-wide.png",
+  "feet": [
+   6,
+   15
+  ],
+  "squares": [
+   2,
+   3
+  ],
+  "pixels": [
+   73,
+   181
+  ],
+  "source": "Furniture, Consoles, & Equipment/Console 006 [6x15].png"
+ },
+ {
+  "id": "bridge-console",
+  "name": "Bridge console",
+  "category": "consoles",
+  "file": "floorplan/symbols/bridge-console.png",
+  "feet": [
+   12,
+   12
+  ],
+  "squares": [
+   3,
+   3
+  ],
+  "pixels": [
+   141,
+   146
+  ],
+  "source": "Furniture, Consoles, & Equipment/Azhanti Style Bridge Console 003 [12x12].png"
+ },
+ {
+  "id": "bridge-station",
+  "name": "Bridge station",
+  "category": "consoles",
+  "file": "floorplan/symbols/bridge-station.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   240,
+   240
+  ],
+  "source": "Bridge/Bridge 006 [10x10].png"
+ }
+]

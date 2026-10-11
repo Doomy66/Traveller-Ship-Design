@@ -102,10 +102,15 @@ export function check(manifest: Manifest, plan: FloorPlan): Report {
   }
 
   const known = new Set(manifest.components.map((c) => c.key));
+  // Components not started are listed together, so a new plan opens on one
+  // line of what is left rather than a warning for every part of the ship.
+  const untouched: string[] = [];
   const tallies: Tally[] = manifest.components.map((component) => {
     const count = placed.get(component.key) ?? 0;
     const status = statusOf(component, count);
-    if (status === "short") {
+    if (status === "short" && count === 0) {
+      untouched.push(component.label);
+    } else if (status === "short") {
       warn(`${component.label} has ${squares(count)} of ${component.target}.`, "5.2");
     } else if (status === "over") {
       warn(`${component.label} has ${squares(count)}, ${count - component.target} more than its ${component.target}.`, "5.2");
@@ -113,7 +118,11 @@ export function check(manifest: Manifest, plan: FloorPlan): Report {
     let rooms: Tally["rooms"];
     if (component.key === "staterooms") {
       rooms = { wanted: component.rooms, drawn: count === 0 ? 0 : (roomsDrawn.get(component.key) ?? 0) };
-      if (count > 0 && rooms.drawn !== rooms.wanted) {
+      // Too many rooms is wrong at once; too few only once all the squares are down,
+      // since until then the rest are simply not drawn yet.
+      const tooMany = rooms.drawn > rooms.wanted;
+      const tooFew = rooms.drawn < rooms.wanted && count >= component.target;
+      if (tooMany || tooFew) {
         warn(
           `${rooms.wanted} staterooms are drawn as ${rooms.drawn} ${rooms.drawn === 1 ? "room" : "rooms"}.`,
           "5.4",
@@ -133,6 +142,14 @@ export function check(manifest: Manifest, plan: FloorPlan): Report {
       ...(its === undefined ? {} : { instances: its }),
     };
   });
+
+  if (untouched.length > 0) {
+    problems.unshift({
+      severity: "warning",
+      message: `Not placed yet: ${untouched.join(", ")}.`,
+      clause: "5.2",
+    });
+  }
 
   // Squares whose component the design no longer has. FP 5.5 and 9.2.
   const orphans: Orphan[] = [];
@@ -155,7 +172,9 @@ export function check(manifest: Manifest, plan: FloorPlan): Report {
   const target = manifest.usableTons * SQUARES_PER_TON;
   const low = Math.ceil(target * (1 - SHIP_TOLERANCE));
   const high = Math.floor(target * (1 + SHIP_TOLERANCE));
-  if (total > 0 && (total < low || total > high)) {
+  // Only once every required component is started: until then the total is
+  // short because the plan is unfinished, which the list above already says.
+  if (total > 0 && untouched.length === 0 && (total < low || total > high)) {
     warn(`The plan covers ${squares(total)}, outside the ${low} to ${high} a ${manifest.usableTons}-ton ship allows.`, "5.3");
   }
 

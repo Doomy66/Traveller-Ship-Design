@@ -1,0 +1,15 @@
+The images in this folder are from the Traveller Starship Symbols by Robert
+Pearce, as rendered to PNG by Eric B. Smith
+(http://gurpsland.no-ip.org/geomorphs).
+
+They are used under the Creative Commons Attribution-NonCommercial 4.0
+International licence:
+
+    https://creativecommons.org/licenses/by-nc/4.0/
+
+They have been renamed, and nothing else about them has been changed. The
+filename each came from is listed in src/floorplan/symbols.json under
+"source". Like the rest of this project, they may not be used commercially.
+
+Traveller is a trade mark of Mongoose Publishing. Neither Robert Pearce, Eric
+B. Smith nor Mongoose Publishing endorses this project.

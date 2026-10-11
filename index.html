@@ -99,6 +99,10 @@
       <span class="bar-sub">High Guard Update 2022</span>
       <span id="where" class="where"></span>
       <span id="saved" class="saved" role="status" aria-live="polite"></span>
+      <span class="views" role="group" aria-label="Screen">
+        <button type="button" id="view-design" class="on" title="The design and its sheet">Design</button>
+        <button type="button" id="view-plan" title="Lay the ship out deck by deck">Floor plan</button>
+      </span>
       <span class="spacer"></span>
       <select id="examples" class="examples" aria-label="Open an example ship">
         <option value="">Example ships&hellip;</option>
@@ -126,7 +130,9 @@
             the rules are theirs; this carries none of their text and you need your own copy of
             the book. The icon is the <i>rocket</i> glyph from Tabler Icons by Pawel Kuna, under
             the MIT licence, whose text ships as
-            <code>LICENSE-tabler-icons.txt</code>.
+            <code>LICENSE-tabler-icons.txt</code>. The floor plan's furniture and fittings are
+            from Robert Pearce's Traveller Starship Symbols, rendered by Eric B. Smith, under
+            <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>.
           </p>
         </footer>
       </section>
@@ -134,6 +140,9 @@
       <!-- The sheet the rules make of it. -->
       <section class="panel panel-sheet" id="sheet" aria-label="The sheet"></section>
     </main>
+
+    <!-- The floor plan, drawn by src/floorplan/view.ts. FloorPlanSpec section 10. -->
+    <main class="floorplan-screen" id="floorplan" aria-label="Floor plan"></main>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

@@ -423,6 +423,10 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 5.2.1 **Every draw is shown against the component that causes it.** Basic ship systems are what the hull itself costs to run, so they stand on the hull's line; the manoeuvre and jump drives carry their own. The power column then adds up to the whole of what the ship asks for, and a reader can see where it went without holding two lists in their head. The power panel remains, because it is the one that separates what runs all the time from what only runs during a jump.
 
+5.2.2 **Every line has a key** saying which part of the design it is. Keys come from the design's structure, never from the label, because labels carry figures: "Thrust 6" and "Thrust 5" are both `manoeuvre`. A line from a list in the design carries its place in that list, so the third weapon line is `weapon:2` and the first craft is `craft:0`, with its berth at `craft:0:berth`. The other keys are `hull`, `hullOption:` and the option, `stealth`, `armour`, `reaction`, `jump`, `highBurn`, `powerPlant`, `fuel`, `bridge`, `computer`, `sensors`, `capacitors`, `ordnance:`, `system:` (with `:coating` and `:panels` for solar), `staterooms`, `lowBerths`, `emergencyLowBerths`, `software:`, `commonAreas` and `cargo`. No two lines of a sheet share a key. Nothing in the sheet reads them; they exist so that something laid out against the design, a floor plan, can remember which part is which after the figures change. Removing a line from the middle of a list renumbers the lines after it, and a floor plan has to live with that.
+
+5.2.3 A line that stands for several identical things says how many, as its **count**: ten staterooms, five triple turrets, twenty-four hangars. A line for one thing has no count.
+
 5.3 Totals: tons used, cargo, total cost, purchase cost, maintenance, construction days, hull points, airlocks, hardpoints.
 
 5.4 Power: the available figure and the list of requirements of 4.4.2.

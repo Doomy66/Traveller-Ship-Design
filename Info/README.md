@@ -8,9 +8,12 @@ Working notes for the Traveller Ship Design project. One file per thread, so a s
 | [Resources.md](Resources.md) | The deck-plan geomorph and symbol archives in the Resources folder |
 | [Project.md](Project.md) | Decisions taken, conventions borrowed from PlanetHex, open questions |
 | [Plan.md](Plan.md) | The build plan for the design engine, and where we are in it |
+| [FloorPlan.md](FloorPlan.md) | The floor plan designer: decisions, phases and where we are. Its spec is `FloorPlanSpec.md` at the root |
+| [FloorPlan-Research.md](FloorPlan-Research.md) | What the book says about deck plans, and what the symbol archive in `D:\SandPit\ShipParts` holds |
 
 Session log, newest first:
 
+- 2026-10-11 (floor plans) Started the floor plan designer. Surveyed `D:\SandPit\ShipParts`: the symbols are all 60 px to the square with their footprint in the filename. Author chose a screen in this app, a bundled symbol set, painted squares and the book's accounting. Spec and plan drafted; nothing built.
 - 2026-09-19 (interface) Phase 5: the application runs. Licence changed from MIT to PolyForm Noncommercial at the author's request, so nobody may sell it. README and CHANGELOG written.
 - 2026-09-19 (options) Spacecraft Options done in full, around ninety entries. Destroyer Escort added as the capital-ship fixture and it reconciles exactly. Found that ammunition is tonnage only and its cost sits outside the ship's price.
 - 2026-09-19 (customising) Customising Ships done: the grade table, every advantage and disadvantage, refit costs. The Close Escort's manoeuvre drive and power plant became the chapter's worked examples and both reconcile exactly; its jump drive does not and is recorded as unexplained.

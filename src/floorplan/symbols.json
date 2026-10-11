@@ -1195,5 +1195,1316 @@
    240
   ],
   "source": "CustomTiles/Symbols/Bridge/Bridge 006 [10x10].png"
+ },
+ {
+  "id": "sheet-bed",
+  "name": "Bed, labelled",
+  "category": "rooms",
+  "file": "floorplan/symbols/sheet-bed.png",
+  "feet": [
+   7,
+   4
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   80,
+   44
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (50, 172, 124, 214)"
+ },
+ {
+  "id": "sheet-bed-storage",
+  "name": "Bed with storage",
+  "category": "rooms",
+  "file": "floorplan/symbols/sheet-bed-storage.png",
+  "feet": [
+   9,
+   5
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   103,
+   61
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (153, 166, 248, 222)"
+ },
+ {
+  "id": "sheet-bunks",
+  "name": "Bunk beds",
+  "category": "rooms",
+  "file": "floorplan/symbols/sheet-bunks.png",
+  "feet": [
+   7,
+   6
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   88,
+   77
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (50, 220, 132, 292)"
+ },
+ {
+  "id": "sheet-triple-bunks",
+  "name": "Steerage triple bunks",
+  "category": "rooms",
+  "file": "floorplan/symbols/sheet-triple-bunks.png",
+  "feet": [
+   11,
+   6
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   127,
+   68
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (280, 222, 396, 287)"
+ },
+ {
+  "id": "sheet-mini-stateroom",
+  "name": "Mini-stateroom, bed over desk",
+  "category": "rooms",
+  "file": "floorplan/symbols/sheet-mini-stateroom.png",
+  "feet": [
+   11,
+   6
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   129,
+   70
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (60, 408, 180, 474)"
+ },
+ {
+  "id": "sheet-desk-1",
+  "name": "Desk with chairs",
+  "category": "furniture",
+  "file": "floorplan/symbols/sheet-desk-1.png",
+  "feet": [
+   5,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   58,
+   60
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (53, 293, 107, 347)"
+ },
+ {
+  "id": "sheet-desk-2",
+  "name": "Desk and chair",
+  "category": "furniture",
+  "file": "floorplan/symbols/sheet-desk-2.png",
+  "feet": [
+   6,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   66,
+   65
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (118, 293, 180, 354)"
+ },
+ {
+  "id": "sheet-desk-3",
+  "name": "Desk, small",
+  "category": "furniture",
+  "file": "floorplan/symbols/sheet-desk-3.png",
+  "feet": [
+   3,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   35,
+   58
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (186, 293, 220, 347)"
+ },
+ {
+  "id": "sheet-chairs",
+  "name": "Chairs",
+  "category": "furniture",
+  "file": "floorplan/symbols/sheet-chairs.png",
+  "feet": [
+   7,
+   3
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   88,
+   39
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (48, 357, 130, 394)"
+ },
+ {
+  "id": "sheet-couch",
+  "name": "Couch",
+  "category": "furniture",
+  "file": "floorplan/symbols/sheet-couch.png",
+  "feet": [
+   10,
+   3
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   119,
+   32
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (136, 362, 247, 393)"
+ },
+ {
+  "id": "sheet-locker",
+  "name": "Locker",
+  "category": "furniture",
+  "file": "floorplan/symbols/sheet-locker.png",
+  "feet": [
+   6,
+   6
+  ],
+  "squares": [
+   1,
+   2
+  ],
+  "pixels": [
+   68,
+   72
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (48, 792, 110, 860)"
+ },
+ {
+  "id": "sheet-locker-small",
+  "name": "Locker, small",
+  "category": "furniture",
+  "file": "floorplan/symbols/sheet-locker-small.png",
+  "feet": [
+   6,
+   4
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   69,
+   42
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (123, 792, 188, 834)"
+ },
+ {
+  "id": "sheet-weapons-locker",
+  "name": "Weapons locker",
+  "category": "furniture",
+  "file": "floorplan/symbols/sheet-weapons-locker.png",
+  "feet": [
+   6,
+   6
+  ],
+  "squares": [
+   1,
+   2
+  ],
+  "pixels": [
+   69,
+   72
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (200, 792, 264, 860)"
+ },
+ {
+  "id": "sheet-holo-table",
+  "name": "Holo table with seats",
+  "category": "furniture",
+  "file": "floorplan/symbols/sheet-holo-table.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   117,
+   117
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (46, 880, 160, 987)"
+ },
+ {
+  "id": "sheet-window",
+  "name": "Window, security glass",
+  "category": "furniture",
+  "file": "floorplan/symbols/sheet-window.png",
+  "feet": [
+   10,
+   2
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   125,
+   19
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (50, 1008, 164, 1027)"
+ },
+ {
+  "id": "sheet-repair-bench",
+  "name": "Repair bench",
+  "category": "furniture",
+  "file": "floorplan/symbols/sheet-repair-bench.png",
+  "feet": [
+   20,
+   5
+  ],
+  "squares": [
+   4,
+   1
+  ],
+  "pixels": [
+   246,
+   65
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (50, 1043, 274, 1104)"
+ },
+ {
+  "id": "sheet-panel-1",
+  "name": "Control panel",
+  "category": "consoles",
+  "file": "floorplan/symbols/sheet-panel-1.png",
+  "feet": [
+   6,
+   6
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   66,
+   67
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (168, 880, 234, 942)"
+ },
+ {
+  "id": "sheet-panel-2",
+  "name": "Work station",
+  "category": "consoles",
+  "file": "floorplan/symbols/sheet-panel-2.png",
+  "feet": [
+   5,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   65,
+   60
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (240, 880, 300, 937)"
+ },
+ {
+  "id": "sheet-panel-3",
+  "name": "Work station, seated",
+  "category": "consoles",
+  "file": "floorplan/symbols/sheet-panel-3.png",
+  "feet": [
+   6,
+   4
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   66,
+   54
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (310, 880, 372, 937)"
+ },
+ {
+  "id": "sheet-fresher",
+  "name": "Fresher: toilet, sink and shower",
+  "category": "freshers",
+  "file": "floorplan/symbols/sheet-fresher.png",
+  "feet": [
+   6,
+   6
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   67,
+   66
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (45, 538, 107, 602)"
+ },
+ {
+  "id": "sheet-toilet-sink",
+  "name": "Toilet and sink",
+  "category": "freshers",
+  "file": "floorplan/symbols/sheet-toilet-sink.png",
+  "feet": [
+   2,
+   3
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   26,
+   41
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (80, 610, 108, 650)"
+ },
+ {
+  "id": "sheet-toilet",
+  "name": "Toilet",
+  "category": "freshers",
+  "file": "floorplan/symbols/sheet-toilet.png",
+  "feet": [
+   2,
+   3
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   28,
+   36
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (80, 653, 108, 690)"
+ },
+ {
+  "id": "sheet-sink-round",
+  "name": "Sink, round",
+  "category": "freshers",
+  "file": "floorplan/symbols/sheet-sink-round.png",
+  "feet": [
+   3,
+   2
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   31,
+   28
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (228, 653, 259, 686)"
+ },
+ {
+  "id": "sheet-sink-square",
+  "name": "Sink, square",
+  "category": "freshers",
+  "file": "floorplan/symbols/sheet-sink-square.png",
+  "feet": [
+   2,
+   2
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   26,
+   27
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (260, 653, 286, 686)"
+ },
+ {
+  "id": "sheet-sink-wide",
+  "name": "Sink, wide",
+  "category": "freshers",
+  "file": "floorplan/symbols/sheet-sink-wide.png",
+  "feet": [
+   4,
+   2
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   51,
+   30
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (288, 654, 337, 686)"
+ },
+ {
+  "id": "sheet-sinks",
+  "name": "Sinks, row of three",
+  "category": "freshers",
+  "file": "floorplan/symbols/sheet-sinks.png",
+  "feet": [
+   4,
+   2
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   45,
+   25
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (339, 656, 385, 686)"
+ },
+ {
+  "id": "sheet-shower",
+  "name": "Shower",
+  "category": "freshers",
+  "file": "floorplan/symbols/sheet-shower.png",
+  "feet": [
+   6,
+   4
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   66,
+   42
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (48, 698, 110, 737)"
+ },
+ {
+  "id": "sheet-shower-round",
+  "name": "Shower, round",
+  "category": "freshers",
+  "file": "floorplan/symbols/sheet-shower-round.png",
+  "feet": [
+   6,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   68,
+   59
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (120, 688, 182, 744)"
+ },
+ {
+  "id": "sheet-medical-bed",
+  "name": "Medical bed",
+  "category": "medical",
+  "file": "floorplan/symbols/sheet-medical-bed.png",
+  "feet": [
+   7,
+   4
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   81,
+   42
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (46, 1153, 124, 1194)"
+ },
+ {
+  "id": "sheet-autodoc",
+  "name": "Autodoc",
+  "category": "medical",
+  "file": "floorplan/symbols/sheet-autodoc.png",
+  "feet": [
+   7,
+   4
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   82,
+   49
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (303, 1153, 380, 1197)"
+ },
+ {
+  "id": "sheet-privacy-screen",
+  "name": "Privacy screen",
+  "category": "medical",
+  "file": "floorplan/symbols/sheet-privacy-screen.png",
+  "feet": [
+   8,
+   1
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   95,
+   15
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (43, 1201, 130, 1220)"
+ },
+ {
+  "id": "sheet-restraint-bed",
+  "name": "Restraint bed, gurney",
+  "category": "medical",
+  "file": "floorplan/symbols/sheet-restraint-bed.png",
+  "feet": [
+   7,
+   4
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   81,
+   46
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (48, 1228, 124, 1270)"
+ },
+ {
+  "id": "sheet-low-berth",
+  "name": "Low berth",
+  "category": "medical",
+  "file": "floorplan/symbols/sheet-low-berth.png",
+  "feet": [
+   6,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   66,
+   65
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (53, 1273, 114, 1334)"
+ },
+ {
+  "id": "sheet-booth",
+  "name": "Corner booth",
+  "category": "common",
+  "file": "floorplan/symbols/sheet-booth.png",
+  "feet": [
+   7,
+   7
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   86,
+   87
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (46, 1410, 128, 1492)"
+ },
+ {
+  "id": "sheet-table-4",
+  "name": "Table for four",
+  "category": "common",
+  "file": "floorplan/symbols/sheet-table-4.png",
+  "feet": [
+   6,
+   6
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   73,
+   72
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (131, 1413, 197, 1482)"
+ },
+ {
+  "id": "sheet-table-round",
+  "name": "Round table",
+  "category": "common",
+  "file": "floorplan/symbols/sheet-table-round.png",
+  "feet": [
+   5,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   59,
+   58
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (203, 1416, 257, 1480)"
+ },
+ {
+  "id": "sheet-table-diagonal",
+  "name": "Table, set diagonally",
+  "category": "common",
+  "file": "floorplan/symbols/sheet-table-diagonal.png",
+  "feet": [
+   5,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   61,
+   61
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (260, 1416, 320, 1480)"
+ },
+ {
+  "id": "sheet-table-2",
+  "name": "Table for two",
+  "category": "common",
+  "file": "floorplan/symbols/sheet-table-2.png",
+  "feet": [
+   3,
+   6
+  ],
+  "squares": [
+   1,
+   2
+  ],
+  "pixels": [
+   35,
+   78
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (328, 1408, 360, 1480)"
+ },
+ {
+  "id": "sheet-mess-table",
+  "name": "Mess hall table",
+  "category": "common",
+  "file": "floorplan/symbols/sheet-mess-table.png",
+  "feet": [
+   8,
+   8
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   101,
+   96
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (48, 1503, 142, 1594)"
+ },
+ {
+  "id": "sheet-pool-table",
+  "name": "Gaming table",
+  "category": "common",
+  "file": "floorplan/symbols/sheet-pool-table.png",
+  "feet": [
+   8,
+   6
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   96,
+   70
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (250, 1496, 340, 1562)"
+ },
+ {
+  "id": "sheet-gaming-round",
+  "name": "Gaming table, round",
+  "category": "common",
+  "file": "floorplan/symbols/sheet-gaming-round.png",
+  "feet": [
+   6,
+   6
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   66,
+   68
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (370, 1498, 434, 1562)"
+ },
+ {
+  "id": "sheet-galley",
+  "name": "Small galley with sink",
+  "category": "common",
+  "file": "floorplan/symbols/sheet-galley.png",
+  "feet": [
+   8,
+   2
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   96,
+   30
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (48, 1608, 140, 1640)"
+ },
+ {
+  "id": "sheet-machinery",
+  "name": "Machinery",
+  "category": "engineering",
+  "file": "floorplan/symbols/sheet-machinery.png",
+  "feet": [
+   9,
+   8
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   105,
+   102
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (580, 418, 677, 514)"
+ },
+ {
+  "id": "sheet-drive",
+  "name": "Drive",
+  "category": "engineering",
+  "file": "floorplan/symbols/sheet-drive.png",
+  "feet": [
+   10,
+   9
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   116,
+   111
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (688, 418, 798, 522)"
+ },
+ {
+  "id": "sheet-batteries",
+  "name": "Batteries",
+  "category": "engineering",
+  "file": "floorplan/symbols/sheet-batteries.png",
+  "feet": [
+   9,
+   7
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   104,
+   83
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (853, 428, 950, 504)"
+ },
+ {
+  "id": "sheet-batteries-2",
+  "name": "Batteries, bank",
+  "category": "engineering",
+  "file": "floorplan/symbols/sheet-batteries-2.png",
+  "feet": [
+   14,
+   8
+  ],
+  "squares": [
+   3,
+   2
+  ],
+  "pixels": [
+   164,
+   94
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (955, 423, 1104, 509)"
+ },
+ {
+  "id": "sheet-computer",
+  "name": "Computer",
+  "category": "engineering",
+  "file": "floorplan/symbols/sheet-computer.png",
+  "feet": [
+   9,
+   4
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   105,
+   45
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (581, 566, 677, 607)"
+ },
+ {
+  "id": "sheet-computer-panel",
+  "name": "Computer with access panel",
+  "category": "engineering",
+  "file": "floorplan/symbols/sheet-computer-panel.png",
+  "feet": [
+   14,
+   4
+  ],
+  "squares": [
+   3,
+   1
+  ],
+  "pixels": [
+   165,
+   52
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (686, 566, 837, 614)"
+ },
+ {
+  "id": "sheet-elevator",
+  "name": "Elevator",
+  "category": "access",
+  "file": "floorplan/symbols/sheet-elevator.png",
+  "feet": [
+   9,
+   8
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   103,
+   102
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (583, 660, 677, 754)"
+ },
+ {
+  "id": "sheet-elevator-double",
+  "name": "Elevators, pair",
+  "category": "access",
+  "file": "floorplan/symbols/sheet-elevator-double.png",
+  "feet": [
+   11,
+   6
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   129,
+   68
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (681, 695, 799, 757)"
+ },
+ {
+  "id": "sheet-stairs-down",
+  "name": "Stairs down",
+  "category": "access",
+  "file": "floorplan/symbols/sheet-stairs-down.png",
+  "feet": [
+   10,
+   7
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   124,
+   88
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (803, 653, 917, 744)"
+ },
+ {
+  "id": "sheet-stairwell",
+  "name": "Stairwell",
+  "category": "access",
+  "file": "floorplan/symbols/sheet-stairwell.png",
+  "feet": [
+   16,
+   11
+  ],
+  "squares": [
+   4,
+   3
+  ],
+  "pixels": [
+   191,
+   131
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (928, 653, 1102, 772)"
+ },
+ {
+  "id": "sheet-iris-updown",
+  "name": "Iris valve, up and down",
+  "category": "access",
+  "file": "floorplan/symbols/sheet-iris-updown.png",
+  "feet": [
+   4,
+   4
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   49,
+   46
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (585, 980, 632, 1022)"
+ },
+ {
+  "id": "sheet-hatch-down",
+  "name": "Hatch, down",
+  "category": "access",
+  "file": "floorplan/symbols/sheet-hatch-down.png",
+  "feet": [
+   4,
+   4
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   52,
+   49
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (885, 891, 934, 937)"
+ },
+ {
+  "id": "sheet-hatch-up",
+  "name": "Hatch, up",
+  "category": "access",
+  "file": "floorplan/symbols/sheet-hatch-up.png",
+  "feet": [
+   4,
+   3
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   46,
+   41
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (885, 936, 932, 980)"
+ },
+ {
+  "id": "sheet-hatch-updown",
+  "name": "Hatch, up and down",
+  "category": "access",
+  "file": "floorplan/symbols/sheet-hatch-updown.png",
+  "feet": [
+   4,
+   4
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   52,
+   48
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (885, 980, 934, 1024)"
+ },
+ {
+  "id": "sheet-missile-tube",
+  "name": "Missile launch tube",
+  "category": "turrets",
+  "file": "floorplan/symbols/sheet-missile-tube.png",
+  "feet": [
+   6,
+   12
+  ],
+  "squares": [
+   2,
+   3
+  ],
+  "pixels": [
+   71,
+   144
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (573, 1063, 637, 1194)"
+ },
+ {
+  "id": "sheet-probe-tube",
+  "name": "Probe launch tube",
+  "category": "turrets",
+  "file": "floorplan/symbols/sheet-probe-tube.png",
+  "feet": [
+   6,
+   12
+  ],
+  "squares": [
+   1,
+   3
+  ],
+  "pixels": [
+   69,
+   138
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (753, 1066, 817, 1194)"
+ },
+ {
+  "id": "sheet-manned-turret",
+  "name": "Manned turret",
+  "category": "turrets",
+  "file": "floorplan/symbols/sheet-manned-turret.png",
+  "feet": [
+   12,
+   10
+  ],
+  "squares": [
+   3,
+   2
+  ],
+  "pixels": [
+   146,
+   125
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (958, 1060, 1092, 1177)"
+ },
+ {
+  "id": "sheet-cargo-10x20",
+  "name": "Cargo, 10 by 20 feet",
+  "category": "cargo",
+  "file": "floorplan/symbols/sheet-cargo-10x20.png",
+  "feet": [
+   21,
+   10
+  ],
+  "squares": [
+   4,
+   2
+  ],
+  "pixels": [
+   247,
+   124
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (583, 1238, 807, 1352)"
+ },
+ {
+  "id": "sheet-cargo-10x10",
+  "name": "Cargo, 10 by 10 feet",
+  "category": "cargo",
+  "file": "floorplan/symbols/sheet-cargo-10x10.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   125,
+   124
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (813, 1238, 927, 1352)"
+ },
+ {
+  "id": "sheet-cargo-5x5",
+  "name": "Cargo, 5 by 5 feet",
+  "category": "cargo",
+  "file": "floorplan/symbols/sheet-cargo-5x5.png",
+  "feet": [
+   5,
+   6
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   64,
+   66
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (936, 1293, 995, 1354)"
+ },
+ {
+  "id": "sheet-cargo-small",
+  "name": "Small cargo",
+  "category": "cargo",
+  "file": "floorplan/symbols/sheet-cargo-small.png",
+  "feet": [
+   12,
+   12
+  ],
+  "squares": [
+   3,
+   3
+  ],
+  "pixels": [
+   139,
+   147
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (1001, 1220, 1127, 1354)"
+ },
+ {
+  "id": "sheet-bushes",
+  "name": "Bushes and trees",
+  "category": "landscape",
+  "file": "floorplan/symbols/sheet-bushes.png",
+  "feet": [
+   17,
+   8
+  ],
+  "squares": [
+   4,
+   2
+  ],
+  "pixels": [
+   207,
+   92
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (578, 168, 768, 252)"
+ },
+ {
+  "id": "sheet-stone-path",
+  "name": "Stone path",
+  "category": "landscape",
+  "file": "floorplan/symbols/sheet-stone-path.png",
+  "feet": [
+   8,
+   5
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   100,
+   61
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (920, 173, 1012, 232)"
+ },
+ {
+  "id": "sheet-bench",
+  "name": "Bench",
+  "category": "landscape",
+  "file": "floorplan/symbols/sheet-bench.png",
+  "feet": [
+   6,
+   2
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   67,
+   23
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (596, 263, 657, 284)"
+ },
+ {
+  "id": "sheet-boulders",
+  "name": "Boulders",
+  "category": "landscape",
+  "file": "floorplan/symbols/sheet-boulders.png",
+  "feet": [
+   8,
+   7
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   97,
+   80
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (681, 251, 770, 324)"
+ },
+ {
+  "id": "sheet-fountain",
+  "name": "Fountain",
+  "category": "landscape",
+  "file": "floorplan/symbols/sheet-fountain.png",
+  "feet": [
+   8,
+   8
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   102,
+   100
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (906, 238, 1002, 332)"
+ },
+ {
+  "id": "sheet-landscape",
+  "name": "Landscape area",
+  "category": "landscape",
+  "file": "floorplan/symbols/sheet-landscape.png",
+  "feet": [
+   20,
+   4
+  ],
+  "squares": [
+   4,
+   1
+  ],
+  "pixels": [
+   245,
+   52
+  ],
+  "source": "Geomorphs/Symbols & Abbreviations.png (575, 323, 797, 370)"
  }
 ]

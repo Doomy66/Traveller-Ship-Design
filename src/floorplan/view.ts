@@ -957,8 +957,8 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
               ? "Click a wall for a door, drag along it for a wide one."
               : "Click a wall for an iris valve."
             : tool.kind === "tile" || tool.kind === "symbol"
-              ? "Click to place, R to turn."
-              : "Click to place or remove.";
+              ? "Click to place; R turns, F flips. Use Move to take one away."
+              : "Click to place. Use Move to take one away.";
     return `${x}, ${y}: ${what}. ${hint} Wheel zooms; right-drag or Space-drag moves the view.`;
   }
 
@@ -1003,12 +1003,8 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       void readFolderImage(entry.id).then(() => commit(placeTile(plan(), ghostTile(entry, p))));
       return;
     }
-    const existing = fixtureAt(p.x, p.y);
-    if (existing !== undefined) {
-      const f = plan().fixtures[existing]!;
-      commit(removeFixture(plan(), f));
-      return;
-    }
+    // Placing always places, even over another piece: a chair goes on a
+    // fitted room's floor. Taking a piece away is Move and Delete.
     if (tool.kind === "access") {
       const fixture: Fixture = {
         kind: tool.access,

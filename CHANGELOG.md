@@ -14,9 +14,11 @@ user. Dates are the day the release was tagged.
   staterooms come from Robert Pearce's Starship Symbols. Each deck exports as
   SVG or PNG, Print gives every deck a page, and the plan saves inside the
   `.ship`. `FloorPlanSpec.md` is its contract.
-- **A library of ship pieces.** Turrets and barbettes, engineering sections of
-  4 to 63 tons, staterooms up to quad and luxury suites, lounges and galleys,
-  furniture and consoles, in one list on the right. Every piece turns (R) and
+- **A library of ship pieces.** 132 of them, in one list on the right: turrets,
+  launch tubes and barbettes, engineering sections of 4 to 63 tons, machinery,
+  batteries and computers, staterooms, bunks and suites, freshers, medical beds
+  and an autodoc, lounges, galleys and gaming tables, lockers, consoles, cargo,
+  and an arboretum with trees and a fountain. Every piece turns (R) and
   flips (F), before or after placing.
 - **Geomorph tiles for larger ships.** Load geomorph folder points the screen at
   your own copy of Robert Pearce's Adventure Class geomorphs, and every tile in

@@ -10,7 +10,18 @@
 
 import catalogue from "./symbols.json";
 
-export type SymbolCategory = "access" | "turrets" | "engineering" | "rooms" | "common" | "furniture" | "consoles";
+export type SymbolCategory =
+  | "access"
+  | "turrets"
+  | "engineering"
+  | "rooms"
+  | "freshers"
+  | "common"
+  | "medical"
+  | "furniture"
+  | "consoles"
+  | "cargo"
+  | "landscape";
 
 export interface ShipSymbol {
   readonly id: string;
@@ -40,12 +51,16 @@ export function symbolById(id: string | undefined): ShipSymbol | undefined {
 /** The library's sections, in the order the panel shows them. */
 export const CATEGORY_LABELS: Readonly<Record<SymbolCategory, string>> = {
   access: "Access",
-  turrets: "Turrets and barbettes",
+  turrets: "Turrets, launchers and barbettes",
   engineering: "Engineering",
-  rooms: "Staterooms",
+  rooms: "Staterooms and beds",
+  freshers: "Freshers",
   common: "Common areas",
+  medical: "Medical",
   furniture: "Furniture",
   consoles: "Consoles",
+  cargo: "Cargo",
+  landscape: "Arboretum",
 };
 
 /** The drawing used for each access fixture when no other is chosen. */

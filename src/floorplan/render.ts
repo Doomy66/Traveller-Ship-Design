@@ -50,7 +50,9 @@ export const SCREEN: Palette = {
   fixture: "#e0b341",
   overlay: "#6f8cc0",
   warn: "#ff6b63",
-  symbolFilter: "invert(0.92)",
+  // Inverting turns green trees pink and a blue fountain orange; turning the
+  // hue half way round puts them back, and does nothing to grey.
+  symbolFilter: "invert(0.92) hue-rotate(180deg)",
 };
 
 /** On paper and in exports: pale floors, black walls, the symbols as drawn. */

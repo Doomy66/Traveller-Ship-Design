@@ -17,6 +17,10 @@ import os
 import re
 import shutil
 import struct
+import sys
+
+sys.path.insert(0, os.path.dirname(__file__))
+import sheet  # noqa: E402
 
 ROOT = "D:/SandPit/ShipParts/"
 SYM = "CustomTiles/Symbols/"
@@ -126,6 +130,9 @@ for ident, name, category, rel in PICKS:
         "pixels": [w, h],
         "source": rel,
     })
+
+# The pieces cut from the Symbols & Abbreviations sheet, in the same library.
+catalogue.extend(sheet.extract(DST))
 
 with open(CAT, "w", encoding="utf-8", newline="\n") as f:
     json.dump(catalogue, f, indent=1)

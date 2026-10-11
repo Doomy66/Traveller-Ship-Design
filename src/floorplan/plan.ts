@@ -227,8 +227,9 @@ export function edgesOf(f: EdgeFixture): string[] {
 }
 
 /**
- * Two edge fixtures sharing any edge, or two square fixtures at the same
- * square, on the same deck. A new fixture replaces any it clashes with.
+ * Two edge fixtures sharing any edge, or two lifts, hatches or stairs on the
+ * same square, on the same deck. A new fixture replaces any it clashes with.
+ * Furniture never clashes: a chair can stand on a fitted room's floor.
  */
 function clashes(a: Fixture, b: Fixture): boolean {
   if (a.deck !== b.deck) return false;
@@ -237,7 +238,8 @@ function clashes(a: Fixture, b: Fixture): boolean {
     const taken = new Set(edgesOf(a));
     return edgesOf(b).some((e) => taken.has(e));
   }
-  return !("edge" in b) && a.x === b.x && a.y === b.y;
+  if ("edge" in b || a.kind === "symbol" || b.kind === "symbol") return false;
+  return a.x === b.x && a.y === b.y;
 }
 
 /** Add a fixture, replacing whatever it clashes with. */

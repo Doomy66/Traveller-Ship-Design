@@ -80,6 +80,20 @@ describe("doors", () => {
   });
 });
 
+describe("placing pieces", () => {
+  it("lets furniture stand on another piece rather than replace it", () => {
+    let plan = placeFixture(emptyPlan(), { kind: "symbol", deck: 0, x: 0, y: 0, rotation: 0, symbol: "stateroom-1" });
+    plan = placeFixture(plan, { kind: "symbol", deck: 0, x: 0, y: 0, rotation: 0, symbol: "chair" });
+    expect(plan.fixtures).toHaveLength(2);
+  });
+
+  it("puts one lift, hatch or stairs on a square, the newest", () => {
+    let plan = placeFixture(emptyPlan(), { kind: "lift", deck: 0, x: 1, y: 1, rotation: 0 });
+    plan = placeFixture(plan, { kind: "hatch", deck: 0, x: 1, y: 1, rotation: 0 });
+    expect(plan.fixtures.map((f) => f.kind)).toEqual(["hatch"]);
+  });
+});
+
 describe("moving a room", () => {
   it("carries its squares and owner by whole squares, over whatever is there", () => {
     let plan = paint(emptyPlan(), 0, rectangle([0, 0], [1, 1]), "jump");
@@ -136,9 +150,18 @@ describe("flipping", () => {
 
 describe("the library", () => {
   it("has the turrets and barbettes, DV-001 to DV-009", () => {
-    const turrets = SYMBOLS.filter((s) => s.category === "turrets");
-    expect(turrets).toHaveLength(13);
-    expect(turrets.every((s) => (s as { source?: string }).source?.includes("/DV-00"))).toBe(true);
+    const fromDV = SYMBOLS.filter((s) => s.category === "turrets" && (s as { source?: string }).source?.includes("/DV-00"));
+    expect(fromDV).toHaveLength(13);
+  });
+
+  it("has the pieces cut from the Symbols & Abbreviations sheet, each in its section", () => {
+    const sheet = SYMBOLS.filter((s) => s.id.startsWith("sheet-"));
+    expect(sheet.length).toBeGreaterThan(60);
+    const sections = new Set(sheet.map((s) => s.category));
+    for (const c of ["freshers", "medical", "cargo", "landscape", "engineering", "access", "common"]) expect(sections.has(c as never)).toBe(true);
+    // Cut at the sheet's own sixty pixels to the square: the 10 by 20 foot cargo is about 2 by 4 squares.
+    const cargo = SYMBOLS.find((s) => s.id === "sheet-cargo-10x20")!;
+    expect(cargo.squares).toEqual([4, 2]);
   });
 
   it("has engineering sections under a hundred tons, larger staterooms and common areas", () => {

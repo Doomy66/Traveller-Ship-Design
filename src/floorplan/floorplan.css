@@ -91,7 +91,7 @@
 .fp-browse .fp-hint { margin: 6px 0; }
 .fp-symbols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
 .fp-symbol { display: grid; justify-items: center; gap: 2px; padding: 4px 2px; font-size: 10px; color: var(--muted); }
-.fp-symbol img { width: 40px; height: 40px; object-fit: contain; filter: invert(0.92); }
+.fp-symbol img { width: 40px; height: 40px; object-fit: contain; filter: invert(0.92) hue-rotate(180deg); }
 .fp-symbol span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 
 /* ------------------------------------------------------------ the deck side */

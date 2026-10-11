@@ -10,8 +10,8 @@
 import type { Bounds } from "./geometry";
 import { labelSquare, regions, walls } from "./geometry";
 import type { Component, ComponentGroup } from "./manifest";
-import type { Deck, EdgeFixture, FloorPlan, Owner, SquareFixture } from "./plan";
-import { ACCESS_KINDS, baseKey, CORRIDOR, instanceOf, parseCell } from "./plan";
+import type { Deck, EdgeFixture, FloorPlan, Owner, PlacedTile, SquareFixture } from "./plan";
+import { ACCESS_KINDS, baseKey, CORRIDOR, instanceOf, parseCell, tileFootprint } from "./plan";
 import { ACCESS_SYMBOLS, PIXELS_PER_SQUARE, footprint, symbolById } from "./symbols";
 
 export type Floor = ComponentGroup | "corridor" | "orphan";
@@ -83,6 +83,12 @@ export interface OwnerLook {
   readonly label: string;
 }
 
+/**
+ * Rooms are labelled by name while a plan is designed and by number when it
+ * is used, with a key beside the plan saying which number is what. FP 8.4.
+ */
+export type LabelMode = "names" | "numbers";
+
 /** A short name for a room, since a sheet line's label is usually too long to fit inside one. */
 export function shortLabel(component: Pick<Component, "key" | "label">): string {
   const fixed: Record<string, string> = {
@@ -105,19 +111,49 @@ export function shortLabel(component: Pick<Component, "key" | "label">): string 
   return component.label.replace(/\s*\(.*?\)/g, "").replace(/\s+x\d+$/, "").trim();
 }
 
-/** How each owner on a plan looks, from the manifest and what the plan remembers. FP 8.1, 9.2. */
-export function looksFor(components: readonly Component[], plan: FloorPlan): (owner: Owner) => OwnerLook {
-  const byKey = new Map(components.map((c) => [c.key, c]));
+/** The order components are grouped in, down the panel and through the key. */
+export const GROUP_ORDER: readonly ComponentGroup[] = [
+  "engineering",
+  "fuel",
+  "command",
+  "weapons",
+  "craft",
+  "accommodation",
+  "systems",
+  "cargo",
+];
+
+/**
+ * The components numbered as a plan's key numbers them: by group, then in the
+ * sheet's order within the group, counting from 1. The panel lists them the
+ * same way, so its numbers read straight down. FP 8.4.
+ */
+export function numbered(components: readonly Component[]): { readonly component: Component; readonly number: number }[] {
+  const out: { component: Component; number: number }[] = [];
+  for (const group of GROUP_ORDER) {
+    for (const component of components) if (component.group === group) out.push({ component, number: out.length + 1 });
+  }
+  return out;
+}
+
+/** How each owner on a plan looks, from the manifest and what the plan remembers. FP 8.1, 8.4, 9.2. */
+export function looksFor(
+  components: readonly Component[],
+  plan: FloorPlan,
+  mode: LabelMode = "names",
+): (owner: Owner) => OwnerLook {
+  const numbers = new Map(numbered(components).map((n) => [n.component.key, n]));
   return (owner) => {
     if (owner === CORRIDOR) return { floor: "corridor", label: "" };
     const key = baseKey(owner);
-    const component = byKey.get(key);
-    if (component === undefined) {
-      return { floor: "orphan", label: plan.remembered[key]?.label ?? key };
+    const known = numbers.get(key);
+    if (known === undefined) {
+      return { floor: "orphan", label: mode === "numbers" ? "?" : (plan.remembered[key]?.label ?? key) };
     }
+    if (mode === "numbers") return { floor: known.component.group, label: String(known.number) };
     const n = instanceOf(owner);
-    const name = shortLabel(component);
-    return { floor: component.group, label: n === undefined ? name : `${name} ${n}` };
+    const name = shortLabel(known.component);
+    return { floor: known.component.group, label: n === undefined ? name : `${name} ${n}` };
   };
 }
 
@@ -145,9 +181,13 @@ export function floorsMarkup(deck: Deck, look: (owner: Owner) => OwnerLook, pale
   return out.join("");
 }
 
-/** Walls wherever a square meets another owner or empty space, as one path. FP 8.2. */
-export function wallsMarkup(deck: Deck, palette: Palette, width = 0.1, extra = ""): string {
+/**
+ * Walls wherever a square meets another owner or empty space, as one path.
+ * Squares under a geomorph tile get none, since the tile draws its own. FP 8.2, 12.3.
+ */
+export function wallsMarkup(deck: Deck, palette: Palette, width = 0.1, extra = "", tiled: ReadonlySet<string> = new Set()): string {
   const d = walls(deck)
+    .filter(({ x, y }) => !tiled.has(`${x},${y}`))
     .map(({ x, y, side }) => {
       switch (side) {
         case "n":
@@ -169,12 +209,14 @@ export function wallsMarkup(deck: Deck, palette: Palette, width = 0.1, extra = "
  * complete. Those symbols carry their own lettering, so the room is not
  * labelled a second time over the top of it.
  */
+const LETTERED: ReadonlySet<string> = new Set(["rooms", "common", "engineering", "turrets"]);
+
 export function fittedSquares(plan: FloorPlan, deck: number): Set<string> {
   const covered = new Set<string>();
   for (const f of plan.fixtures) {
     if (f.deck !== deck || "edge" in f || f.kind !== "symbol") continue;
     const symbol = symbolById(f.symbol);
-    if (symbol === undefined || symbol.category !== "rooms") continue;
+    if (symbol === undefined || !LETTERED.has(symbol.category)) continue;
     const [w, h] = footprint(symbol, f.rotation);
     for (let dy = 0; dy < h; dy++) for (let dx = 0; dx < w; dx++) covered.add(`${f.x + dx},${f.y + dy}`);
   }
@@ -191,13 +233,14 @@ export function labelsMarkup(
   const out: string[] = [];
   for (const region of regions(deck)) {
     const label = look(region.owner).label;
-    if (label === "" || region.squares.length < 2) continue;
+    // A number fits in a single square; a name needs two.
+    if (label === "" || (region.squares.length < 2 && label.length > 2)) continue;
     const [x, y] = labelSquare(region);
     if (fitted.has(`${x},${y}`)) continue;
     // Shrink long names in small rooms, within limits that stay legible.
     const xs = region.squares.map((s) => s[0]);
     const width = Math.max(...xs) - Math.min(...xs) + 1;
-    const size = Math.max(0.22, Math.min(0.42, (width * 1.7) / Math.max(label.length, 1)));
+    const size = /^\d+$/.test(label) ? 0.5 : Math.max(0.22, Math.min(0.42, (width * 1.7) / Math.max(label.length, 1)));
     out.push(
       `<text x="${n(x + 0.5)}" y="${n(y + 0.5)}" font-size="${n(size)}" fill="${palette.label}" text-anchor="middle" dominant-baseline="central" class="fp-label">${esc(label)}</text>`,
     );
@@ -205,40 +248,52 @@ export function labelsMarkup(
   return out.join("");
 }
 
-/** A door or iris valve across an edge. Doors open the wall; iris valves sit in it. */
+/**
+ * A door or an iris valve in a wall. Both open a gap the width of the
+ * fixture; a door lays its leaf across the gap, or two meeting in the middle
+ * when it is wider than a square, and an iris valve is the bowtie the
+ * geomorph tiles draw for one. FP 7.6.
+ */
 function edgeMarkup(fixture: EdgeFixture, palette: Palette): string {
+  const length = fixture.length ?? 1;
   const horizontal = fixture.edge === "n";
-  const cx = horizontal ? fixture.x + 0.5 : fixture.x;
-  const cy = horizontal ? fixture.y : fixture.y + 0.5;
+  // Work along the wall in "a" and across it in "b", then turn into x and y.
+  const a0 = (horizontal ? fixture.x : fixture.y) + 0.12;
+  const a1 = (horizontal ? fixture.x : fixture.y) + length - 0.12;
+  const b = horizontal ? fixture.y : fixture.x;
+  const at = (a: number, across: number) => (horizontal ? `${n(a)} ${n(b + across)}` : `${n(b + across)} ${n(a)}`);
+  const gap = horizontal
+    ? `<rect x="${n(a0)}" y="${n(b - 0.09)}" width="${n(a1 - a0)}" height="0.18" fill="${palette.background}"/>`
+    : `<rect x="${n(b - 0.09)}" y="${n(a0)}" width="0.18" height="${n(a1 - a0)}" fill="${palette.background}"/>`;
+  const jambs = `<path d="M${at(a0, -0.12)}L${at(a0, 0.12)}M${at(a1, -0.12)}L${at(a1, 0.12)}" stroke="${palette.wall}" stroke-width="0.08"/>`;
   if (fixture.kind === "door") {
-    // A gap in the wall the width of a door, with the door itself drawn across it.
-    const gap = horizontal
-      ? `<rect x="${n(cx - 0.35)}" y="${n(cy - 0.09)}" width="0.7" height="0.18" fill="${palette.background}"/>`
-      : `<rect x="${n(cx - 0.09)}" y="${n(cy - 0.35)}" width="0.18" height="0.7" fill="${palette.background}"/>`;
-    const leaf = horizontal
-      ? `<path d="M${n(cx - 0.35)} ${n(cy)}H${n(cx + 0.35)}" stroke="${palette.fixture}" stroke-width="0.06"/>`
-      : `<path d="M${n(cx)} ${n(cy - 0.35)}V${n(cy + 0.35)}" stroke="${palette.fixture}" stroke-width="0.06"/>`;
-    return `<g class="fp-door">${gap}${leaf}</g>`;
+    const mid = (a0 + a1) / 2;
+    const leaves =
+      length === 1
+        ? `M${at(a0, 0)}L${at(a1, 0)}`
+        : `M${at(a0, 0)}L${at(mid - 0.04, 0)}M${at(mid + 0.04, 0)}L${at(a1, 0)}`;
+    return `<g class="fp-door">${gap}${jambs}<path d="${leaves}" stroke="${palette.fixture}" stroke-width="0.07"/></g>`;
   }
-  return (
-    `<g class="fp-iris"><circle cx="${n(cx)}" cy="${n(cy)}" r="0.3" fill="${palette.background}" stroke="${palette.fixture}" stroke-width="0.05"/>` +
-    `<path d="M${n(cx - 0.21)} ${n(cy - 0.21)}L${n(cx + 0.21)} ${n(cy + 0.21)}M${n(cx + 0.21)} ${n(cy - 0.21)}L${n(cx - 0.21)} ${n(cy + 0.21)}" stroke="${palette.fixture}" stroke-width="0.04"/></g>`
-  );
-}
-
-/** A floor hatch, drawn rather than taken from the library: a circle with a cross, on its square. */
-function hatchMarkup(x: number, y: number, palette: Palette): string {
-  const cx = x + 0.5;
-  const cy = y + 0.5;
-  return (
-    `<g class="fp-hatch"><circle cx="${n(cx)}" cy="${n(cy)}" r="0.34" fill="none" stroke="${palette.fixture}" stroke-width="0.06"/>` +
-    `<circle cx="${n(cx)}" cy="${n(cy)}" r="0.2" fill="none" stroke="${palette.fixture}" stroke-width="0.04"/></g>`
-  );
+  // The bowtie: two triangles pointing at the middle of the gap.
+  const mid = (a0 + a1) / 2;
+  const tie =
+    `M${at(a0, -0.12)}L${at(mid, 0)}L${at(a0, 0.12)}Z` +
+    `M${at(a1, -0.12)}L${at(mid, 0)}L${at(a1, 0.12)}Z`;
+  return `<g class="fp-iris">${gap}${jambs}<path d="${tie}" fill="${palette.fixture}"/></g>`;
 }
 
 /** A symbol from the library, centred on its footprint and turned with it. FP 7.4. */
+/**
+ * The transform that turns an image about its centre, mirroring it first if
+ * it is flipped, so a flipped piece keeps its footprint. FP 7.1.2.
+ */
+function placement(rotation: number, flip: boolean | undefined, cx: number, cy: number): string {
+  const turn = `rotate(${rotation} ${n(cx)} ${n(cy)})`;
+  return flip === true ? `${turn} translate(${n(cx)} ${n(cy)}) scale(-1 1) translate(${n(-cx)} ${n(-cy)})` : turn;
+}
+
 export function symbolMarkup(
-  fixture: Pick<SquareFixture, "x" | "y" | "rotation" | "symbol">,
+  fixture: Pick<SquareFixture, "x" | "y" | "rotation" | "symbol" | "flip">,
   palette: Palette,
   href: (file: string) => string,
   opacity = 1,
@@ -255,7 +310,7 @@ export function symbolMarkup(
   const filter = palette.symbolFilter === "none" ? "" : ` style="filter:${palette.symbolFilter}"`;
   return (
     `<image href="${esc(href(symbol.file))}" x="${n(cx - w / 2)}" y="${n(cy - h / 2)}" width="${n(w)}" height="${n(h)}"` +
-    ` transform="rotate(${fixture.rotation} ${n(cx)} ${n(cy)})" opacity="${opacity}" preserveAspectRatio="none"${filter}/>`
+    ` transform="${placement(fixture.rotation, fixture.flip, cx, cy)}" opacity="${opacity}" preserveAspectRatio="none"${filter}/>`
   );
 }
 
@@ -266,14 +321,66 @@ export function fixturesMarkup(plan: FloorPlan, deck: number, palette: Palette, 
     if (fixture.deck !== deck) continue;
     if ("edge" in fixture) {
       out.push(edgeMarkup(fixture, palette));
-    } else if (fixture.kind === "hatch") {
-      out.push(hatchMarkup(fixture.x, fixture.y, palette));
     } else {
       const symbol = fixture.symbol ?? (fixture.kind === "symbol" ? undefined : ACCESS_SYMBOLS[fixture.kind]);
       out.push(symbolMarkup({ ...fixture, symbol }, palette, href));
     }
   }
   return out.join("");
+}
+
+/**
+ * A deck's geomorph tiles, each centred on its footprint and turned with it.
+ * The tile images are 60 pixels to the square with two squares of margin all
+ * round, so centring the whole image puts the drawing on the footprint. A
+ * tile whose image is not to hand is its outline and its code. FP 12.
+ */
+export function tilesMarkup(
+  plan: FloorPlan,
+  deck: number,
+  palette: Palette,
+  href: (id: string) => string | undefined,
+  only?: (tile: PlacedTile, at: number) => boolean,
+): string {
+  const out: string[] = [];
+  for (const [at, tile] of plan.tiles.entries()) {
+    if (tile.deck !== deck || (only !== undefined && !only(tile, at))) continue;
+    out.push(tileMarkup(tile, palette, href(tile.tile)));
+  }
+  return out.join("");
+}
+
+export function tileMarkup(tile: Pick<PlacedTile, "x" | "y" | "rotation" | "flip" | "squares" | "pixels" | "code">, palette: Palette, href: string | undefined, opacity = 1): string {
+  const [fw, fh] = tileFootprint(tile);
+  const cx = tile.x + fw / 2;
+  const cy = tile.y + fh / 2;
+  if (href === undefined) {
+    return (
+      `<g opacity="${opacity}"><rect x="${tile.x}" y="${tile.y}" width="${fw}" height="${fh}" fill="none" stroke="${palette.fixture}" stroke-width="0.06" stroke-dasharray="0.3 0.2"/>` +
+      `<text x="${n(cx)}" y="${n(cy)}" font-size="0.6" fill="${palette.fixture}" text-anchor="middle" dominant-baseline="central">${esc(tile.code)}</text></g>`
+    );
+  }
+  const w = tile.pixels[0] / PIXELS_PER_SQUARE;
+  const h = tile.pixels[1] / PIXELS_PER_SQUARE;
+  const filter = palette.symbolFilter === "none" ? "" : ` style="filter:${palette.symbolFilter}"`;
+  return (
+    `<image href="${esc(href)}" x="${n(cx - w / 2)}" y="${n(cy - h / 2)}" width="${n(w)}" height="${n(h)}"` +
+    ` transform="${placement(tile.rotation, tile.flip, cx, cy)}" opacity="${opacity}" preserveAspectRatio="none"${filter}/>`
+  );
+}
+
+/** The key to a numbered plan: each component placed on any deck, by number. FP 8.4. */
+export function legendMarkup(components: readonly Component[], plan: FloorPlan, x: number, y: number, palette: Palette): string {
+  const placed = new Set<string>();
+  for (const d of plan.decks) for (const owner of Object.values(d.cells)) placed.add(baseKey(owner));
+  const rows = numbered(components)
+    .map(({ component, number }) => ({ c: component, number }))
+    .filter(({ c }) => placed.has(c.key))
+    .map(({ c, number }, row) =>
+      `<text x="${x}" y="${n(y + 1.2 + row * 0.7)}" font-size="0.45" fill="${palette.label}"><tspan font-weight="600">${number}</tspan>  ${esc(shortLabel(c))}</text>`,
+    );
+  if (rows.length === 0) return "";
+  return `<text x="${x}" y="${n(y + 0.4)}" font-size="0.5" font-weight="600" fill="${palette.label}">Key</text>${rows.join("")}`;
 }
 
 /** Another deck, faint, to line this one up against. FP 10.7. */

@@ -19,6 +19,7 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 9. [When the ship changes](#9-when-the-ship-changes)
 10. [The interface](#10-the-interface)
 11. [Open questions](#11-open-questions)
+12. [Geomorph tiles](#12-geomorph-tiles)
 
 ---
 
@@ -102,19 +103,23 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 ## 7. Fixtures and symbols
 
-7.1 A **fixture** has a kind, a position on a deck, and a rotation of 0, 90, 180 or 270 degrees. Doors and iris valves sit on the edge between two squares. Everything else sits on squares.
+7.1 A **fixture** has a kind, a position on a deck, and a rotation of 0, 90, 180 or 270 degrees. Doors and iris valves in walls sit on the edge between two squares. Everything else sits on squares.
 
-7.2 The first version has the kinds asked for: door, iris valve, lift, hatch, stairs, airlock, chair, bed, table, console and stateroom furniture. More come later from the same library.
+7.1.1 A door may be wider than one square: dragging along a wall makes one door the length of the drag, drawn with two leaves meeting in the middle. Clicking makes a door one square wide, and doors clicked onto neighbouring squares stay separate doors, each with its own jambs. A new door or valve replaces any it overlaps. An iris valve in a wall is always one square.
 
-7.3 Fixtures are drawn with symbols from Robert Pearce's Traveller Starship Symbols, as rendered to PNG by Eric B. Smith. They are under Creative Commons Attribution Non-Commercial 4.0. A small chosen set is copied into the repository under `public/floorplan/symbols/`, and both men are credited in the colophon and in a licence file beside the symbols.
+7.1.2 Every piece on squares, from the library or a geomorph tile, can be **turned** a quarter at a time and **flipped**, mirrored left to right, which is how a port-side layout becomes a starboard one. A flipped piece is mirrored about its own middle before it is turned, so it keeps its footprint. R turns and F flips the selected piece, or the next one to be placed.
+
+7.2 The kinds: door and iris valve in walls; lift, iris valve in the floor, iris valve in the ceiling, and stairs between decks; and furniture and fitted rooms from the library. An iris valve can be a door in a wall or a way up or down, which is why it appears in both places.
+
+7.3 Fixtures are drawn with Robert Pearce's Traveller Starship Symbols, and a few pieces of his Adventure Class Geomorphs, as rendered to PNG by Eric B. Smith. They are under Creative Commons Attribution Non-Commercial 4.0. A small chosen set is copied into the repository under `public/floorplan/symbols/`, and both men are credited in the colophon and in a licence file beside the symbols.
 
 7.4 The symbols are 60 pixels to the square. A symbol's footprint comes from its filename, where `[10x10]` means ten feet by ten, two squares by two. Most images carry a square of empty margin all round, so the image size is not the footprint.
 
 7.5 A fixture with no symbol is drawn as a dashed outline, so a missing image never breaks a plan.
 
-7.6 Doors, iris valves and floor hatches are drawn as lines rather than taken from the library: a door as a gap in the wall with its leaf across it, an iris valve as a crossed circle in the wall, a hatch as two circles on its square. They sit on edges or need to read at any zoom, which the library's door images, drawn as whole assemblies, do not. Lifts and stairs use the library's lift and stairs.
+7.6 Doors and iris valves in walls are drawn as lines, because they sit on edges and the library's door images are whole assemblies. A door is a gap in the wall with its leaf across it. An iris valve in a wall is the bowtie the geomorph tiles draw for one: two triangles pointing at the middle of the gap. An iris valve between decks is the library's own: Starship Symbols iris valve 005, solid, for one in the floor, and 013, dashed, for one in the ceiling, dashed being the symbols' way of showing something overhead. Lifts and stairs use the library's lift and stairs.
 
-7.7 The bundled set is 28 symbols in four groups: access (lifts, stairs, an airlock), fitted rooms (four staterooms, a low berth, a fresher), furniture (beds, a medical bed, chairs, couches, tables, desks, a counter) and consoles. `src/floorplan/symbols.json` lists each with the file it came from. The symbols are black line art, inverted on screen and drawn as they are on paper.
+7.7 **The library** is one list, in sections: access (lifts, stairs, an airlock, the iris valves); turrets and barbettes, the Adventure Class pieces DV-001 to DV-009; engineering sections of 4 to 63 tons, each drawn with its drives and plant; staterooms, from the standard six squares to quad suites, a luxury stateroom and crew quarters with a galley; common areas, lounges and galleys; furniture; and consoles. 63 pieces in all, 339 KB. `src/floorplan/symbols.json` lists each with the file it came from, and `scripts/floorplan/symbols.py` copies them in. They are black line art, inverted on screen and drawn as they are on paper. A piece that carries its own lettering, a room rather than a chair, stops the room under it being labelled again (FP 8.3).
 
 ## 8. Drawing
 
@@ -124,7 +129,9 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 8.3 Each region carries its component's label, as the book recommends labelling each part. A component with several regions labels each one. A room with a fitted room from the library over its label square is not labelled again, since the symbol carries its own lettering.
 
-8.4 Plans are drawn in SVG, so they stay sharp at any zoom and print cleanly.
+8.4 **Numbers or names.** Every component has a number, and the panel shows it beside the name. Components are numbered by group, in the panel's order, then by the sheet's order within the group, so the numbers read straight down the list. Rooms are labelled by name while a plan is being designed, or by number, as a finished plan is used. A switch on the right chooses which. A numbered plan exports and prints with a key beside it, listing the number and name of every component it shows. Every stateroom carries the stateroom number.
+
+8.5 Plans are drawn in SVG, so they stay sharp at any zoom and print cleanly.
 
 ## 9. When the ship changes
 
@@ -140,11 +147,11 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 10.1 The floor plan is a second screen beside the design form, reached from the bar. The ship's sheet is not shown on it, since the components list does that job here.
 
-10.2 The left panel lists the manifest by group. Each line shows placed against target and goes green when it is met. Choosing a line makes it the brush.
+10.2 **The left** lists the ship's components by group, numbered (FP 8.4). Each line shows placed against target and goes green when it is met. Choosing a line makes it the brush.
 
-10.3 The middle is the deck, with the deck tabs above it. Dragging paints squares for the brush. Dragging with the eraser clears them. Dragging with the corridor brush makes corridors.
+10.3 **The middle** is the deck, with the deck tabs above it. Dragging paints squares for the brush. Dragging with the eraser clears them. Dragging with the corridor brush makes corridors.
 
-10.4 A fixture palette offers the kinds in FP 7.2. A fixture is placed with a click and turned with a key or a button.
+10.4 **The right** holds everything else: the Move tool, Corridor and Erase, Undo and Redo; doors and iris valves for walls; lifts, iris valves and stairs between decks; Turn and Flip; the names-or-numbers switch; and below them the library (FP 7.7) and, at its foot, the geomorph folder (FP 12). A piece is placed with a click, and turned with R or flipped with F before or after.
 
 10.5 Problems from `check` sit above the deck, as the sheet's do on the design screen.
 
@@ -156,6 +163,8 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 10.8 A lift, hatch or stairwell on the overlay deck that has no partner on the current deck is marked, so a shaft that stops short is easy to see.
 
+10.9 **Move.** The Move tool picks up whatever is under the pointer, in this order: a fitting, a door or valve in a wall, a painted room, a tile. Dragging moves it by whole squares, and it stays selected. R turns a selected tile or fitting in place, Delete removes the selection, and the arrow keys nudge it a square. A room moved onto other squares replaces what was there. Move is the tool the screen opens with.
+
 ## 11. Open questions
 
 These were settled by default when the first version was built, and any of them can be revisited.
@@ -165,3 +174,17 @@ These were settled by default when the first version was built, and any of them 
 11.2 **Hull outline.** The outline of the ship is the outline of its squares. There is no separately drawn exterior.
 
 11.3 **Stamping.** A component is placed by painting its squares. A fitted room from the library is furniture placed on top, not a way to place the component.
+
+## 12. Geomorph tiles
+
+12.1 The **geomorph tiles** are Robert Pearce's Adventure Class Geomorphs, rendered to PNG by Eric B. Smith, under Creative Commons Attribution Non-Commercial 4.0: pre-drawn sections of ship, cores, ends, sides, add-ons and transitions. The few pieces most ships want are in the library (FP 7.7). For larger ships the whole archive can be laid tile by tile.
+
+12.2 None of the archive ships with the site. A designer points the screen at their own copy with **Load geomorph folder**, through the browser's folder picker. The folder is remembered, though the browser asks again each visit before letting the page read it, which is what the Reconnect button is for. Reading a folder needs the File System Access API, which Edge and Chrome have and Firefox and Safari do not; without it the library is all there is, and the screen says so.
+
+12.2.1 Every tile is listed from its filename: a code (SC-001), a side where it has one ([Fore], [Aft], [Port], [Starboard]), its size in feet as [width x height], its tonnage as [N-dTons] or [Overlay], and a description. A file without a size in brackets, such as the archive's animals, is not a tile. A tile's id is its filename made lower case with every run of other characters as a hyphen, so it is the same whichever folder it came from. The list is by the folder each tile was found in, with a search across all of them.
+
+12.3 A tile's footprint is its size in feet over five: SC-001 at 30 by 100 feet is 6 squares by 20. The image is read before the tile is placed, and drawn centred on its footprint, which puts the drawing in place whatever margin the image carries; the Adventure Class images carry two squares of it all round. A placed tile records its id, footprint, image size and code, so a plan opened on a machine without the folder draws each tile's outline and code in the right place.
+
+12.4 Tiles are artwork, not ownership. A tile's squares still have to be painted with the component they hold, which tints the floor under the tile's lines and counts towards the component's target. Squares under a tile get no drawn walls, since the tile draws its own. An overlay tile, a transparent layer of cargo or vehicles meant to sit on another tile, covers no squares.
+
+12.5 Tiles are drawn above the floors and below the walls, fittings and labels, inverted on screen like the library and drawn as they are on paper. Later tiles draw over earlier ones. A tile can be moved, turned, flipped and removed with the Move tool, and goes with its deck when the deck is shifted, reordered or deleted.

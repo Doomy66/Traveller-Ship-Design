@@ -1,5 +1,5 @@
-The images in this folder are from the Traveller Starship Symbols by Robert
-Pearce, as rendered to PNG by Eric B. Smith
+The images in this folder are from Robert Pearce's Traveller Starship Symbols
+and Adventure Class Geomorphs, as rendered to PNG by Eric B. Smith
 (http://gurpsland.no-ip.org/geomorphs).
 
 They are used under the Creative Commons Attribution-NonCommercial 4.0

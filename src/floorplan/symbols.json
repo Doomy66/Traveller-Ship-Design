@@ -16,7 +16,7 @@
    180,
    180
   ],
-  "source": "Misc/Elevator 002 [5x5].png"
+  "source": "CustomTiles/Symbols/Misc/Elevator 002 [5x5].png"
  },
  {
   "id": "lift-large",
@@ -35,7 +35,7 @@
    240,
    240
   ],
-  "source": "Misc/Elevator 005 [10x10].png"
+  "source": "CustomTiles/Symbols/Misc/Elevator 005 [10x10].png"
  },
  {
   "id": "stairs",
@@ -54,7 +54,7 @@
    180,
    180
   ],
-  "source": "Misc/Stairs 005 [5x5].png"
+  "source": "CustomTiles/Symbols/Misc/Stairs 005 [5x5].png"
  },
  {
   "id": "stairs-long",
@@ -73,7 +73,7 @@
    240,
    240
   ],
-  "source": "Misc/Stairs 002 [5x10].png"
+  "source": "CustomTiles/Symbols/Misc/Stairs 002 [5x10].png"
  },
  {
   "id": "airlock",
@@ -92,7 +92,444 @@
    240,
    240
   ],
-  "source": "Misc/Airlock 001 [10x10].png"
+  "source": "CustomTiles/Symbols/Misc/Airlock 001 [10x10].png"
+ },
+ {
+  "id": "iris-floor",
+  "name": "Iris valve, floor",
+  "category": "access",
+  "file": "floorplan/symbols/iris-floor.png",
+  "feet": [
+   5,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   60,
+   60
+  ],
+  "source": "CustomTiles/Symbols/Misc/Iris Valves 005 [5x5].png"
+ },
+ {
+  "id": "iris-ceiling",
+  "name": "Iris valve, ceiling",
+  "category": "access",
+  "file": "floorplan/symbols/iris-ceiling.png",
+  "feet": [
+   5,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   60,
+   60
+  ],
+  "source": "CustomTiles/Symbols/Misc/Iris Valves 013 [5x5].png"
+ },
+ {
+  "id": "turret-single-remote",
+  "name": "Single turret, remote",
+  "category": "turrets",
+  "file": "floorplan/symbols/turret-single-remote.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   360,
+   360
+  ],
+  "source": "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/DV-001 [10x10] [1-dTons] Single Turret Remote.png"
+ },
+ {
+  "id": "turret-single-gunner",
+  "name": "Single turret, gunner",
+  "category": "turrets",
+  "file": "floorplan/symbols/turret-single-gunner.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   360,
+   360
+  ],
+  "source": "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/DV-001 [10x10] [1-dTons] Single Turret with Gunner.png"
+ },
+ {
+  "id": "turret-double-remote",
+  "name": "Double turret, remote",
+  "category": "turrets",
+  "file": "floorplan/symbols/turret-double-remote.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   360,
+   360
+  ],
+  "source": "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/DV-002 [10x10] [1-dTons] Double Turrent Remote.png"
+ },
+ {
+  "id": "turret-double-gunner",
+  "name": "Double turret, gunner",
+  "category": "turrets",
+  "file": "floorplan/symbols/turret-double-gunner.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   360,
+   360
+  ],
+  "source": "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/DV-002 [10x10] [1-dTons] Double Turrent with Gunner.png"
+ },
+ {
+  "id": "turret-triple-remote",
+  "name": "Triple turret, remote",
+  "category": "turrets",
+  "file": "floorplan/symbols/turret-triple-remote.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   360,
+   360
+  ],
+  "source": "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/DV-003 [10x10] [1-dTons] Triple Turrent Remote.png"
+ },
+ {
+  "id": "turret-triple-gunner",
+  "name": "Triple turret, gunner",
+  "category": "turrets",
+  "file": "floorplan/symbols/turret-triple-gunner.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   360,
+   360
+  ],
+  "source": "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/DV-003 [10x10] [1-dTons] Triple Turrent with Gunner.png"
+ },
+ {
+  "id": "turret-sand-remote",
+  "name": "Sandcaster turret, remote",
+  "category": "turrets",
+  "file": "floorplan/symbols/turret-sand-remote.png",
+  "feet": [
+   15,
+   15
+  ],
+  "squares": [
+   3,
+   3
+  ],
+  "pixels": [
+   420,
+   420
+  ],
+  "source": "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/DV-004 [15x15] [1-dTons] Sandcaster Turret Remote.png"
+ },
+ {
+  "id": "turret-sand-gunner",
+  "name": "Sandcaster turret, gunner",
+  "category": "turrets",
+  "file": "floorplan/symbols/turret-sand-gunner.png",
+  "feet": [
+   15,
+   15
+  ],
+  "squares": [
+   3,
+   3
+  ],
+  "pixels": [
+   420,
+   420
+  ],
+  "source": "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/DV-004 [15x15] [1-dTons] Sandcaster Turret with Gunner.png"
+ },
+ {
+  "id": "barbette",
+  "name": "Barbette",
+  "category": "turrets",
+  "file": "floorplan/symbols/barbette.png",
+  "feet": [
+   30,
+   15
+  ],
+  "squares": [
+   6,
+   3
+  ],
+  "pixels": [
+   600,
+   420
+  ],
+  "source": "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/DV-005 [30x15] [5-dTons] Generic Barbette.png"
+ },
+ {
+  "id": "barbette-missile",
+  "name": "Missile barbette",
+  "category": "turrets",
+  "file": "floorplan/symbols/barbette-missile.png",
+  "feet": [
+   20,
+   15
+  ],
+  "squares": [
+   4,
+   3
+  ],
+  "pixels": [
+   480,
+   420
+  ],
+  "source": "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/DV-006 [20x15] [5-dTons] Missile Barbette.png"
+ },
+ {
+  "id": "barbette-torpedo",
+  "name": "Torpedo barbette",
+  "category": "turrets",
+  "file": "floorplan/symbols/barbette-torpedo.png",
+  "feet": [
+   20,
+   15
+  ],
+  "squares": [
+   4,
+   3
+  ],
+  "pixels": [
+   480,
+   420
+  ],
+  "source": "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/DV-007 [20x15] [5-dTons] Torpedo Barbette.png"
+ },
+ {
+  "id": "barbette-railgun",
+  "name": "Railgun barbette",
+  "category": "turrets",
+  "file": "floorplan/symbols/barbette-railgun.png",
+  "feet": [
+   30,
+   15
+  ],
+  "squares": [
+   6,
+   3
+  ],
+  "pixels": [
+   600,
+   420
+  ],
+  "source": "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/DV-008 [30x15] [5-dTons] Railgun Barbette.png"
+ },
+ {
+  "id": "observation-dome",
+  "name": "Observation dome",
+  "category": "turrets",
+  "file": "floorplan/symbols/observation-dome.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   360,
+   360
+  ],
+  "source": "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/DV-009 [10x10] [2-dTons] Observation Dome.png"
+ },
+ {
+  "id": "engineering-4",
+  "name": "Engineering, 4 tons",
+  "category": "engineering",
+  "file": "floorplan/symbols/engineering-4.png",
+  "feet": [
+   20,
+   10
+  ],
+  "squares": [
+   4,
+   2
+  ],
+  "pixels": [
+   360,
+   240
+  ],
+  "source": "CustomTiles/Symbols/Engineering/Engineering 010 [10x20].png"
+ },
+ {
+  "id": "engineering-8",
+  "name": "Engineering, 8 tons",
+  "category": "engineering",
+  "file": "floorplan/symbols/engineering-8.png",
+  "feet": [
+   20,
+   20
+  ],
+  "squares": [
+   4,
+   4
+  ],
+  "pixels": [
+   360,
+   360
+  ],
+  "source": "CustomTiles/Symbols/Engineering/Engineering 028 [20x20].png"
+ },
+ {
+  "id": "engineering-15",
+  "name": "Engineering, 15 tons",
+  "category": "engineering",
+  "file": "floorplan/symbols/engineering-15.png",
+  "feet": [
+   25,
+   30
+  ],
+  "squares": [
+   5,
+   6
+  ],
+  "pixels": [
+   420,
+   480
+  ],
+  "source": "CustomTiles/Symbols/Engineering/Engineering 104 [25x30].png"
+ },
+ {
+  "id": "engineering-24",
+  "name": "Engineering, 24 tons",
+  "category": "engineering",
+  "file": "floorplan/symbols/engineering-24.png",
+  "feet": [
+   30,
+   40
+  ],
+  "squares": [
+   6,
+   8
+  ],
+  "pixels": [
+   480,
+   600
+  ],
+  "source": "CustomTiles/Symbols/Engineering/Engineering 049 [30x40].png"
+ },
+ {
+  "id": "engineering-35",
+  "name": "Engineering, 35 tons",
+  "category": "engineering",
+  "file": "floorplan/symbols/engineering-35.png",
+  "feet": [
+   50,
+   35
+  ],
+  "squares": [
+   10,
+   7
+  ],
+  "pixels": [
+   720,
+   540
+  ],
+  "source": "CustomTiles/Symbols/Engineering/Engineering 108 [35x50].png"
+ },
+ {
+  "id": "engineering-36",
+  "name": "Engineering, 36 tons",
+  "category": "engineering",
+  "file": "floorplan/symbols/engineering-36.png",
+  "feet": [
+   40,
+   45
+  ],
+  "squares": [
+   8,
+   9
+  ],
+  "pixels": [
+   600,
+   660
+  ],
+  "source": "CustomTiles/Symbols/Engineering/Engineering 109 [40x45].png"
+ },
+ {
+  "id": "engineering-42",
+  "name": "Engineering, 42 tons",
+  "category": "engineering",
+  "file": "floorplan/symbols/engineering-42.png",
+  "feet": [
+   35,
+   60
+  ],
+  "squares": [
+   7,
+   12
+  ],
+  "pixels": [
+   540,
+   840
+  ],
+  "source": "CustomTiles/Symbols/Engineering/Engineering 101 [35x60].png"
+ },
+ {
+  "id": "engineering-63",
+  "name": "Engineering, 63 tons",
+  "category": "engineering",
+  "file": "floorplan/symbols/engineering-63.png",
+  "feet": [
+   70,
+   45
+  ],
+  "squares": [
+   14,
+   9
+  ],
+  "pixels": [
+   960,
+   660
+  ],
+  "source": "CustomTiles/Symbols/Engineering/Engineering 111 [45x70].png"
  },
  {
   "id": "stateroom-1",
@@ -111,7 +548,7 @@
    240,
    300
   ],
-  "source": "Staterooms/Stateroom 015 [10x15].png"
+  "source": "CustomTiles/Symbols/Staterooms/Stateroom 015 [10x15].png"
  },
  {
   "id": "stateroom-2",
@@ -130,7 +567,7 @@
    240,
    300
   ],
-  "source": "Staterooms/Stateroom 016 [10x15].png"
+  "source": "CustomTiles/Symbols/Staterooms/Stateroom 016 [10x15].png"
  },
  {
   "id": "stateroom-3",
@@ -149,7 +586,7 @@
    240,
    300
   ],
-  "source": "Staterooms/Stateroom 020 [10x15].png"
+  "source": "CustomTiles/Symbols/Staterooms/Stateroom 020 [10x15].png"
  },
  {
   "id": "stateroom-small",
@@ -168,7 +605,121 @@
    240,
    240
   ],
-  "source": "Staterooms/Stateroom 005 [10x10].png"
+  "source": "CustomTiles/Symbols/Staterooms/Stateroom 005 [10x10].png"
+ },
+ {
+  "id": "stateroom-large",
+  "name": "Stateroom, large",
+  "category": "rooms",
+  "file": "floorplan/symbols/stateroom-large.png",
+  "feet": [
+   15,
+   20
+  ],
+  "squares": [
+   3,
+   4
+  ],
+  "pixels": [
+   300,
+   360
+  ],
+  "source": "CustomTiles/Symbols/Staterooms/Stateroom 073 [15x20].png"
+ },
+ {
+  "id": "stateroom-larger",
+  "name": "Stateroom, larger",
+  "category": "rooms",
+  "file": "floorplan/symbols/stateroom-larger.png",
+  "feet": [
+   15,
+   25
+  ],
+  "squares": [
+   3,
+   5
+  ],
+  "pixels": [
+   300,
+   420
+  ],
+  "source": "CustomTiles/Symbols/Staterooms/Stateroom 064 [15x25].png"
+ },
+ {
+  "id": "stateroom-suite",
+  "name": "Stateroom suite",
+  "category": "rooms",
+  "file": "floorplan/symbols/stateroom-suite.png",
+  "feet": [
+   15,
+   30
+  ],
+  "squares": [
+   3,
+   6
+  ],
+  "pixels": [
+   300,
+   480
+  ],
+  "source": "CustomTiles/Symbols/Staterooms/Stateroom 113 [15x30].png"
+ },
+ {
+  "id": "quad-suite",
+  "name": "Quad suite",
+  "category": "rooms",
+  "file": "floorplan/symbols/quad-suite.png",
+  "feet": [
+   20,
+   20
+  ],
+  "squares": [
+   4,
+   4
+  ],
+  "pixels": [
+   360,
+   360
+  ],
+  "source": "CustomTiles/Symbols/Staterooms/Stateroom 077 [20x20].png"
+ },
+ {
+  "id": "luxury-stateroom",
+  "name": "Luxury stateroom",
+  "category": "rooms",
+  "file": "floorplan/symbols/luxury-stateroom.png",
+  "feet": [
+   30,
+   30
+  ],
+  "squares": [
+   6,
+   6
+  ],
+  "pixels": [
+   600,
+   600
+  ],
+  "source": "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/DV-014 [30x30] [14-dTons] Luxury Stateroom.png"
+ },
+ {
+  "id": "crew-quarters",
+  "name": "Crew quarters with galley",
+  "category": "rooms",
+  "file": "floorplan/symbols/crew-quarters.png",
+  "feet": [
+   40,
+   20
+  ],
+  "squares": [
+   8,
+   4
+  ],
+  "pixels": [
+   600,
+   360
+  ],
+  "source": "CustomTiles/Symbols/Staterooms/Stateroom 102 [20x40].png"
  },
  {
   "id": "low-berth",
@@ -187,7 +738,7 @@
    180,
    180
   ],
-  "source": "Low Berth/Low Berth 003 [5x5].png"
+  "source": "CustomTiles/Symbols/Low Berth/Low Berth 003 [5x5].png"
  },
  {
   "id": "fresher",
@@ -206,7 +757,121 @@
    180,
    180
   ],
-  "source": "Fresher/Fresher 001 [5x5].png"
+  "source": "CustomTiles/Symbols/Fresher/Fresher 001 [5x5].png"
+ },
+ {
+  "id": "lounge-small",
+  "name": "Lounge, small",
+  "category": "common",
+  "file": "floorplan/symbols/lounge-small.png",
+  "feet": [
+   20,
+   10
+  ],
+  "squares": [
+   4,
+   2
+  ],
+  "pixels": [
+   360,
+   240
+  ],
+  "source": "CustomTiles/Symbols/Lounge/Lounge 014 [10x20].png"
+ },
+ {
+  "id": "lounge",
+  "name": "Lounge",
+  "category": "common",
+  "file": "floorplan/symbols/lounge.png",
+  "feet": [
+   20,
+   15
+  ],
+  "squares": [
+   4,
+   3
+  ],
+  "pixels": [
+   360,
+   300
+  ],
+  "source": "CustomTiles/Symbols/Lounge/Lounge 027 [15x20].png"
+ },
+ {
+  "id": "lounge-large",
+  "name": "Lounge, large",
+  "category": "common",
+  "file": "floorplan/symbols/lounge-large.png",
+  "feet": [
+   20,
+   20
+  ],
+  "squares": [
+   4,
+   4
+  ],
+  "pixels": [
+   360,
+   360
+  ],
+  "source": "CustomTiles/Symbols/Lounge/Lounge 031 [20x20].png"
+ },
+ {
+  "id": "galley",
+  "name": "Galley and mess",
+  "category": "common",
+  "file": "floorplan/symbols/galley.png",
+  "feet": [
+   20,
+   20
+  ],
+  "squares": [
+   4,
+   4
+  ],
+  "pixels": [
+   360,
+   360
+  ],
+  "source": "CustomTiles/Symbols/Galley & Mess/Galley & Mess Halls 013 [20x20].png"
+ },
+ {
+  "id": "mess-hall",
+  "name": "Galley and mess hall",
+  "category": "common",
+  "file": "floorplan/symbols/mess-hall.png",
+  "feet": [
+   40,
+   20
+  ],
+  "squares": [
+   8,
+   4
+  ],
+  "pixels": [
+   600,
+   360
+  ],
+  "source": "CustomTiles/Symbols/Galley & Mess/Galley & Mess Halls 012 [20x40].png"
+ },
+ {
+  "id": "luxury-lounge",
+  "name": "Luxury lounge",
+  "category": "common",
+  "file": "floorplan/symbols/luxury-lounge.png",
+  "feet": [
+   30,
+   30
+  ],
+  "squares": [
+   6,
+   6
+  ],
+  "pixels": [
+   600,
+   600
+  ],
+  "source": "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/DV-013 [30x30] [14-dTons] Luxury Lounge.png"
  },
  {
   "id": "bed",
@@ -225,7 +890,7 @@
    116,
    61
   ],
-  "source": "Furniture, Consoles, & Equipment/Bed 001 [5x10].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Bed 001 [5x10].png"
  },
  {
   "id": "bed-small",
@@ -244,7 +909,7 @@
    81,
    61
   ],
-  "source": "Furniture, Consoles, & Equipment/Bed 006 [5x7].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Bed 006 [5x7].png"
  },
  {
   "id": "medical-bed",
@@ -263,7 +928,7 @@
    76,
    44
   ],
-  "source": "Furniture, Consoles, & Equipment/Medical Bed 001 [4x6].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Medical Bed 001 [4x6].png"
  },
  {
   "id": "chair",
@@ -282,7 +947,7 @@
    31,
    27
   ],
-  "source": "Furniture, Consoles, & Equipment/Couch & Chairs 003 [2x3].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Couch & Chairs 003 [2x3].png"
  },
  {
   "id": "armchair",
@@ -301,7 +966,7 @@
    70,
    70
   ],
-  "source": "Furniture, Consoles, & Equipment/Couch & Chairs 016 [6x6].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Couch & Chairs 016 [6x6].png"
  },
  {
   "id": "couch",
@@ -320,13 +985,13 @@
    121,
    61
   ],
-  "source": "Furniture, Consoles, & Equipment/Couch & Chairs 017 [5x10].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Couch & Chairs 017 [5x10].png"
  },
  {
-  "id": "lounge",
+  "id": "lounge-seating",
   "name": "Lounge seating",
   "category": "furniture",
-  "file": "floorplan/symbols/lounge.png",
+  "file": "floorplan/symbols/lounge-seating.png",
   "feet": [
    10,
    10
@@ -339,7 +1004,7 @@
    120,
    120
   ],
-  "source": "Furniture, Consoles, & Equipment/Couch & Chairs 012 [10x10].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Couch & Chairs 012 [10x10].png"
  },
  {
   "id": "table-small",
@@ -358,7 +1023,7 @@
    55,
    56
   ],
-  "source": "Furniture, Consoles, & Equipment/Table 010 [5x5].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Table 010 [5x5].png"
  },
  {
   "id": "table",
@@ -377,7 +1042,7 @@
    68,
    120
   ],
-  "source": "Furniture, Consoles, & Equipment/Table 003 [6x10].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Table 003 [6x10].png"
  },
  {
   "id": "table-long",
@@ -396,7 +1061,7 @@
    241,
    121
   ],
-  "source": "Furniture, Consoles, & Equipment/Table 001 [10x20].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Table 001 [10x20].png"
  },
  {
   "id": "desk",
@@ -415,7 +1080,7 @@
    45,
    61
   ],
-  "source": "Furniture, Consoles, & Equipment/Desk 002 [4x5].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Desk 002 [4x5].png"
  },
  {
   "id": "desk-large",
@@ -434,7 +1099,7 @@
    55,
    121
   ],
-  "source": "Furniture, Consoles, & Equipment/Desk 008 [5x10].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Desk 008 [5x10].png"
  },
  {
   "id": "counter",
@@ -453,7 +1118,7 @@
    61,
    25
   ],
-  "source": "Furniture, Consoles, & Equipment/Counter 007 [2x5].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Counter 007 [2x5].png"
  },
  {
   "id": "console",
@@ -472,7 +1137,7 @@
    61,
    121
   ],
-  "source": "Furniture, Consoles, & Equipment/Console 008 [5x10].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Console 008 [5x10].png"
  },
  {
   "id": "console-wide",
@@ -491,7 +1156,7 @@
    73,
    181
   ],
-  "source": "Furniture, Consoles, & Equipment/Console 006 [6x15].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Console 006 [6x15].png"
  },
  {
   "id": "bridge-console",
@@ -510,7 +1175,7 @@
    141,
    146
   ],
-  "source": "Furniture, Consoles, & Equipment/Azhanti Style Bridge Console 003 [12x12].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Azhanti Style Bridge Console 003 [12x12].png"
  },
  {
   "id": "bridge-station",
@@ -529,6 +1194,6 @@
    240,
    240
   ],
-  "source": "Bridge/Bridge 006 [10x10].png"
+  "source": "CustomTiles/Symbols/Bridge/Bridge 006 [10x10].png"
  }
 ]

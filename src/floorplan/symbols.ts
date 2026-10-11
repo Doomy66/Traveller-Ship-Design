@@ -10,7 +10,7 @@
 
 import catalogue from "./symbols.json";
 
-export type SymbolCategory = "access" | "rooms" | "furniture" | "consoles";
+export type SymbolCategory = "access" | "turrets" | "engineering" | "rooms" | "common" | "furniture" | "consoles";
 
 export interface ShipSymbol {
   readonly id: string;
@@ -37,15 +37,19 @@ export function symbolById(id: string | undefined): ShipSymbol | undefined {
   return id === undefined ? undefined : BY_ID.get(id);
 }
 
+/** The library's sections, in the order the panel shows them. */
 export const CATEGORY_LABELS: Readonly<Record<SymbolCategory, string>> = {
   access: "Access",
-  rooms: "Fitted rooms",
+  turrets: "Turrets and barbettes",
+  engineering: "Engineering",
+  rooms: "Staterooms",
+  common: "Common areas",
   furniture: "Furniture",
   consoles: "Consoles",
 };
 
 /** The drawing used for each access fixture when no other is chosen. */
-export const ACCESS_SYMBOLS = { lift: "lift", stairs: "stairs" } as const;
+export const ACCESS_SYMBOLS = { lift: "lift", stairs: "stairs", hatch: "iris-floor" } as const;
 
 /** Squares a symbol claims at a rotation, wide and high. */
 export function footprint(symbol: ShipSymbol, rotation: number): readonly [number, number] {

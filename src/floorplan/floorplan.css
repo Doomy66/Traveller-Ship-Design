@@ -1,7 +1,8 @@
 /*
- * The floor plan screen. The components and tools on the left at a fixed
- * width, the deck taking everything else, because the deck is where the work
- * is and it wants every pixel it can get.
+ * The floor plan screen. The ship's components on the left, the tools, tiles
+ * and furniture on the right, each at a fixed width; the deck takes
+ * everything between, because the deck is where the work is and it wants
+ * every pixel it can get.
  *
  * It borrows the application's colour variables and nothing else, so the
  * screen could be lifted out with only these to supply.
@@ -9,21 +10,28 @@
 
 .fp {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-columns: 260px minmax(0, 1fr) 320px;
   height: calc(100vh - 39px);
 }
 
-/* ---------------------------------------------------------- the left panel */
+/* ----------------------------------------------------- the panels either side */
 
-.fp-side {
+.fp-left, .fp-right {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border-right: 1px solid var(--line);
   background: var(--panel);
 }
+.fp-left { border-right: 1px solid var(--line); }
+.fp-right { border-left: 1px solid var(--line); }
 
-.fp-tools { padding: 10px 12px 8px; border-bottom: 1px solid var(--line); display: grid; gap: 6px; }
+.fp-tools { padding: 8px 12px; border-bottom: 1px solid var(--line); display: grid; gap: 5px; }
+.fp-tools .fp-group { margin: 4px 0 0; }
+.fp-seg { gap: 0; }
+.fp-seg .fp-tool { border-radius: 0; }
+.fp-seg .fp-tool:first-child { border-radius: 4px 0 0 4px; }
+.fp-seg .fp-tool:last-child { border-radius: 0 4px 4px 0; border-left: 0; }
+.fp-hint { margin: 0 12px 4px; color: var(--faint); font-size: 12px; }
 .fp-toolrow { display: flex; gap: 6px; flex-wrap: wrap; }
 .fp-tool { padding: 3px 9px; }
 .fp-tool.on, .fp-tab.on, .fp-symbol.on, .fp-chip.on { border-color: var(--accent); background: #3a3015; color: #f4dfa6; }
@@ -38,7 +46,7 @@
 .fp-row.on { background: #2a2618; }
 .fp-pick {
   display: grid;
-  grid-template-columns: 12px minmax(0, 1fr) max-content;
+  grid-template-columns: 22px 12px minmax(0, 1fr) max-content;
   align-items: center;
   gap: 8px;
   width: 100%;
@@ -49,6 +57,7 @@
 }
 .fp-pick:hover { border-color: var(--line); }
 .fp-row.on .fp-pick { border-color: var(--accent); }
+.fp-number { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--accent); text-align: right; }
 .fp-swatch { width: 12px; height: 12px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12); }
 .fp-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fp-count { font-variant-numeric: tabular-nums; color: var(--muted); }
@@ -57,7 +66,7 @@
 .fp-over .fp-count { color: var(--error); }
 .fp-unplaced .fp-count { color: var(--faint); }
 
-.fp-chips { display: flex; flex-wrap: wrap; gap: 3px; padding: 2px 6px 6px 26px; }
+.fp-chips { display: flex; flex-wrap: wrap; gap: 3px; padding: 2px 6px 6px 48px; }
 .fp-chip { min-width: 26px; padding: 0 4px; font-size: 11px; font-variant-numeric: tabular-nums; }
 .fp-chip.fp-met { color: var(--good); border-color: rgba(108, 192, 122, 0.5); }
 .fp-chip.fp-short { color: var(--warning); }
@@ -69,9 +78,17 @@
 
 .fp-totals { padding: 8px 12px; border-top: 1px solid var(--line); color: var(--muted); font-variant-numeric: tabular-nums; }
 
-.fp-furniture { border-top: 1px solid var(--line); max-height: 45%; overflow: auto; }
-.fp-furniture > summary { cursor: pointer; padding: 7px 12px; color: var(--muted); }
-.fp-library { padding: 0 8px 10px; }
+.fp-browse { overflow: auto; flex: 1; min-height: 0; padding: 6px 10px 10px; }
+.fp-source { color: var(--muted); font-size: 12px; margin: 2px 0 6px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.fp-tilefilter { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; margin-bottom: 6px; }
+.fp-tilefilter select, .fp-tilefilter input { min-width: 0; width: 100%; }
+.fp-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.fp-tileitem { display: grid; justify-items: center; gap: 1px; padding: 4px 2px; font-size: 10px; color: var(--muted); }
+.fp-tileitem.on { border-color: var(--accent); background: #3a3015; color: #f4dfa6; }
+.fp-tileitem img { width: 80px; height: 64px; object-fit: contain; filter: invert(0.92); }
+.fp-tilecode { font-weight: 600; color: var(--text); }
+.fp-tilemeta { font-variant-numeric: tabular-nums; }
+.fp-browse .fp-hint { margin: 6px 0; }
 .fp-symbols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
 .fp-symbol { display: grid; justify-items: center; gap: 2px; padding: 4px 2px; font-size: 10px; color: var(--muted); }
 .fp-symbol img { width: 40px; height: 40px; object-fit: contain; filter: invert(0.92); }

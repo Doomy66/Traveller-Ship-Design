@@ -49,6 +49,14 @@ a stateroom, with the whole ship allowed ten per cent either way for corridors.
 Engineering can be split across two nacelles and a jump drive across two decks;
 it only has to add up.
 
+A library on the right holds the pieces most ships need, from Robert Pearce's
+Starship Symbols and Adventure Class geomorphs as rendered by Eric B. Smith:
+turrets and barbettes, engineering sections, staterooms and suites, lounges and
+galleys, furniture and consoles. Every piece turns and flips. For a larger ship,
+point the screen at your own copy of the geomorph archive and lay whole tiles,
+then paint them with the components they hold. Rooms can be labelled by name
+while designing or by number for play, with a key on the printed plan.
+
 Decks share one grid, and the deck above can be shown faintly under the one
 being drawn, so lifts, hatches and stairwells line up. A shaft that stops short
 is marked. Furniture and fitted staterooms are Robert Pearce's Starship

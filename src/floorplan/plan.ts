@@ -30,9 +30,16 @@ export type AccessKind = (typeof ACCESS_KINDS)[number];
 export interface EdgeFixture {
   readonly kind: EdgeKind;
   readonly deck: number;
+  /** The first edge it covers. */
   readonly x: number;
   readonly y: number;
   readonly edge: Edge;
+  /**
+   * Squares of wall it spans, along the wall: east from (x, y) for a north
+   * edge, south for a west one. Absent means one. A wide door is one fixture;
+   * two doors side by side are two. FP 7.1.1.
+   */
+  readonly length?: number;
 }
 
 export interface SquareFixture {
@@ -43,11 +50,35 @@ export interface SquareFixture {
   readonly x: number;
   readonly y: number;
   readonly rotation: Rotation;
+  /** Mirrored left to right before it is turned. FP 7.1.2. */
+  readonly flip?: boolean;
   /** The symbol's id in the library, for kind `symbol`, or an alternative drawing for the others. */
   readonly symbol?: string;
 }
 
 export type Fixture = EdgeFixture | SquareFixture;
+
+/**
+ * A geomorph tile laid on a deck. It carries its own size, so a plan draws
+ * its outline correctly even where the image is not to hand. FP 12.
+ */
+export interface PlacedTile {
+  readonly deck: number;
+  /** The top left square of its footprint. */
+  readonly x: number;
+  readonly y: number;
+  readonly rotation: Rotation;
+  /** Mirrored left to right before it is turned. FP 7.1.2. */
+  readonly flip?: boolean;
+  /** The tile's id: its filename made into an id (FP 12.2). */
+  readonly tile: string;
+  /** Squares at rotation 0, wide and high. */
+  readonly squares: readonly [number, number];
+  /** The image's size in pixels, margin and all. */
+  readonly pixels: readonly [number, number];
+  /** The tile's code, shown on its outline when the image is missing. */
+  readonly code: string;
+}
 
 export interface Deck {
   readonly name: string;
@@ -65,13 +96,15 @@ export interface FloorPlan {
   readonly version: 1;
   readonly decks: readonly Deck[];
   readonly fixtures: readonly Fixture[];
+  /** Geomorph tiles, in the order they were laid, so later ones draw over earlier ones. */
+  readonly tiles: readonly PlacedTile[];
   readonly remembered: Readonly<Record<string, Remembered>>;
 }
 
 export const PLAN_VERSION = 1;
 
 export function emptyPlan(): FloorPlan {
-  return { version: PLAN_VERSION, decks: [{ name: "Deck 1", cells: {} }], fixtures: [], remembered: {} };
+  return { version: PLAN_VERSION, decks: [{ name: "Deck 1", cells: {} }], fixtures: [], tiles: [], remembered: {} };
 }
 
 export const cellKey = (x: number, y: number): string => `${x},${y}`;
@@ -146,6 +179,7 @@ export function removeDeck(plan: FloorPlan, at: number): FloorPlan {
     fixtures: plan.fixtures
       .filter((f) => f.deck !== at)
       .map((f) => (f.deck > at ? { ...f, deck: f.deck - 1 } : f)),
+    tiles: plan.tiles.filter((t) => t.deck !== at).map((t) => (t.deck > at ? { ...t, deck: t.deck - 1 } : t)),
   };
 }
 
@@ -159,7 +193,12 @@ export function moveDeck(plan: FloorPlan, at: number, by: -1 | 1): FloorPlan {
   decks[at] = b;
   decks[to] = a;
   const swap = (d: number) => (d === at ? to : d === to ? at : d);
-  return { ...plan, decks, fixtures: plan.fixtures.map((f) => ({ ...f, deck: swap(f.deck) })) };
+  return {
+    ...plan,
+    decks,
+    fixtures: plan.fixtures.map((f) => ({ ...f, deck: swap(f.deck) })),
+    tiles: plan.tiles.map((t) => ({ ...t, deck: swap(t.deck) })),
+  };
 }
 
 /** Move a whole deck by whole squares, fixtures and all. FP 4.3.2. */
@@ -174,23 +213,96 @@ export function shiftDeck(plan: FloorPlan, at: number, dx: number, dy: number): 
   return {
     ...replaceDeck(plan, at, { ...deck, cells }),
     fixtures: plan.fixtures.map((f) => (f.deck === at ? { ...f, x: f.x + dx, y: f.y + dy } : f)),
+    tiles: plan.tiles.map((t) => (t.deck === at ? { ...t, x: t.x + dx, y: t.y + dy } : t)),
   };
 }
 
-/** Two edge fixtures, or two square fixtures, in the same place on the same deck. */
-function samePlace(a: Fixture, b: Fixture): boolean {
-  if (a.deck !== b.deck || a.x !== b.x || a.y !== b.y) return false;
-  if ("edge" in a) return "edge" in b && a.edge === b.edge;
-  return !("edge" in b);
+/** Every edge an edge fixture covers, as "x,y,n" or "x,y,w". */
+export function edgesOf(f: EdgeFixture): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < (f.length ?? 1); i++) {
+    out.push(f.edge === "n" ? `${f.x + i},${f.y},n` : `${f.x},${f.y + i},w`);
+  }
+  return out;
 }
 
-/** Add a fixture, replacing whatever was already in exactly that place. */
+/**
+ * Two edge fixtures sharing any edge, or two square fixtures at the same
+ * square, on the same deck. A new fixture replaces any it clashes with.
+ */
+function clashes(a: Fixture, b: Fixture): boolean {
+  if (a.deck !== b.deck) return false;
+  if ("edge" in a) {
+    if (!("edge" in b)) return false;
+    const taken = new Set(edgesOf(a));
+    return edgesOf(b).some((e) => taken.has(e));
+  }
+  return !("edge" in b) && a.x === b.x && a.y === b.y;
+}
+
+/** Add a fixture, replacing whatever it clashes with. */
 export function placeFixture(plan: FloorPlan, fixture: Fixture): FloorPlan {
-  return { ...plan, fixtures: [...plan.fixtures.filter((f) => !samePlace(f, fixture)), fixture] };
+  return { ...plan, fixtures: [...plan.fixtures.filter((f) => !clashes(f, fixture)), fixture] };
 }
 
 export function removeFixture(plan: FloorPlan, fixture: Fixture): FloorPlan {
   return { ...plan, fixtures: plan.fixtures.filter((f) => f !== fixture) };
+}
+
+/** Replace the fixture at an index, as moving or turning it does. */
+export function replaceFixture(plan: FloorPlan, at: number, fixture: Fixture): FloorPlan {
+  return { ...plan, fixtures: plan.fixtures.map((f, i) => (i === at ? fixture : f)) };
+}
+
+export function placeTile(plan: FloorPlan, tile: PlacedTile): FloorPlan {
+  return { ...plan, tiles: [...plan.tiles, tile] };
+}
+
+export function replaceTile(plan: FloorPlan, at: number, tile: PlacedTile): FloorPlan {
+  return { ...plan, tiles: plan.tiles.map((t, i) => (i === at ? tile : t)) };
+}
+
+export function removeTile(plan: FloorPlan, at: number): FloorPlan {
+  return { ...plan, tiles: plan.tiles.filter((_, i) => i !== at) };
+}
+
+/** Squares a tile covers at its rotation, wide and high. */
+export function tileFootprint(tile: Pick<PlacedTile, "squares" | "rotation">): readonly [number, number] {
+  const [w, h] = tile.squares;
+  return tile.rotation === 90 || tile.rotation === 270 ? [h, w] : [w, h];
+}
+
+/** Every square a deck's tiles cover. FP 12.3. */
+export function tiledSquares(plan: FloorPlan, deck: number): Set<string> {
+  const covered = new Set<string>();
+  for (const t of plan.tiles) {
+    if (t.deck !== deck || isOverlayTile(t)) continue;
+    const [w, h] = tileFootprint(t);
+    for (let dy = 0; dy < h; dy++) for (let dx = 0; dx < w; dx++) covered.add(cellKey(t.x + dx, t.y + dy));
+  }
+  return covered;
+}
+
+/** Overlay tiles are transparent layers over another tile, and take no squares of their own. */
+export function isOverlayTile(tile: Pick<PlacedTile, "tile">): boolean {
+  return tile.tile.includes("-overlay-");
+}
+
+/** Move a set of squares on a deck by whole squares, keeping their owner. Whatever was under them is replaced. */
+export function moveSquares(plan: FloorPlan, deck: number, squares: readonly (readonly [number, number])[], dx: number, dy: number): FloorPlan {
+  const target = plan.decks[deck];
+  if (target === undefined || squares.length === 0 || (dx === 0 && dy === 0)) return plan;
+  const cells: Record<string, Owner> = { ...target.cells };
+  const moving: [string, Owner][] = [];
+  for (const [x, y] of squares) {
+    const key = cellKey(x, y);
+    const owner = cells[key];
+    if (owner === undefined) continue;
+    moving.push([cellKey(x + dx, y + dy), owner]);
+    delete cells[key];
+  }
+  for (const [key, owner] of moving) cells[key] = owner;
+  return replaceDeck(plan, deck, { ...target, cells });
 }
 
 /** Note what each component is now, so a later change to the design shows up. FP 9.1. */
@@ -242,7 +354,8 @@ export function readPlan(raw: unknown): FloorPlan | undefined {
     if (it["deck"] < 0 || it["deck"] >= decks.length) continue;
     const at = { deck: it["deck"], x: Math.round(it["x"]), y: Math.round(it["y"]) };
     if ((it["kind"] === "door" || it["kind"] === "iris") && (it["edge"] === "n" || it["edge"] === "w")) {
-      fixtures.push({ kind: it["kind"], edge: it["edge"], ...at });
+      const length = typeof it["length"] === "number" && it["length"] > 1 ? Math.round(it["length"]) : undefined;
+      fixtures.push({ kind: it["kind"], edge: it["edge"], ...at, ...(length === undefined ? {} : { length }) });
       continue;
     }
     const kind = it["kind"];
@@ -250,7 +363,36 @@ export function readPlan(raw: unknown): FloorPlan | undefined {
     const rotation = ROTATIONS.includes(it["rotation"] as number) ? (it["rotation"] as Rotation) : 0;
     const symbol = typeof it["symbol"] === "string" ? it["symbol"] : undefined;
     if (kind === "symbol" && symbol === undefined) continue;
-    fixtures.push({ kind: kind as SquareFixture["kind"], rotation, ...at, ...(symbol === undefined ? {} : { symbol }) });
+    fixtures.push({
+      kind: kind as SquareFixture["kind"],
+      rotation,
+      ...at,
+      ...(it["flip"] === true ? { flip: true } : {}),
+      ...(symbol === undefined ? {} : { symbol }),
+    });
+  }
+  const tiles: PlacedTile[] = [];
+  for (const t of Array.isArray(value.tiles) ? (value.tiles as unknown[]) : []) {
+    if (typeof t !== "object" || t === null) continue;
+    const it = t as Record<string, unknown>;
+    const pair = (v: unknown) =>
+      Array.isArray(v) && v.length === 2 && v.every((n) => typeof n === "number" && n > 0) ? (v as [number, number]) : undefined;
+    const squares = pair(it["squares"]);
+    const pixels = pair(it["pixels"]);
+    if (typeof it["tile"] !== "string" || squares === undefined || pixels === undefined) continue;
+    if (typeof it["deck"] !== "number" || it["deck"] < 0 || it["deck"] >= decks.length) continue;
+    if (typeof it["x"] !== "number" || typeof it["y"] !== "number") continue;
+    tiles.push({
+      deck: it["deck"],
+      x: Math.round(it["x"]),
+      y: Math.round(it["y"]),
+      rotation: ROTATIONS.includes(it["rotation"] as number) ? (it["rotation"] as Rotation) : 0,
+      ...(it["flip"] === true ? { flip: true } : {}),
+      tile: it["tile"],
+      squares,
+      pixels,
+      code: typeof it["code"] === "string" ? it["code"] : it["tile"],
+    });
   }
   const remembered: Record<string, Remembered> = {};
   if (typeof value.remembered === "object" && value.remembered !== null) {
@@ -260,5 +402,5 @@ export function readPlan(raw: unknown): FloorPlan | undefined {
       if (typeof it.label === "string" && typeof it.tons === "number") remembered[key] = { label: it.label, tons: it.tons };
     }
   }
-  return { version: PLAN_VERSION, decks, fixtures, remembered };
+  return { version: PLAN_VERSION, decks, fixtures, tiles, remembered };
 }

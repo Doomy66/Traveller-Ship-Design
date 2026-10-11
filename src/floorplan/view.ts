@@ -1,10 +1,13 @@
 /**
  * The floor plan screen. FloorPlanSpec section 10.
  *
- * The screen holds the editing state (which deck, which tool, where the view
- * is, the undo history) and nothing about the ship. The ship arrives as a
- * manifest and a plan through the host, every change goes back through
- * `setPlan`, and what the panel shows is `check`'s report drawn out.
+ * The ship's components down the left, numbered as the plan's key numbers
+ * them; the deck in the middle; the tools, the geomorph tiles and the
+ * furniture down the right. The screen holds the editing state (which deck,
+ * which tool, what is selected, where the view is, the undo history) and
+ * nothing about the ship. The ship arrives as a manifest and a plan through
+ * the host, every change goes back through `setPlan`, and what the panels
+ * show is `check`'s report drawn out.
  */
 
 import "./floorplan.css";
@@ -12,40 +15,67 @@ import type { Report, Tally } from "./check";
 import { check } from "./check";
 import { exportPng, exportSvg, printPlan } from "./export";
 import type { Bounds } from "./geometry";
-import { bounds, storedEdge } from "./geometry";
+import { bounds, regions, storedEdge } from "./geometry";
 import type { Component, ComponentGroup, Manifest } from "./manifest";
 import { SQUARES_PER_STATEROOM } from "./manifest";
-import type { AccessKind, EdgeKind, FloorPlan, Fixture, Owner, Rotation, SquareFixture } from "./plan";
+import type { AccessKind, EdgeFixture, EdgeKind, Fixture, FloorPlan, Owner, PlacedTile, Rotation, SquareFixture } from "./plan";
 import {
   addDeck,
   CORRIDOR,
   cellKey,
+  edgesOf,
   instanceOwner,
   moveDeck,
+  moveSquares,
   paint,
   placeFixture,
+  placeTile,
   rectangle,
   removeDeck,
   removeFixture,
+  removeTile,
   renameDeck,
+  replaceFixture,
+  replaceTile,
   shiftDeck,
+  tiledSquares,
+  tileFootprint,
 } from "./plan";
+import type { LabelMode } from "./render";
 import {
   fittedSquares,
   fixturesMarkup,
   floorsMarkup,
   gridMarkup,
+  GROUP_ORDER,
+  numbered,
   labelsMarkup,
   looksFor,
   overlayMarkup,
   SCREEN,
   shortLabel,
   symbolMarkup,
+  tileMarkup,
+  tilesMarkup,
   unmatchedAccessMarkup,
   wallsMarkup,
 } from "./render";
 import type { SymbolCategory } from "./symbols";
 import { ACCESS_SYMBOLS, CATEGORY_LABELS, footprint, symbolById, SYMBOLS } from "./symbols";
+import type { TileEntry } from "./tiles";
+import {
+  canLoadFolder,
+  chooseFolder,
+  folderTiles,
+  inFolder,
+  loadedFolder,
+  readFolderImage,
+  readTile,
+  reconnectFolder,
+  rememberedFolder,
+  tileById,
+  tileHref,
+} from "./tiles";
 
 export interface FloorPlanHost {
   /** Read afresh whenever the screen draws. */
@@ -66,23 +96,19 @@ export interface FloorPlanView {
 }
 
 type Tool =
+  | { readonly kind: "move" }
   | { readonly kind: "paint"; readonly owner: Owner }
   | { readonly kind: "corridor" }
   | { readonly kind: "erase" }
   | { readonly kind: "edge"; readonly edge: EdgeKind }
-  | { readonly kind: "access"; readonly access: AccessKind }
-  | { readonly kind: "symbol"; readonly id: string };
+  | { readonly kind: "access"; readonly access: AccessKind; readonly symbol?: string }
+  | { readonly kind: "symbol"; readonly id: string }
+  | { readonly kind: "tile"; readonly id: string };
 
-const GROUP_ORDER: readonly ComponentGroup[] = [
-  "engineering",
-  "fuel",
-  "command",
-  "weapons",
-  "craft",
-  "accommodation",
-  "systems",
-  "cargo",
-];
+type Selection =
+  | { readonly type: "fixture"; readonly index: number }
+  | { readonly type: "tile"; readonly index: number }
+  | { readonly type: "region"; readonly squares: readonly (readonly [number, number])[] };
 
 const GROUP_NAMES: Readonly<Record<ComponentGroup, string>> = {
   engineering: "Engineering",
@@ -97,6 +123,9 @@ const GROUP_NAMES: Readonly<Record<ComponentGroup, string>> = {
 
 /** How much history Undo keeps. Plans are small and shared, so this is cheap. */
 const HISTORY = 200;
+
+/** The most tiles the browser lists at once; a search narrows the rest. */
+const TILE_LIST_LIMIT = 120;
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -148,18 +177,26 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   let deck = 0;
   /** "above" follows the current deck; a number pins one deck; null shows none. */
   let overlay: "above" | number | null = "above";
-  let tool: Tool = { kind: "corridor" };
+  let tool: Tool = { kind: "move" };
   let rotation: Rotation = 0;
+  let labels: LabelMode = "names";
+  /** Whether the next piece placed is mirrored. FP 7.1.2. */
+  let flipped = false;
+  let tileCategory = "";
+  let tileSearch = "";
+  let selection: Selection | undefined;
   let view = { x: -2, y: -2, scale: 28 };
   const undo: FloorPlan[] = [];
   const redo: FloorPlan[] = [];
   let report: Report = check(host.manifest, host.plan);
-  let hover: [number, number] | undefined;
+  let hover: { x: number; y: number; fx: number; fy: number } | undefined;
   let fitted = false;
+  let folderNote: { name: string; allowed: boolean } | undefined;
 
   // ------------------------------------------------------------------ layout
 
-  const side = el("aside", { class: "fp-side", "aria-label": "Components and tools" });
+  const left = el("aside", { class: "fp-left", "aria-label": "The ship's components" });
+  const right = el("aside", { class: "fp-right", "aria-label": "Tools, tiles and furniture" });
   const problems = el("div", { class: "fp-problems", role: "status" });
   const deckBar = el("div", { class: "fp-deckbar" });
   const svg = document.createElementNS(SVG_NS, "svg");
@@ -168,10 +205,12 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     grid: document.createElementNS(SVG_NS, "g"),
     overlay: document.createElementNS(SVG_NS, "g"),
     floors: document.createElementNS(SVG_NS, "g"),
+    tiles: document.createElementNS(SVG_NS, "g"),
     walls: document.createElementNS(SVG_NS, "g"),
     fixtures: document.createElementNS(SVG_NS, "g"),
     labels: document.createElementNS(SVG_NS, "g"),
     marks: document.createElementNS(SVG_NS, "g"),
+    selection: document.createElementNS(SVG_NS, "g"),
     preview: document.createElementNS(SVG_NS, "g"),
   };
   for (const layer of Object.values(layers)) svg.append(layer);
@@ -180,13 +219,13 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   canvas.append(svg);
   const status = el("div", { class: "fp-status" });
   const main = el("section", { class: "fp-main", "aria-label": "Decks" }, [problems, deckBar, canvas, status]);
-  root.replaceChildren(el("div", { class: "fp" }, [side, main]));
+  root.replaceChildren(el("div", { class: "fp" }, [left, main, right]));
 
   // ----------------------------------------------------------------- helpers
 
   const plan = () => host.plan;
   const components = () => host.manifest.components;
-  const look = () => looksFor(components(), plan());
+  const look = () => looksFor(components(), plan(), labels);
 
   function overlayDeck(): number | undefined {
     if (overlay === null) return undefined;
@@ -194,11 +233,12 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     return at >= 0 && at < plan().decks.length && at !== deck ? at : undefined;
   }
 
-  function commit(next: FloorPlan): void {
+  function commit(next: FloorPlan, keep?: Selection): void {
     if (next === plan()) return;
     undo.push(plan());
     if (undo.length > HISTORY) undo.shift();
     redo.length = 0;
+    selection = keep;
     host.setPlan(next);
     draw();
   }
@@ -207,8 +247,8 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     const last = undo.pop();
     if (last === undefined) return;
     redo.push(plan());
+    selection = undefined;
     host.setPlan(last);
-    deck = Math.min(deck, last.decks.length - 1);
     draw();
   }
 
@@ -216,65 +256,45 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     const next = redo.pop();
     if (next === undefined) return;
     undo.push(plan());
+    selection = undefined;
     host.setPlan(next);
-    deck = Math.min(deck, next.decks.length - 1);
     draw();
   }
 
-  /** The colour a brush paints, for the panel's swatches and the stroke preview. */
+  /** The colour a brush paints, for the stroke preview. */
   function floorColour(owner: Owner | undefined): string {
     if (owner === undefined) return SCREEN.warn;
-    return SCREEN.floor[look()(owner).floor];
+    return SCREEN.floor[looksFor(components(), plan())(owner).floor];
   }
-
-  // ------------------------------------------------------------------- panel
 
   function selectTool(next: Tool): void {
     tool = next;
-    drawSide();
+    if (next.kind !== "move") selection = undefined;
+    drawLeft();
+    drawRight();
+    drawSelection();
     drawPreview();
     canvas.dataset["tool"] = next.kind;
+    if (next.kind === "tile" && inFolder(next.id)) void readFolderImage(next.id).then(drawPreview);
   }
 
-  function statusClass(t: Pick<Tally, "status">): string {
-    return `fp-${t.status}`;
-  }
+  // ------------------------------------------------------- the left: components
 
   function stateroomChips(component: Component, tally: Tally): HTMLElement {
     const chips = el("div", { class: "fp-chips" });
     for (let i = 1; i <= component.count; i++) {
       const placed = tally.instances?.[i] ?? 0;
-      const state = placed === 0 ? "short" : placed === SQUARES_PER_STATEROOM ? "met" : placed < SQUARES_PER_STATEROOM ? "short" : "over";
+      const state = placed === 0 ? "empty" : placed === SQUARES_PER_STATEROOM ? "met" : placed < SQUARES_PER_STATEROOM ? "short" : "over";
       const owner = instanceOwner(component.key, i);
       const chosen = tool.kind === "paint" && tool.owner === owner;
-      const chip = button(String(i), () => selectTool({ kind: "paint", owner }), {
-        class: `fp-chip fp-${placed === 0 ? "empty" : state}${chosen ? " on" : ""}`,
-        title: `Stateroom ${i}: ${placed} of ${SQUARES_PER_STATEROOM} squares`,
-      });
-      chips.append(chip);
+      chips.append(
+        button(String(i), () => selectTool({ kind: "paint", owner }), {
+          class: `fp-chip fp-${state}${chosen ? " on" : ""}`,
+          title: `Stateroom ${i}: ${placed} of ${SQUARES_PER_STATEROOM} squares`,
+        }),
+      );
     }
     return chips;
-  }
-
-  function componentRow(component: Component, tally: Tally): HTMLElement {
-    const owner = component.key === "staterooms" && component.count > 1 ? undefined : component.key;
-    const chosen =
-      tool.kind === "paint" && (tool.owner === component.key || tool.owner.startsWith(`${component.key}#`));
-    const row = el("div", { class: `fp-row ${statusClass(tally)}${chosen ? " on" : ""}` });
-    const pick = button("", () => {
-      if (owner !== undefined) selectTool({ kind: "paint", owner });
-      else selectTool({ kind: "paint", owner: nextStateroom(component, tally) });
-    }, { class: "fp-pick", title: component.label });
-    pick.append(
-      el("span", { class: "fp-swatch", style: `background:${SCREEN.floor[component.group]}` }),
-      el("span", { class: "fp-name" }, [shortLabel(component)]),
-      el("span", { class: "fp-count" }, [
-        `${tally.placed} / ${tally.target}${tally.required ? "" : " optional"}`,
-      ]),
-    );
-    row.append(pick);
-    if (component.key === "staterooms" && component.count > 1) row.append(stateroomChips(component, tally));
-    return row;
   }
 
   /** The first stateroom not yet drawn, or the first if all are. */
@@ -286,98 +306,66 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     return instanceOwner(component.key, 1);
   }
 
-  function toolButton(label: string, next: Tool, title: string, active: boolean): HTMLButtonElement {
-    return button(label, () => selectTool(next), { class: `fp-tool${active ? " on" : ""}`, title });
+  function componentRow(component: Component, number: number, tally: Tally): HTMLElement {
+    const several = component.key === "staterooms" && component.count > 1;
+    const chosen = tool.kind === "paint" && (tool.owner === component.key || tool.owner.startsWith(`${component.key}#`));
+    const row = el("div", { class: `fp-row fp-${tally.status}${chosen ? " on" : ""}` });
+    const pick = button(
+      "",
+      () => selectTool({ kind: "paint", owner: several ? nextStateroom(component, tally) : component.key }),
+      { class: "fp-pick", title: `${number}. ${component.label}. Pick to paint its squares.` },
+    );
+    pick.append(
+      el("span", { class: "fp-number" }, [String(number)]),
+      el("span", { class: "fp-swatch", style: `background:${SCREEN.floor[component.group]}` }),
+      el("span", { class: "fp-name" }, [shortLabel(component)]),
+      el("span", { class: "fp-count" }, [`${tally.placed} / ${tally.target}${tally.required ? "" : " opt"}`]),
+    );
+    row.append(pick);
+    if (several) row.append(stateroomChips(component, tally));
+    return row;
   }
 
-  function drawSide(): void {
-    const scroll = side.querySelector(".fp-list")?.scrollTop ?? 0;
+  function drawLeft(): void {
+    const scroll = left.querySelector(".fp-list")?.scrollTop ?? 0;
     const tallies = new Map(report.tallies.map((t) => [t.key, t]));
-    const tools = el("div", { class: "fp-tools" }, [
-      el("div", { class: "fp-toolrow" }, [
-        toolButton("Corridor", { kind: "corridor" }, "Paint corridor and access space, which belongs to no component", tool.kind === "corridor"),
-        toolButton("Erase", { kind: "erase" }, "Clear squares", tool.kind === "erase"),
-        button("Undo", undoOnce, { class: "fp-tool", title: "Undo (Ctrl+Z)", ...(undo.length === 0 ? { disabled: "" } : {}) }),
-        button("Redo", redoOnce, { class: "fp-tool", title: "Redo (Ctrl+Y)", ...(redo.length === 0 ? { disabled: "" } : {}) }),
-      ]),
-      el("div", { class: "fp-toolrow" }, [
-        toolButton("Door", { kind: "edge", edge: "door" }, "Click a wall to put a door in it, or take one out", tool.kind === "edge" && tool.edge === "door"),
-        toolButton("Iris valve", { kind: "edge", edge: "iris" }, "Click a wall to put an iris valve in it, or take one out", tool.kind === "edge" && tool.edge === "iris"),
-      ]),
-      el("div", { class: "fp-toolrow" }, [
-        toolButton("Lift", { kind: "access", access: "lift" }, "A lift joins every deck that has one on the same square", tool.kind === "access" && tool.access === "lift"),
-        toolButton("Hatch", { kind: "access", access: "hatch" }, "A floor hatch joins the decks above and below where they line up", tool.kind === "access" && tool.access === "hatch"),
-        toolButton("Stairs", { kind: "access", access: "stairs" }, "Stairs join decks where they line up", tool.kind === "access" && tool.access === "stairs"),
-      ]),
-    ]);
-
     const list = el("div", { class: "fp-list" });
+    const all = numbered(components()).map(({ component, number }) => ({ c: component, number }));
     for (const group of GROUP_ORDER) {
-      const members = components().filter((c) => c.group === group);
+      const members = all.filter(({ c }) => c.group === group);
       if (members.length === 0) continue;
       list.append(el("h3", { class: "fp-group" }, [GROUP_NAMES[group]]));
-      for (const component of members) {
-        const tally = tallies.get(component.key);
-        if (tally !== undefined) list.append(componentRow(component, tally));
+      for (const { c, number } of members) {
+        const tally = tallies.get(c.key);
+        if (tally !== undefined) list.append(componentRow(c, number, tally));
       }
     }
     if (report.orphans.length > 0) {
       list.append(el("h3", { class: "fp-group" }, ["No longer in the design"]));
       for (const orphan of report.orphans) {
-        const row = el("div", { class: "fp-row fp-orphaned" }, [
-          el("span", { class: "fp-name" }, [orphan.label]),
-          el("span", { class: "fp-count" }, [`${orphan.squares}`]),
-          button("Clear", () => clearOrphan(orphan.key), { class: "fp-clear", title: "Clear these squares on every deck" }),
-        ]);
-        list.append(row);
+        list.append(
+          el("div", { class: "fp-row fp-orphaned" }, [
+            el("span", { class: "fp-name" }, [orphan.label]),
+            el("span", { class: "fp-count" }, [`${orphan.squares}`]),
+            button("Clear", () => clearOrphan(orphan.key), { class: "fp-clear", title: "Clear these squares on every deck" }),
+          ]),
+        );
       }
     }
-
     const ship = report.ship;
     const inBand = report.total >= ship.low && report.total <= ship.high;
-    const totals = el("div", { class: "fp-totals" }, [
-      el("div", {}, [`Corridors ${report.corridor}`]),
-      el("div", { class: report.total === 0 ? "" : inBand ? "fp-met" : "fp-short" }, [
-        `Plan ${report.total} squares of ${ship.target} (${ship.low} to ${ship.high})`,
-      ]),
-    ]);
-
-    const library = el("div", { class: "fp-library" });
-    const categories = [...new Set(SYMBOLS.map((s) => s.category))] as SymbolCategory[];
-    for (const category of categories) {
-      library.append(el("h3", { class: "fp-group" }, [CATEGORY_LABELS[category]]));
-      const grid = el("div", { class: "fp-symbols" });
-      for (const symbol of SYMBOLS.filter((s) => s.category === category)) {
-        const chosen = tool.kind === "symbol" && tool.id === symbol.id;
-        const item = button("", () => selectTool({ kind: "symbol", id: symbol.id }), {
-          class: `fp-symbol${chosen ? " on" : ""}`,
-          title: `${symbol.name}, ${symbol.squares[0]} by ${symbol.squares[1]} squares`,
-        });
-        item.append(el("img", { src: symbolHref(symbol.file), alt: "", loading: "lazy" }), el("span", {}, [symbol.name]));
-        grid.append(item);
-      }
-      library.append(grid);
-    }
-    // The licence asks for this wherever the symbols appear. FP 7.3.
-    library.append(
-      el("p", { class: "fp-credit" }, [
-        "Symbols from Robert Pearce's Traveller Starship Symbols, rendered by Eric B. Smith, under ",
-        el("a", { href: "https://creativecommons.org/licenses/by-nc/4.0/", target: "_blank", rel: "noopener" }, ["CC BY-NC 4.0"]),
-        ".",
-      ]),
-    );
-
-    side.replaceChildren(
-      tools,
-      el("h2", { class: "fp-heading" }, [`${host.manifest.shipName}`]),
+    left.replaceChildren(
+      el("h2", { class: "fp-heading" }, [host.manifest.shipName]),
+      el("p", { class: "fp-hint" }, ["Pick a component, then paint its squares on the deck."]),
       list,
-      totals,
-      el("details", { class: "fp-furniture", ...(tool.kind === "symbol" ? { open: "" } : {}) }, [
-        el("summary", {}, ["Furniture and fittings"]),
-        library,
+      el("div", { class: "fp-totals" }, [
+        el("div", {}, [`Corridors ${report.corridor}`]),
+        el("div", { class: report.total === 0 ? "" : inBand ? "fp-met" : "fp-short" }, [
+          `Plan ${report.total} of ${ship.target} squares (${ship.low} to ${ship.high})`,
+        ]),
       ]),
     );
-    const restored = side.querySelector(".fp-list");
+    const restored = left.querySelector(".fp-list");
     if (restored !== null) restored.scrollTop = scroll;
   }
 
@@ -392,12 +380,208 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     commit(next);
   }
 
+  // ------------------------------------------------- the right: tools, tiles, furniture
+
+  function toolButton(label: string, next: Tool, title: string, active: boolean): HTMLButtonElement {
+    return button(label, () => selectTool(next), { class: `fp-tool${active ? " on" : ""}`, title });
+  }
+
+  function drawRight(): void {
+    const scroll = right.querySelector(".fp-browse")?.scrollTop ?? 0;
+    const isAccess = (access: AccessKind, symbol?: string) =>
+      tool.kind === "access" && tool.access === access && (tool.symbol ?? ACCESS_SYMBOLS[access]) === (symbol ?? ACCESS_SYMBOLS[access]);
+    const tools = el("div", { class: "fp-tools" }, [
+      el("div", { class: "fp-toolrow" }, [
+        toolButton("Move", { kind: "move" }, "Select and drag tiles, fittings, doors and rooms. R turns, Delete removes, the arrow keys nudge.", tool.kind === "move"),
+        toolButton("Corridor", { kind: "corridor" }, "Paint corridor and access space, which belongs to no component", tool.kind === "corridor"),
+        toolButton("Erase", { kind: "erase" }, "Clear squares", tool.kind === "erase"),
+      ]),
+      el("div", { class: "fp-toolrow" }, [
+        button("Undo", undoOnce, { class: "fp-tool", title: "Undo (Ctrl+Z)", ...(undo.length === 0 ? { disabled: "" } : {}) }),
+        button("Redo", redoOnce, { class: "fp-tool", title: "Redo (Ctrl+Y)", ...(redo.length === 0 ? { disabled: "" } : {}) }),
+      ]),
+      el("h3", { class: "fp-group" }, ["In walls"]),
+      el("div", { class: "fp-toolrow" }, [
+        toolButton("Door", { kind: "edge", edge: "door" }, "Click a wall for a door; drag along it for a wider one. Doors on neighbouring squares stay separate.", tool.kind === "edge" && tool.edge === "door"),
+        toolButton("Iris valve", { kind: "edge", edge: "iris" }, "Click a wall for an iris valve in it", tool.kind === "edge" && tool.edge === "iris"),
+      ]),
+      el("h3", { class: "fp-group" }, ["Between decks"]),
+      el("div", { class: "fp-toolrow" }, [
+        toolButton("Lift", { kind: "access", access: "lift" }, "A lift joins every deck with one on the same square", isAccess("lift")),
+        toolButton("Iris, floor", { kind: "access", access: "hatch", symbol: "iris-floor" }, "An iris valve in the floor, to the deck below", isAccess("hatch", "iris-floor")),
+        toolButton("Iris, ceiling", { kind: "access", access: "hatch", symbol: "iris-ceiling" }, "An iris valve in the ceiling, to the deck above", isAccess("hatch", "iris-ceiling")),
+        toolButton("Stairs", { kind: "access", access: "stairs" }, "Stairs join decks where they line up", isAccess("stairs")),
+      ]),
+      el("h3", { class: "fp-group" }, ["Turn and flip"]),
+      el("div", { class: "fp-toolrow" }, [
+        button("Turn", turn, { class: "fp-tool", title: "Turn the selected piece, or the next one placed, a quarter (R)" }),
+        button("Flip", flip, { class: `fp-tool${flipped && tool.kind !== "move" ? " on" : ""}`, title: "Mirror the selected piece, or the next one placed (F)" }),
+      ]),
+      el("h3", { class: "fp-group" }, ["Room labels"]),
+      el("div", { class: "fp-toolrow fp-seg" }, [
+        button("Names", () => setLabels("names"), { class: `fp-tool${labels === "names" ? " on" : ""}`, title: "Label rooms by name while designing" }),
+        button("Numbers", () => setLabels("numbers"), { class: `fp-tool${labels === "numbers" ? " on" : ""}`, title: "Number rooms, as a finished plan is, with a key on export" }),
+      ]),
+    ]);
+    const browse = el("div", { class: "fp-browse" });
+    fillLibrary(browse);
+    fillTiles(browse);
+    right.replaceChildren(tools, browse);
+    browse.scrollTop = scroll;
+  }
+
+  function setLabels(mode: LabelMode): void {
+    labels = mode;
+    drawRight();
+    drawCanvas();
+  }
+
+  /** The library: furniture, fittings and the few geomorph pieces most ships want, in one list. FP 7.7. */
+  function fillLibrary(into: HTMLElement): void {
+    const categories = (Object.keys(CATEGORY_LABELS) as SymbolCategory[]).filter((c) => SYMBOLS.some((s) => s.category === c));
+    for (const category of categories) {
+      into.append(el("h3", { class: "fp-group" }, [CATEGORY_LABELS[category]]));
+      const grid = el("div", { class: "fp-symbols" });
+      for (const symbol of SYMBOLS.filter((s) => s.category === category)) {
+        const chosen = tool.kind === "symbol" && tool.id === symbol.id;
+        const item = button("", () => selectTool({ kind: "symbol", id: symbol.id }), {
+          class: `fp-symbol${chosen ? " on" : ""}`,
+          title: `${symbol.name}, ${symbol.squares[0]} by ${symbol.squares[1]} squares`,
+        });
+        item.append(el("img", { src: symbolHref(symbol.file), alt: "", loading: "lazy" }), el("span", {}, [symbol.name]));
+        grid.append(item);
+      }
+      into.append(grid);
+    }
+    into.append(credit("Robert Pearce's Traveller Starship Symbols and Adventure Class Geomorphs"));
+  }
+
+  /** The licence asks for this wherever the art appears. FP 7.3, 12.1. */
+  function credit(what: string): HTMLElement {
+    return el("p", { class: "fp-credit" }, [
+      `${what}, rendered by Eric B. Smith, under `,
+      el("a", { href: "https://creativecommons.org/licenses/by-nc/4.0/", target: "_blank", rel: "noopener" }, ["CC BY-NC 4.0"]),
+      ".",
+    ]);
+  }
+
+  /** Thumbnails of folder tiles are read when they scroll into view, not all at once. */
+  const thumbnails = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      const img = entry.target as HTMLImageElement;
+      const id = img.dataset["tile"];
+      thumbnails.unobserve(img);
+      if (id !== undefined) void readFolderImage(id).then((read) => read !== undefined && (img.src = read.uri));
+    }
+  });
+
+  /** Geomorph tiles from the designer's own folder, for larger ships. FP 12. */
+  function fillTiles(into: HTMLElement): void {
+    into.append(el("h3", { class: "fp-group" }, ["Geomorph folder"]));
+    const folder = loadedFolder();
+    const source = el("div", { class: "fp-source" });
+    if (folder !== undefined) {
+      source.append(el("span", {}, [`${folder.name}: ${folder.tiles} tiles.`]), " ", button("Change", () => void pickFolder(), { class: "fp-small" }));
+    } else if (folderNote !== undefined && !folderNote.allowed) {
+      source.append(
+        button(`Reconnect ${folderNote.name}`, () => void reconnect(), { class: "fp-small", title: "Allow the geomorph folder chosen last time" }),
+        " ",
+        button("Choose another", () => void pickFolder(), { class: "fp-small" }),
+      );
+    } else if (canLoadFolder()) {
+      source.append(
+        el("span", {}, ["For larger ships, the whole geomorph archive from your own disk. "]),
+        button("Load geomorph folder…", () => void pickFolder(), { class: "fp-small", title: "Point at your copy of the Adventure Class geomorphs" }),
+      );
+    } else {
+      source.append(el("span", {}, ["Loading a geomorph folder needs Edge or Chrome."]));
+    }
+    into.append(source);
+
+    const all = folderTiles();
+    if (all.length === 0) return;
+    const categories = [...new Set(all.map((t) => t.category))].sort();
+    const pick = el("select", { class: "fp-tilecat", "aria-label": "Tile category" });
+    for (const c of categories) pick.append(new Option(c, c));
+    pick.value = categories.includes(tileCategory) ? tileCategory : categories[0]!;
+    pick.addEventListener("change", () => {
+      tileCategory = pick.value;
+      drawRight();
+    });
+    const search = el("input", { class: "fp-tilesearch", type: "search", placeholder: "Search all tiles", value: tileSearch, "aria-label": "Search tiles" });
+    search.addEventListener("input", () => {
+      tileSearch = search.value;
+      const at = search.selectionStart;
+      drawRight();
+      const again = right.querySelector<HTMLInputElement>(".fp-tilesearch");
+      again?.focus();
+      if (at !== null) again?.setSelectionRange(at, at);
+    });
+    into.append(el("div", { class: "fp-tilefilter" }, [pick, search]));
+
+    const words = tileSearch.toLowerCase().split(/\s+/).filter((w) => w !== "");
+    const matches = all.filter((t) =>
+      words.length > 0
+        ? words.every((w) => `${t.code} ${t.name} ${t.category} ${t.side ?? ""}`.toLowerCase().includes(w))
+        : t.category === pick.value,
+    );
+    matches.sort((a, b) => a.code.localeCompare(b.code) || a.name.localeCompare(b.name));
+    const grid = el("div", { class: "fp-tiles" });
+    for (const t of matches.slice(0, TILE_LIST_LIMIT)) grid.append(tileItem(t));
+    into.append(grid);
+    if (matches.length > TILE_LIST_LIMIT) into.append(el("p", { class: "fp-hint" }, [`${matches.length - TILE_LIST_LIMIT} more; search to narrow them.`]));
+    if (matches.length === 0) into.append(el("p", { class: "fp-hint" }, ["No tiles match."]));
+  }
+
+  function tileItem(t: TileEntry): HTMLElement {
+    const chosen = tool.kind === "tile" && tool.id === t.id;
+    const size = `${t.squares[0]}×${t.squares[1]}`;
+    const item = button("", () => selectTool({ kind: "tile", id: t.id }), {
+      class: `fp-tileitem${chosen ? " on" : ""}`,
+      title: `${t.code}${t.side === null ? "" : ` (${t.side})`}: ${t.name}. ${size} squares${t.tons === null ? "" : `, ${t.tons} tons`}${t.overlay ? ", overlay" : ""}.`,
+    });
+    const img = el("img", { alt: "", loading: "lazy" });
+    const href = tileHref(t.id);
+    if (href !== undefined) img.src = href;
+    else {
+      img.dataset["tile"] = t.id;
+      thumbnails.observe(img);
+    }
+    item.append(
+      img,
+      el("span", { class: "fp-tilecode" }, [`${t.code}${t.side === null ? "" : ` ${t.side[0]}`}`]),
+      el("span", { class: "fp-tilemeta" }, [`${size}${t.tons === null ? (t.overlay ? " overlay" : "") : ` · ${t.tons}t`}`]),
+    );
+    return item;
+  }
+
+  async function pickFolder(): Promise<void> {
+    if (await chooseFolder()) {
+      folderNote = undefined;
+      drawRight();
+      drawCanvas();
+    }
+  }
+
+  async function reconnect(): Promise<void> {
+    if (await reconnectFolder()) {
+      folderNote = undefined;
+      drawRight();
+      drawCanvas();
+    }
+  }
+
   // ---------------------------------------------------------------- problems
 
   function drawProblems(): void {
     const list = report.problems;
     if (list.length === 0) {
-      problems.replaceChildren(el("p", { class: "fp-ok" }, [report.total === 0 ? "Pick a component on the left and paint its squares." : "Every component has its squares."]));
+      problems.replaceChildren(
+        el("p", { class: "fp-ok" }, [
+          report.total === 0 ? "Lay geomorph tiles from the right, then pick components on the left and paint their squares." : "Every component has its squares.",
+        ]),
+      );
       return;
     }
     const items = list.map((p) =>
@@ -413,10 +597,20 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     for (const [at, d] of plan().decks.entries()) {
       const cut = report.cutOff.includes(at);
       tabs.append(
-        button(d.name, () => {
-          deck = at;
-          draw();
-        }, { class: `fp-tab${at === deck ? " on" : ""}${cut ? " fp-cut" : ""}`, role: "tab", "aria-selected": String(at === deck), title: cut ? "No way to the rest of the ship" : undefined }),
+        button(
+          d.name,
+          () => {
+            deck = at;
+            selection = undefined;
+            draw();
+          },
+          {
+            class: `fp-tab${at === deck ? " on" : ""}${cut ? " fp-cut" : ""}`,
+            role: "tab",
+            "aria-selected": String(at === deck),
+            title: cut ? "No way to the rest of the ship" : undefined,
+          },
+        ),
       );
     }
     tabs.append(
@@ -443,44 +637,46 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     const shift = (dx: number, dy: number, label: string, title: string) =>
       button(label, () => commit(shiftDeck(plan(), deck, dx, dy)), { class: "fp-small", title });
 
-    const deckTools = el("div", { class: "fp-decktools" }, [
-      name,
-      button("Up", () => {
-        if (deck === 0) return;
-        const next = moveDeck(plan(), deck, -1);
-        deck -= 1;
-        commit(next);
-      }, { class: "fp-small", title: "Move this deck up the order", ...(deck === 0 ? { disabled: "" } : {}) }),
-      button("Down", () => {
-        if (deck >= plan().decks.length - 1) return;
-        const next = moveDeck(plan(), deck, 1);
-        deck += 1;
-        commit(next);
-      }, { class: "fp-small", title: "Move this deck down the order", ...(deck >= plan().decks.length - 1 ? { disabled: "" } : {}) }),
-      el("span", { class: "fp-shift", title: "Move everything on this deck by a square" }, [
-        shift(-1, 0, "←", "Shift this deck one square left"),
-        shift(0, -1, "↑", "Shift this deck one square up"),
-        shift(0, 1, "↓", "Shift this deck one square down"),
-        shift(1, 0, "→", "Shift this deck one square right"),
+    deckBar.replaceChildren(
+      tabs,
+      el("div", { class: "fp-decktools" }, [
+        name,
+        button("Up", () => {
+          if (deck === 0) return;
+          const next = moveDeck(plan(), deck, -1);
+          deck -= 1;
+          commit(next);
+        }, { class: "fp-small", title: "Move this deck up the order", ...(deck === 0 ? { disabled: "" } : {}) }),
+        button("Down", () => {
+          if (deck >= plan().decks.length - 1) return;
+          const next = moveDeck(plan(), deck, 1);
+          deck += 1;
+          commit(next);
+        }, { class: "fp-small", title: "Move this deck down the order", ...(deck >= plan().decks.length - 1 ? { disabled: "" } : {}) }),
+        el("span", { class: "fp-shift", title: "Move everything on this deck by a square" }, [
+          shift(-1, 0, "←", "Shift this deck one square left"),
+          shift(0, -1, "↑", "Shift this deck one square up"),
+          shift(0, 1, "↓", "Shift this deck one square down"),
+          shift(1, 0, "→", "Shift this deck one square right"),
+        ]),
+        button("Delete deck", () => {
+          if (plan().decks.length <= 1) return;
+          const d = plan().decks[deck];
+          const used = d !== undefined && (Object.keys(d.cells).length > 0 || plan().tiles.some((t) => t.deck === deck));
+          if (used && !confirm(`Delete ${d.name} and everything on it?`)) return;
+          const next = removeDeck(plan(), deck);
+          deck = Math.max(0, deck - 1);
+          commit(next);
+        }, { class: "fp-small", ...(plan().decks.length <= 1 ? { disabled: "" } : {}) }),
+        overlayPick,
+        el("span", { class: "spacer" }),
+        button("−", () => zoom(1 / 1.25), { class: "fp-small", title: "Zoom out" }),
+        button("+", () => zoom(1.25), { class: "fp-small", title: "Zoom in" }),
+        button("Fit", fit, { class: "fp-small", title: "Fit the plan to the window" }),
+        button("SVG", () => void exportSvg(host.manifest, plan(), deck, labels), { class: "fp-small", title: "Save this deck as an SVG drawing" }),
+        button("PNG", () => void exportPng(host.manifest, plan(), deck, labels), { class: "fp-small", title: "Save this deck as a PNG image" }),
       ]),
-      button("Delete deck", () => {
-        if (plan().decks.length <= 1) return;
-        const d = plan().decks[deck];
-        const used = d !== undefined && Object.keys(d.cells).length > 0;
-        if (used && !confirm(`Delete ${d.name} and everything on it?`)) return;
-        const next = removeDeck(plan(), deck);
-        deck = Math.max(0, deck - 1);
-        commit(next);
-      }, { class: "fp-small", ...(plan().decks.length <= 1 ? { disabled: "" } : {}) }),
-      overlayPick,
-      el("span", { class: "spacer" }),
-      button("−", () => zoom(1 / 1.25), { class: "fp-small", title: "Zoom out" }),
-      button("+", () => zoom(1.25), { class: "fp-small", title: "Zoom in" }),
-      button("Fit", fit, { class: "fp-small", title: "Fit the plan to the window" }),
-      button("SVG", () => void exportSvg(host.manifest, plan(), deck), { class: "fp-small", title: "Save this deck as an SVG drawing" }),
-      button("PNG", () => void exportPng(host.manifest, plan(), deck), { class: "fp-small", title: "Save this deck as a PNG image" }),
-    ]);
-    deckBar.replaceChildren(tabs, deckTools);
+    );
   }
 
   // ------------------------------------------------------------------ canvas
@@ -503,6 +699,19 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     layers.grid.innerHTML = gridMarkup(visibleArea(), SCREEN);
   }
 
+  let pendingImages = false;
+  /** Tiles from the folder are read once and drawn when they arrive. */
+  function readMissingTiles(): void {
+    if (pendingImages) return;
+    const wanted = [...new Set(plan().tiles.filter((t) => t.deck === deck && tileHref(t.tile) === undefined && inFolder(t.tile)).map((t) => t.tile))];
+    if (wanted.length === 0) return;
+    pendingImages = true;
+    void Promise.all(wanted.map(readFolderImage)).then(() => {
+      pendingImages = false;
+      drawCanvas();
+    });
+  }
+
   function drawCanvas(): void {
     const d = plan().decks[deck];
     if (d === undefined) return;
@@ -510,16 +719,20 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     placeViewBox();
     const under = overlayDeck();
     const below = under === undefined ? undefined : plan().decks[under];
+    const tiled = tiledSquares(plan(), deck);
     layers.overlay.innerHTML = below === undefined ? "" : overlayMarkup(below, SCREEN);
     layers.floors.innerHTML = floorsMarkup(d, looks, SCREEN);
-    layers.walls.innerHTML = wallsMarkup(d, SCREEN);
+    layers.tiles.innerHTML = tilesMarkup(plan(), deck, SCREEN, tileHref);
+    layers.walls.innerHTML = wallsMarkup(d, SCREEN, 0.1, "", tiled);
     layers.fixtures.innerHTML = fixturesMarkup(plan(), deck, SCREEN, symbolHref);
     layers.labels.innerHTML = labelsMarkup(d, looks, SCREEN, fittedSquares(plan(), deck));
     layers.marks.innerHTML = under === undefined ? "" : unmatchedAccessMarkup(plan(), deck, under, SCREEN);
+    readMissingTiles();
+    drawSelection();
     drawPreview();
   }
 
-  // ------------------------------------------------------------ interaction
+  // ------------------------------------------------------------ hit testing
 
   /** The square under a pointer, and where in it the pointer is. */
   function at(event: PointerEvent | WheelEvent): { x: number; y: number; fx: number; fy: number } {
@@ -529,7 +742,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     return { x: Math.floor(px), y: Math.floor(py), fx: px - Math.floor(px), fy: py - Math.floor(py) };
   }
 
-  /** The wall nearest the pointer, in the stored north-or-west form. */
+  /** The wall nearest the pointer, in the stored north-or-west form, and how far away it is. */
   function nearestEdge(p: { x: number; y: number; fx: number; fy: number }) {
     const choices = [
       { side: "n" as const, d: p.fy },
@@ -537,33 +750,114 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       { side: "w" as const, d: p.fx },
       { side: "e" as const, d: 1 - p.fx },
     ].sort((a, b) => a.d - b.d);
-    return storedEdge({ x: p.x, y: p.y, side: choices[0]!.side });
+    return { ...storedEdge({ x: p.x, y: p.y, side: choices[0]!.side }), distance: choices[0]!.d };
   }
 
-  /** Where a square fixture goes so that the pointer is in the middle of its footprint. */
-  function fixtureOrigin(p: { x: number; y: number }, w: number, h: number): [number, number] {
+  /** Where something goes so that the pointer is in the middle of its footprint. */
+  function centredOrigin(p: { x: number; y: number }, w: number, h: number): [number, number] {
     return [p.x - Math.floor((w - 1) / 2), p.y - Math.floor((h - 1) / 2)];
   }
 
   function fixtureSize(f: Pick<SquareFixture, "kind" | "symbol" | "rotation">): readonly [number, number] {
-    const id = f.symbol ?? (f.kind === "lift" || f.kind === "stairs" ? ACCESS_SYMBOLS[f.kind] : undefined);
+    const id = f.symbol ?? (f.kind === "symbol" ? undefined : ACCESS_SYMBOLS[f.kind]);
     const symbol = symbolById(id);
     return symbol === undefined ? [1, 1] : footprint(symbol, f.rotation);
   }
 
-  /** The square fixture on this deck covering a square, if any. */
-  function fixtureAt(x: number, y: number): SquareFixture | undefined {
-    for (const f of plan().fixtures) {
+  /** The square fixture on this deck covering a square, if any, with its index. */
+  function fixtureAt(x: number, y: number): number | undefined {
+    const fixtures = plan().fixtures;
+    for (let i = fixtures.length - 1; i >= 0; i--) {
+      const f = fixtures[i]!;
       if (f.deck !== deck || "edge" in f) continue;
       const [w, h] = fixtureSize(f);
-      if (x >= f.x && x < f.x + w && y >= f.y && y < f.y + h) return f;
+      if (x >= f.x && x < f.x + w && y >= f.y && y < f.y + h) return i;
     }
     return undefined;
+  }
+
+  /** The door or iris valve in the wall nearest the pointer, if the pointer is close to it. */
+  function edgeFixtureAt(p: { x: number; y: number; fx: number; fy: number }): number | undefined {
+    const edge = nearestEdge(p);
+    if (edge.distance > 0.3) return undefined;
+    const key = `${edge.x},${edge.y},${edge.edge}`;
+    const fixtures = plan().fixtures;
+    for (let i = fixtures.length - 1; i >= 0; i--) {
+      const f = fixtures[i]!;
+      if (f.deck === deck && "edge" in f && edgesOf(f).includes(key)) return i;
+    }
+    return undefined;
+  }
+
+  /** The topmost tile on this deck covering a square, if any. */
+  function tileAt(x: number, y: number): number | undefined {
+    const tiles = plan().tiles;
+    for (let i = tiles.length - 1; i >= 0; i--) {
+      const t = tiles[i]!;
+      if (t.deck !== deck) continue;
+      const [w, h] = tileFootprint(t);
+      if (x >= t.x && x < t.x + w && y >= t.y && y < t.y + h) return i;
+    }
+    return undefined;
+  }
+
+  /** What the Move tool would pick up at a point: a fitting, a door, a room, a tile, in that order. */
+  function pickAt(p: { x: number; y: number; fx: number; fy: number }): Selection | undefined {
+    const fixture = fixtureAt(p.x, p.y);
+    if (fixture !== undefined) return { type: "fixture", index: fixture };
+    const edge = edgeFixtureAt(p);
+    if (edge !== undefined) return { type: "fixture", index: edge };
+    const d = plan().decks[deck];
+    if (d?.cells[cellKey(p.x, p.y)] !== undefined) {
+      const region = regions(d).find((r) => r.squares.some(([x, y]) => x === p.x && y === p.y));
+      if (region !== undefined) return { type: "region", squares: region.squares };
+    }
+    const tile = tileAt(p.x, p.y);
+    if (tile !== undefined) return { type: "tile", index: tile };
+    return undefined;
+  }
+
+  // ------------------------------------------------------- selection and preview
+
+  /** The outline of a selection, moved by an offset while it is being dragged. */
+  function selectionMarkup(sel: Selection, dx: number, dy: number, colour: string): string {
+    const outline = (x: number, y: number, w: number, h: number) =>
+      `<rect x="${x + dx - 0.05}" y="${y + dy - 0.05}" width="${w + 0.1}" height="${h + 0.1}" fill="none" stroke="${colour}" stroke-width="0.08" stroke-dasharray="0.25 0.15"/>`;
+    if (sel.type === "tile") {
+      const t = plan().tiles[sel.index];
+      if (t === undefined) return "";
+      const [w, h] = tileFootprint(t);
+      const ghost = dx === 0 && dy === 0 ? "" : tileMarkup({ ...t, x: t.x + dx, y: t.y + dy }, SCREEN, tileHref(t.tile), 0.6);
+      return ghost + outline(t.x, t.y, w, h);
+    }
+    if (sel.type === "fixture") {
+      const f = plan().fixtures[sel.index];
+      if (f === undefined) return "";
+      if ("edge" in f) {
+        const len = f.length ?? 1;
+        return f.edge === "n" ? outline(f.x, f.y - 0.2, len, 0.4) : outline(f.x - 0.2, f.y, 0.4, len);
+      }
+      const [w, h] = fixtureSize(f);
+      const ghost =
+        dx === 0 && dy === 0
+          ? ""
+          : symbolMarkup({ ...f, x: f.x + dx, y: f.y + dy, symbol: f.symbol ?? (f.kind === "symbol" ? undefined : ACCESS_SYMBOLS[f.kind]) }, SCREEN, symbolHref, 0.6);
+      return ghost + outline(f.x, f.y, w, h);
+    }
+    return sel.squares
+      .map(([x, y]) => `<rect x="${x + dx}" y="${y + dy}" width="1" height="1" fill="${SCREEN.fixture}" fill-opacity="${dx === 0 && dy === 0 ? 0.18 : 0.4}"/>`)
+      .join("");
+  }
+
+  function drawSelection(): void {
+    layers.selection.innerHTML = selection === undefined ? "" : selectionMarkup(selection, drag?.dx ?? 0, drag?.dy ?? 0, SCREEN.fixture);
   }
 
   let stroke:
     | { readonly owner: Owner | undefined; squares: Map<string, [number, number]>; last: [number, number]; anchor?: [number, number] }
     | undefined;
+  let doorDrag: { start: { x: number; y: number; edge: "n" | "w" }; end: number } | undefined;
+  let drag: { from: [number, number]; dx: number; dy: number } | undefined;
   let pan: { x: number; y: number; vx: number; vy: number } | undefined;
   let spaceHeld = false;
 
@@ -572,6 +866,18 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     if (tool.kind === "corridor") return CORRIDOR;
     if (tool.kind === "erase") return undefined;
     return null;
+  }
+
+  /** The door being dragged along a wall, from where it started to where the pointer is. */
+  function doorSpan(): EdgeFixture | undefined {
+    if (doorDrag === undefined || tool.kind !== "edge") return undefined;
+    const { start, end } = doorDrag;
+    const along = start.edge === "n" ? start.x : start.y;
+    const from = Math.min(along, end);
+    const length = tool.edge === "iris" ? 1 : Math.abs(end - along) + 1;
+    return start.edge === "n"
+      ? { kind: tool.edge, deck, x: tool.edge === "iris" ? start.x : from, y: start.y, edge: "n", ...(length > 1 ? { length } : {}) }
+      : { kind: tool.edge, deck, x: start.x, y: tool.edge === "iris" ? start.y : from, edge: "w", ...(length > 1 ? { length } : {}) };
   }
 
   function drawPreview(): void {
@@ -586,38 +892,77 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
             : `<rect x="${x}" y="${y}" width="1" height="1" fill="${colour}" opacity="0.85"/>`,
         );
       }
-    } else if (hover !== undefined) {
-      const [x, y] = hover;
+    } else if (doorDrag !== undefined) {
+      const span = doorSpan();
+      if (span !== undefined) {
+        const len = span.length ?? 1;
+        parts.push(
+          span.edge === "n"
+            ? `<rect x="${span.x}" y="${span.y - 0.15}" width="${len}" height="0.3" fill="${SCREEN.fixture}" fill-opacity="0.5"/>`
+            : `<rect x="${span.x - 0.15}" y="${span.y}" width="0.3" height="${len}" fill="${SCREEN.fixture}" fill-opacity="0.5"/>`,
+        );
+      }
+    } else if (hover !== undefined && drag === undefined) {
+      const { x, y } = hover;
       if (tool.kind === "symbol") {
         const symbol = symbolById(tool.id);
         if (symbol !== undefined) {
           const [w, h] = footprint(symbol, rotation);
-          const [ox, oy] = fixtureOrigin({ x, y }, w, h);
+          const [ox, oy] = centredOrigin(hover, w, h);
           parts.push(`<rect x="${ox}" y="${oy}" width="${w}" height="${h}" fill="${SCREEN.fixture}" fill-opacity="0.12" stroke="${SCREEN.fixture}" stroke-width="0.04"/>`);
-          parts.push(symbolMarkup({ x: ox, y: oy, rotation, symbol: tool.id }, SCREEN, symbolHref, 0.7));
+          parts.push(symbolMarkup({ x: ox, y: oy, rotation, flip: flipped, symbol: tool.id }, SCREEN, symbolHref, 0.7));
+        }
+      } else if (tool.kind === "tile") {
+        const entry = tileById(tool.id);
+        if (entry !== undefined) {
+          const ghost = ghostTile(entry, hover);
+          const [w, h] = tileFootprint(ghost);
+          parts.push(`<rect x="${ghost.x}" y="${ghost.y}" width="${w}" height="${h}" fill="${SCREEN.fixture}" fill-opacity="0.08" stroke="${SCREEN.fixture}" stroke-width="0.05"/>`);
+          parts.push(tileMarkup(ghost, SCREEN, tileHref(entry.id), 0.65));
         }
       } else if (tool.kind === "access") {
-        parts.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${SCREEN.fixture}" fill-opacity="0.18" stroke="${SCREEN.fixture}" stroke-width="0.04"/>`);
-      } else if (tool.kind !== "edge") {
+        parts.push(symbolMarkup({ x, y, rotation, flip: flipped, symbol: tool.symbol ?? ACCESS_SYMBOLS[tool.access] }, SCREEN, symbolHref, 0.6));
+      } else if (tool.kind === "edge") {
+        const edge = nearestEdge(hover);
+        parts.push(
+          edge.edge === "n"
+            ? `<rect x="${edge.x}" y="${edge.y - 0.12}" width="1" height="0.24" fill="${SCREEN.fixture}" fill-opacity="0.35"/>`
+            : `<rect x="${edge.x - 0.12}" y="${edge.y}" width="0.24" height="1" fill="${SCREEN.fixture}" fill-opacity="0.35"/>`,
+        );
+      } else if (tool.kind !== "move") {
         parts.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="none" stroke="${floorColour(strokeOwner() ?? undefined)}" stroke-width="0.06"/>`);
       }
     }
     layers.preview.innerHTML = parts.join("");
   }
 
+  function ghostTile(entry: TileEntry, p: { x: number; y: number }): PlacedTile {
+    const footprintOf = rotation === 90 || rotation === 270 ? [entry.squares[1], entry.squares[0]] : [entry.squares[0], entry.squares[1]];
+    const [ox, oy] = centredOrigin(p, footprintOf[0]!, footprintOf[1]!);
+    // Adventure Class images carry two squares of margin all round; the real size replaces this once the image is read.
+    const pixels = readTile(entry.id)?.pixels ?? ([(entry.squares[0] + 4) * 60, (entry.squares[1] + 4) * 60] as const);
+    return { deck, x: ox, y: oy, rotation, ...(flipped ? { flip: true } : {}), tile: entry.id, squares: entry.squares, pixels, code: entry.code };
+  }
+
   function describe(x: number, y: number): string {
     const owner = plan().decks[deck]?.cells[cellKey(x, y)];
-    const what = owner === undefined ? "empty" : owner === CORRIDOR ? "corridor" : look()(owner).label;
+    const what = owner === undefined ? "empty" : owner === CORRIDOR ? "corridor" : looksFor(components(), plan())(owner).label;
     const hint =
-      tool.kind === "paint" || tool.kind === "corridor" || tool.kind === "erase"
-        ? "Drag to paint, Shift+drag for a rectangle."
-        : tool.kind === "edge"
-          ? "Click near a wall."
-          : tool.kind === "symbol"
-            ? "Click to place, R to turn, click a fitting to remove it."
-            : "Click to place or remove.";
-    return `${x}, ${y}: ${what}. ${hint} Wheel zooms; drag with the right button or Space to move.`;
+      tool.kind === "move"
+        ? "Drag a tile, fitting, door or room to move it; R turns, Delete removes."
+        : tool.kind === "paint" || tool.kind === "corridor" || tool.kind === "erase"
+          ? "Drag to paint, Shift+drag for a rectangle."
+          : tool.kind === "edge"
+            ? tool.edge === "door"
+              ? "Click a wall for a door, drag along it for a wide one."
+              : "Click a wall for an iris valve."
+            : tool.kind === "tile" || tool.kind === "symbol"
+              ? "Click to place, R to turn."
+              : "Click to place or remove.";
+    return `${x}, ${y}: ${what}. ${hint} Wheel zooms; right-drag or Space-drag moves the view.`;
   }
+
+  // ------------------------------------------------------------ interaction
 
   svg.addEventListener("contextmenu", (event) => event.preventDefault());
 
@@ -630,28 +975,50 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     }
     if (event.button !== 0) return;
     const p = at(event);
+    svg.setPointerCapture(event.pointerId);
+
+    if (tool.kind === "move") {
+      selection = pickAt(p);
+      drag = selection === undefined ? undefined : { from: [p.x, p.y], dx: 0, dy: 0 };
+      drawSelection();
+      return;
+    }
     const owner = strokeOwner();
     if (owner !== null) {
       const start: [number, number] = [p.x, p.y];
       stroke = { owner, squares: new Map([[cellKey(p.x, p.y), start]]), last: start, ...(event.shiftKey ? { anchor: start } : {}) };
-      svg.setPointerCapture(event.pointerId);
       drawPreview();
       return;
     }
     if (tool.kind === "edge") {
       const edge = nearestEdge(p);
-      const existing = plan().fixtures.find((f) => "edge" in f && f.deck === deck && f.x === edge.x && f.y === edge.y && f.edge === edge.edge);
-      if (existing !== undefined && existing.kind === tool.edge) commit(removeFixture(plan(), existing));
-      else commit(placeFixture(plan(), { kind: tool.edge, deck, ...edge }));
+      doorDrag = { start: { x: edge.x, y: edge.y, edge: edge.edge }, end: edge.edge === "n" ? edge.x : edge.y };
+      drawPreview();
+      return;
+    }
+    if (tool.kind === "tile") {
+      const entry = tileById(tool.id);
+      if (entry === undefined) return;
+      // The image is read first, so the tile is placed knowing its true size.
+      void readFolderImage(entry.id).then(() => commit(placeTile(plan(), ghostTile(entry, p))));
       return;
     }
     const existing = fixtureAt(p.x, p.y);
     if (existing !== undefined) {
-      commit(removeFixture(plan(), existing));
+      const f = plan().fixtures[existing]!;
+      commit(removeFixture(plan(), f));
       return;
     }
     if (tool.kind === "access") {
-      const fixture: Fixture = { kind: tool.access, deck, x: p.x, y: p.y, rotation };
+      const fixture: Fixture = {
+        kind: tool.access,
+        deck,
+        x: p.x,
+        y: p.y,
+        rotation,
+        ...(flipped ? { flip: true } : {}),
+        ...(tool.symbol === undefined ? {} : { symbol: tool.symbol }),
+      };
       commit(placeFixture(plan(), fixture));
       return;
     }
@@ -659,8 +1026,8 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       const symbol = symbolById(tool.id);
       if (symbol === undefined) return;
       const [w, h] = footprint(symbol, rotation);
-      const [ox, oy] = fixtureOrigin(p, w, h);
-      commit(placeFixture(plan(), { kind: "symbol", deck, x: ox, y: oy, rotation, symbol: symbol.id }));
+      const [ox, oy] = centredOrigin(p, w, h);
+      commit(placeFixture(plan(), { kind: "symbol", deck, x: ox, y: oy, rotation, ...(flipped ? { flip: true } : {}), symbol: symbol.id }));
     }
   });
 
@@ -671,6 +1038,15 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       return;
     }
     const p = at(event);
+    if (drag !== undefined) {
+      const dx = p.x - drag.from[0];
+      const dy = p.y - drag.from[1];
+      if (dx !== drag.dx || dy !== drag.dy) {
+        drag = { ...drag, dx, dy };
+        drawSelection();
+      }
+      return;
+    }
     if (stroke !== undefined) {
       const next: [number, number] = [p.x, p.y];
       if (next[0] !== stroke.last[0] || next[1] !== stroke.last[1]) {
@@ -680,8 +1056,16 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       }
       return;
     }
-    if (hover === undefined || hover[0] !== p.x || hover[1] !== p.y) {
-      hover = [p.x, p.y];
+    if (doorDrag !== undefined) {
+      const end = doorDrag.start.edge === "n" ? Math.floor(p.x + p.fx) : Math.floor(p.y + p.fy);
+      if (end !== doorDrag.end) {
+        doorDrag = { ...doorDrag, end };
+        drawPreview();
+      }
+      return;
+    }
+    if (hover === undefined || hover.x !== p.x || hover.y !== p.y || tool.kind === "edge") {
+      hover = p;
       status.textContent = describe(p.x, p.y);
       drawPreview();
     }
@@ -694,6 +1078,37 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     const squares = done.anchor !== undefined ? rectangle(done.anchor, done.last) : [...done.squares.values()];
     commit(paint(plan(), deck, squares, done.owner));
     advanceStateroom();
+  }
+
+  function endDoor(): void {
+    const span = doorSpan();
+    doorDrag = undefined;
+    if (span === undefined) return;
+    // Clicking a wall that already has exactly this door or valve takes it out.
+    const same = plan().fixtures.find(
+      (f) => "edge" in f && f.deck === deck && f.kind === span.kind && f.x === span.x && f.y === span.y && f.edge === span.edge && (f.length ?? 1) === (span.length ?? 1),
+    );
+    commit(same !== undefined ? removeFixture(plan(), same) : placeFixture(plan(), span));
+  }
+
+  function endDrag(): void {
+    const done = drag;
+    drag = undefined;
+    if (done === undefined || selection === undefined || (done.dx === 0 && done.dy === 0)) {
+      drawSelection();
+      return;
+    }
+    const { dx, dy } = done;
+    const sel = selection;
+    if (sel.type === "fixture") {
+      const f = plan().fixtures[sel.index];
+      if (f !== undefined) commit(replaceFixture(plan(), sel.index, { ...f, x: f.x + dx, y: f.y + dy }), sel);
+    } else if (sel.type === "tile") {
+      const t = plan().tiles[sel.index];
+      if (t !== undefined) commit(replaceTile(plan(), sel.index, { ...t, x: t.x + dx, y: t.y + dy }), sel);
+    } else {
+      commit(moveSquares(plan(), deck, sel.squares, dx, dy), { type: "region", squares: sel.squares.map(([x, y]) => [x + dx, y + dy] as const) });
+    }
   }
 
   /** After drawing a stateroom, move the brush on to the next one not yet drawn. */
@@ -713,15 +1128,20 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       canvas.classList.remove("fp-panning");
       return;
     }
-    endStroke();
+    if (drag !== undefined) endDrag();
+    else if (doorDrag !== undefined) endDoor();
+    else endStroke();
   });
   svg.addEventListener("pointercancel", () => {
     pan = undefined;
     stroke = undefined;
+    doorDrag = undefined;
+    drag = undefined;
+    drawSelection();
     drawPreview();
   });
   svg.addEventListener("pointerleave", () => {
-    if (stroke === undefined) {
+    if (stroke === undefined && drag === undefined && doorDrag === undefined) {
       hover = undefined;
       drawPreview();
     }
@@ -731,7 +1151,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     const box = svg.getBoundingClientRect();
     const cx = around === undefined ? box.width / 2 : around.clientX - box.left;
     const cy = around === undefined ? box.height / 2 : around.clientY - box.top;
-    const scale = Math.max(6, Math.min(160, view.scale * factor));
+    const scale = Math.max(4, Math.min(160, view.scale * factor));
     const wx = view.x + cx / view.scale;
     const wy = view.y + cy / view.scale;
     view = { scale, x: wx - cx / scale, y: wy - cy / scale };
@@ -748,17 +1168,23 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   );
 
   function fit(): void {
-    const area = bounds(plan().decks) ?? { minX: 0, minY: 0, maxX: 24, maxY: 14 };
+    const cells = bounds(plan().decks);
+    let area = cells ?? { minX: 0, minY: 0, maxX: 24, maxY: 14 };
+    for (const t of plan().tiles) {
+      const [w, h] = tileFootprint(t);
+      area = {
+        minX: Math.min(area.minX, t.x),
+        minY: Math.min(area.minY, t.y),
+        maxX: Math.max(area.maxX, t.x + w - 1),
+        maxY: Math.max(area.maxY, t.y + h - 1),
+      };
+    }
     const w = canvas.clientWidth || 800;
     const h = canvas.clientHeight || 600;
     const spanX = area.maxX - area.minX + 5;
     const spanY = area.maxY - area.minY + 5;
-    const scale = Math.max(6, Math.min(60, Math.min(w / spanX, h / spanY)));
-    view = {
-      scale,
-      x: area.minX - 2.5 - (w / scale - spanX) / 2,
-      y: area.minY - 2.5 - (h / scale - spanY) / 2,
-    };
+    const scale = Math.max(4, Math.min(60, Math.min(w / spanX, h / spanY)));
+    view = { scale, x: area.minX - 2.5 - (w / scale - spanX) / 2, y: area.minY - 2.5 - (h / scale - spanY) / 2 };
     placeViewBox();
   }
 
@@ -771,17 +1197,88 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     }
   }).observe(canvas);
 
+  // ------------------------------------------------------ the selection's keys
+
+  function removeSelection(): void {
+    const sel = selection;
+    if (sel === undefined) return;
+    if (sel.type === "fixture") {
+      const f = plan().fixtures[sel.index];
+      if (f !== undefined) commit(removeFixture(plan(), f));
+    } else if (sel.type === "tile") commit(removeTile(plan(), sel.index));
+    else commit(paint(plan(), deck, sel.squares, undefined));
+  }
+
+  function turnSelection(): boolean {
+    const sel = selection;
+    if (sel === undefined || sel.type === "region") return false;
+    const next = (r: Rotation) => ((r + 90) % 360) as Rotation;
+    if (sel.type === "tile") {
+      const t = plan().tiles[sel.index];
+      if (t !== undefined) commit(replaceTile(plan(), sel.index, { ...t, rotation: next(t.rotation) }), sel);
+      return true;
+    }
+    const f = plan().fixtures[sel.index];
+    if (f === undefined || "edge" in f) return false;
+    commit(replaceFixture(plan(), sel.index, { ...f, rotation: next(f.rotation) }), sel);
+    return true;
+  }
+
+  /** Mirror the selected tile or piece, if it is one. */
+  function flipSelection(): boolean {
+    const sel = selection;
+    if (sel === undefined || sel.type === "region") return false;
+    if (sel.type === "tile") {
+      const t = plan().tiles[sel.index];
+      if (t !== undefined) commit(replaceTile(plan(), sel.index, { ...t, flip: t.flip !== true }), sel);
+      return true;
+    }
+    const f = plan().fixtures[sel.index];
+    if (f === undefined || "edge" in f) return false;
+    commit(replaceFixture(plan(), sel.index, { ...f, flip: f.flip !== true }), sel);
+    return true;
+  }
+
+  /** Turn the selection with Move, or whatever is about to be placed with any other tool. */
+  function turn(): void {
+    if (tool.kind === "move" && turnSelection()) return;
+    rotation = ((rotation + 90) % 360) as Rotation;
+    drawPreview();
+  }
+
+  function flip(): void {
+    if (tool.kind === "move" && flipSelection()) return;
+    flipped = !flipped;
+    drawRight();
+    drawPreview();
+  }
+
+  function nudgeSelection(dx: number, dy: number): void {
+    const sel = selection;
+    if (sel === undefined) return;
+    if (sel.type === "fixture") {
+      const f = plan().fixtures[sel.index];
+      if (f !== undefined) commit(replaceFixture(plan(), sel.index, { ...f, x: f.x + dx, y: f.y + dy }), sel);
+    } else if (sel.type === "tile") {
+      const t = plan().tiles[sel.index];
+      if (t !== undefined) commit(replaceTile(plan(), sel.index, { ...t, x: t.x + dx, y: t.y + dy }), sel);
+    } else {
+      commit(moveSquares(plan(), deck, sel.squares, dx, dy), { type: "region", squares: sel.squares.map(([x, y]) => [x + dx, y + dy] as const) });
+    }
+  }
+
   // -------------------------------------------------------------------- draw
 
   function draw(): void {
     report = check(host.manifest, plan());
     deck = Math.min(deck, plan().decks.length - 1);
-    // A brush for a component the design no longer has, or a stateroom past the count, goes back to the corridor.
+    // A brush for a component the design no longer has goes back to Move.
     if (tool.kind === "paint") {
       const key = tool.owner.split("#")[0]!;
-      if (!components().some((c) => c.key === key)) tool = { kind: "corridor" };
+      if (!components().some((c) => c.key === key)) tool = { kind: "move" };
     }
-    drawSide();
+    drawLeft();
+    drawRight();
     drawProblems();
     drawDeckBar();
     drawCanvas();
@@ -789,42 +1286,61 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   }
 
   draw();
+  void rememberedFolder().then((found) => {
+    folderNote = found;
+    drawRight();
+    drawCanvas();
+  });
 
   return {
     refresh: draw,
     fit,
-    print: () => printPlan(host.manifest, plan()),
+    print: () => printPlan(host.manifest, plan(), labels),
     key(event) {
       const target = event.target as HTMLElement | null;
       if (target !== null && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT")) return false;
       const mod = event.ctrlKey || event.metaKey;
-      if (mod && event.key.toLowerCase() === "z") {
+      const down = event.type === "keydown";
+      if (down && mod && event.key.toLowerCase() === "z") {
         if (event.shiftKey) redoOnce();
         else undoOnce();
         return true;
       }
-      if (mod && event.key.toLowerCase() === "y") {
+      if (down && mod && event.key.toLowerCase() === "y") {
         redoOnce();
         return true;
       }
-      if (!mod && event.key.toLowerCase() === "r") {
-        rotation = ((rotation + 90) % 360) as Rotation;
-        drawPreview();
+      if (down && !mod && event.key.toLowerCase() === "r") {
+        turn();
         return true;
       }
-      if (event.key === " " && event.type === "keydown") {
-        spaceHeld = true;
-        canvas.classList.add("fp-grab");
+      if (down && !mod && event.key.toLowerCase() === "f") {
+        flip();
         return true;
       }
-      if (event.key === " " && event.type === "keyup") {
-        spaceHeld = false;
-        canvas.classList.remove("fp-grab");
+      if (down && tool.kind === "move" && selection !== undefined) {
+        if (event.key === "Delete" || event.key === "Backspace") {
+          removeSelection();
+          return true;
+        }
+        const arrows: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+        const step = arrows[event.key];
+        if (step !== undefined) {
+          nudgeSelection(step[0], step[1]);
+          return true;
+        }
+      }
+      if (event.key === " ") {
+        spaceHeld = down;
+        canvas.classList.toggle("fp-grab", down);
         return true;
       }
-      if (event.key === "Escape") {
+      if (down && event.key === "Escape") {
         stroke = undefined;
-        selectTool({ kind: "corridor" });
+        doorDrag = undefined;
+        drag = undefined;
+        selection = undefined;
+        selectTool({ kind: "move" });
         return true;
       }
       return false;

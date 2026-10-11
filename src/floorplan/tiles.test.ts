@@ -1,0 +1,160 @@
+/**
+ * Tiles in a plan, wide doors, moving things, and the tile catalogue.
+ * FloorPlanSpec 7.1.1, 10.9 and section 12.
+ */
+
+import { describe, expect, it } from "vitest";
+import type { PlacedTile } from "./plan";
+import {
+  addDeck,
+  edgesOf,
+  emptyPlan,
+  moveSquares,
+  paint,
+  placeFixture,
+  placeTile,
+  readPlan,
+  rectangle,
+  removeDeck,
+  shiftDeck,
+  tiledSquares,
+  tileFootprint,
+} from "./plan";
+import { fixturesMarkup, PAPER, tileMarkup } from "./render";
+import { SYMBOLS } from "./symbols";
+import { parseTileName, tileId } from "./tiles";
+
+const CORE: PlacedTile = { deck: 0, x: 2, y: 3, rotation: 0, tile: "sc-001-30x100-37-dtons-bridge-staterooms", squares: [6, 20], pixels: [600, 1440], code: "SC-001" };
+
+describe("tiles on a plan", () => {
+  it("cover their footprint, turned with them", () => {
+    expect(tileFootprint(CORE)).toEqual([6, 20]);
+    expect(tileFootprint({ ...CORE, rotation: 90 })).toEqual([20, 6]);
+    const covered = tiledSquares(placeTile(emptyPlan(), CORE), 0);
+    expect(covered.size).toBe(120);
+    expect(covered.has("2,3")).toBe(true);
+    expect(covered.has("7,22")).toBe(true);
+    expect(covered.has("8,3")).toBe(false);
+  });
+
+  it("do not count an overlay as covering anything", () => {
+    const overlay = { ...CORE, tile: "sc-002-20x150-overlay-cargo" };
+    expect(tiledSquares(placeTile(emptyPlan(), overlay), 0).size).toBe(0);
+  });
+
+  it("move with their deck, and go with it", () => {
+    let plan = placeTile(addDeck(emptyPlan()), { ...CORE, deck: 1 });
+    plan = shiftDeck(plan, 1, -2, 1);
+    expect(plan.tiles[0]).toMatchObject({ x: 0, y: 4 });
+    expect(removeDeck(plan, 1).tiles).toEqual([]);
+  });
+
+  it("come back from a saved plan, size and all", () => {
+    const plan = placeTile(emptyPlan(), CORE);
+    expect(readPlan(JSON.parse(JSON.stringify(plan)))?.tiles).toEqual([CORE]);
+    expect(readPlan({ decks: [{ cells: {} }], tiles: [{ tile: "x", deck: 0, x: 0, y: 0 }] })?.tiles).toEqual([]);
+  });
+});
+
+describe("doors", () => {
+  it("can be wider than a square, as one fixture", () => {
+    const plan = placeFixture(emptyPlan(), { kind: "door", deck: 0, x: 3, y: 2, edge: "n", length: 3 });
+    expect(edgesOf(plan.fixtures[0] as never)).toEqual(["3,2,n", "4,2,n", "5,2,n"]);
+  });
+
+  it("stay separate side by side, each one its own", () => {
+    let plan = placeFixture(emptyPlan(), { kind: "door", deck: 0, x: 3, y: 2, edge: "n" });
+    plan = placeFixture(plan, { kind: "door", deck: 0, x: 4, y: 2, edge: "n" });
+    expect(plan.fixtures).toHaveLength(2);
+  });
+
+  it("replace whatever they overlap", () => {
+    let plan = placeFixture(emptyPlan(), { kind: "iris", deck: 0, x: 4, y: 2, edge: "n" });
+    plan = placeFixture(plan, { kind: "door", deck: 0, x: 3, y: 2, edge: "n", length: 2 });
+    expect(plan.fixtures.map((f) => f.kind)).toEqual(["door"]);
+  });
+
+  it("keep their width through a save", () => {
+    const plan = placeFixture(emptyPlan(), { kind: "door", deck: 0, x: 0, y: 0, edge: "w", length: 2 });
+    expect(readPlan(JSON.parse(JSON.stringify(plan)))?.fixtures).toEqual(plan.fixtures);
+  });
+});
+
+describe("moving a room", () => {
+  it("carries its squares and owner by whole squares, over whatever is there", () => {
+    let plan = paint(emptyPlan(), 0, rectangle([0, 0], [1, 1]), "jump");
+    plan = paint(plan, 0, [[3, 0]], "~corridor");
+    plan = moveSquares(plan, 0, rectangle([0, 0], [1, 1]), 2, 0);
+    expect(plan.decks[0]!.cells).toEqual({ "2,0": "jump", "3,0": "jump", "2,1": "jump", "3,1": "jump" });
+  });
+});
+
+describe("reading a geomorph's filename", () => {
+  it("finds its code, side, size, tonnage and description", () => {
+    const t = parseTileName("SE-240 [Fore] [50x100] [50-dTons] Bridge, Staterooms.png", "05 SE Small Ends - Fore")!;
+    expect(t).toMatchObject({
+      code: "SE-240",
+      side: "Fore",
+      feet: [50, 100],
+      squares: [10, 20],
+      tons: "50",
+      overlay: false,
+      name: "Bridge, Staterooms",
+      category: "SE Small Ends - Fore",
+    });
+    expect(t.id).toBe(tileId("SE-240 [Fore] [50x100] [50-dTons] Bridge, Staterooms.png"));
+  });
+
+  it("knows an overlay, and a tonnage given as a sum", () => {
+    expect(parseTileName("SC-002 [20x150] [Overlay] Cargo.png", "x")).toMatchObject({ overlay: true, tons: null, name: "Cargo" });
+    expect(parseTileName("SS-090 [Port] [50x50] [10+14-dTons] Engineering, Aerofin.png", "x")?.tons).toBe("10+14");
+  });
+
+  it("is not fooled by files that are not tiles", () => {
+    expect(parseTileName("AN-008 Spider.png", "Animals")).toBeUndefined();
+    expect(parseTileName("Read Me v2.2.txt", "AdventureClass")).toBeUndefined();
+  });
+});
+
+describe("flipping", () => {
+  it("mirrors a piece about its middle before turning it", () => {
+    const plain = fixturesMarkup(placeFixture(emptyPlan(), { kind: "symbol", deck: 0, x: 0, y: 0, rotation: 90, symbol: "bed" }), 0, PAPER, (f) => f);
+    const flipped = fixturesMarkup(placeFixture(emptyPlan(), { kind: "symbol", deck: 0, x: 0, y: 0, rotation: 90, flip: true, symbol: "bed" }), 0, PAPER, (f) => f);
+    expect(plain).toContain('transform="rotate(90 0.5 1)"');
+    expect(flipped).toContain('transform="rotate(90 0.5 1) translate(0.5 1) scale(-1 1) translate(-0.5 -1)"');
+    expect(tileMarkup({ ...CORE, flip: true }, PAPER, "x.png")).toContain("scale(-1 1)");
+  });
+
+  it("is kept through a save", () => {
+    let plan = placeFixture(emptyPlan(), { kind: "symbol", deck: 0, x: 0, y: 0, rotation: 0, flip: true, symbol: "bed" });
+    plan = placeTile(plan, { ...CORE, flip: true });
+    const back = readPlan(JSON.parse(JSON.stringify(plan)));
+    expect(back?.fixtures).toEqual(plan.fixtures);
+    expect(back?.tiles).toEqual(plan.tiles);
+  });
+});
+
+describe("the library", () => {
+  it("has the turrets and barbettes, DV-001 to DV-009", () => {
+    const turrets = SYMBOLS.filter((s) => s.category === "turrets");
+    expect(turrets).toHaveLength(13);
+    expect(turrets.every((s) => (s as { source?: string }).source?.includes("/DV-00"))).toBe(true);
+  });
+
+  it("has engineering sections under a hundred tons, larger staterooms and common areas", () => {
+    const tons = (id: string) => {
+      const s = SYMBOLS.find((x) => x.id === id)!;
+      return (s.squares[0] * s.squares[1]) / 2;
+    };
+    const engineering = SYMBOLS.filter((s) => s.category === "engineering");
+    expect(engineering.length).toBeGreaterThanOrEqual(6);
+    expect(engineering.every((s) => tons(s.id) < 100)).toBe(true);
+    expect(tons("engineering-63")).toBe(63);
+    expect(SYMBOLS.some((s) => s.category === "rooms" && tons(s.id) >= 8)).toBe(true);
+    expect(SYMBOLS.filter((s) => s.category === "common").length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("names every piece once", () => {
+    expect(new Set(SYMBOLS.map((s) => s.id)).size).toBe(SYMBOLS.length);
+  });
+});

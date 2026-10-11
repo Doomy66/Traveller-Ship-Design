@@ -14,6 +14,22 @@ user. Dates are the day the release was tagged.
   staterooms come from Robert Pearce's Starship Symbols. Each deck exports as
   SVG or PNG, Print gives every deck a page, and the plan saves inside the
   `.ship`. `FloorPlanSpec.md` is its contract.
+- **A library of ship pieces.** Turrets and barbettes, engineering sections of
+  4 to 63 tons, staterooms up to quad and luxury suites, lounges and galleys,
+  furniture and consoles, in one list on the right. Every piece turns (R) and
+  flips (F), before or after placing.
+- **Geomorph tiles for larger ships.** Load geomorph folder points the screen at
+  your own copy of Robert Pearce's Adventure Class geomorphs, and every tile in
+  it can be laid on the deck. Paint the components over them; the tiles draw
+  the walls.
+- **Move.** Drag tiles, furniture, doors and whole rooms; R turns, Delete
+  removes, the arrow keys nudge.
+- **Numbered rooms.** Components are numbered down the left, and rooms can be
+  labelled by number, with a key on exported and printed plans, or by name
+  while designing.
+- **Wide doors and iris valves.** Drag along a wall for a door wider than a
+  square; doors on neighbouring squares stay separate. Iris valves go in walls
+  or in floors and ceilings, drawn with the symbols' own iris valves.
 - **A way in.** A landing screen in the style PlanetHex and MainLine share: a
   new design, a file, one of the book's ships, or back to the one open. The name
   in the bar returns to it without losing anything.

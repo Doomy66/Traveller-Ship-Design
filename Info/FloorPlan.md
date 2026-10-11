@@ -14,6 +14,11 @@ The floor plan designer is the second major part of the project. [FloorPlanSpec.
 | How components are remembered | A stable key per sheet line | ShipSpec 5.2.2 and 5.2.3: keys and counts |
 | Fuel | Listed, optional | Placed or not, never a shortfall (FP 3.5) |
 | Several decks | One shared grid, with an overlay | Any deck shown faintly under the current one to line up shafts and hulls (FP 4.3.1, 10.7) |
+| Geomorph tiles | None bundled; the few pieces most ships want are in the library, the whole archive from a folder for larger ships | Turrets DV-001 to DV-009, engineering under 100 tons, larger staterooms and common areas in the library; Load geomorph folder lists the rest from their filenames (FP 7.7, 12) |
+| Library | One list, furniture and geomorph pieces together | No separate geomorph tab (FP 7.7) |
+| Turning and flipping | Every piece on squares | R and F, before or after placing (FP 7.1.2) |
+| Screen layout | Components left, tools and libraries right | The deck between them (FP 10.2 to 10.4) |
+| Room labels | Numbered, with names while designing | A switch, and a key on numbered exports (FP 8.4) |
 
 ## Phases
 
@@ -36,6 +41,13 @@ Each phase ends with the tests passing, the build clean and a commit, as the shi
 **Later.** The geomorph tiles, a drawn hull outline, the FP 6.3 reachability checks, a coarser scale for very large ships, and suggesting a first layout from the manifest.
 
 ## Where we are
+
+Third pass, 2026-10-11. The bundled geomorph starter set is gone: the author wanted only the turrets, so the library now holds DV-001 to DV-009 with eight engineering sections under 100 tons, larger staterooms and common areas, beside the furniture, in one list. Load geomorph folder stays, for larger ships, and lists tiles from their filenames. Every piece can be turned and flipped.
+
+
+Second pass, 2026-10-11, after the author's review. Geomorph tiles are the normal way to draw a plan now: a browser on the right lists the starter set and anything in a loaded tile folder, and tiles are placed, moved and turned. A Move tool drags tiles, fittings, doors and rooms. Components are numbered down the left, rooms can be labelled by number with a key on export, doors can be any width, and iris valves can go in walls or in floors and ceilings. The scripts that copy symbols and tiles in from `D:\SandPit\ShipParts` are in `scripts/floorplan/`.
+
+First pass:
 
 FP1 to FP6 done, 2026-10-11. The floor plan screen opens from the bar beside Design. Painting, staterooms one by one, corridors, decks with an overlay, doors, iris valves, lifts, hatches, stairs, 28 bundled symbols, undo, SVG and PNG export and printing all work, and the plan saves inside the `.ship`. The open questions of FP 11 were settled by default and are written up there.
 

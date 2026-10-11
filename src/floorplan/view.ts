@@ -10,6 +10,7 @@
 import "./floorplan.css";
 import type { Report, Tally } from "./check";
 import { check } from "./check";
+import { exportPng, exportSvg, printPlan } from "./export";
 import type { Bounds } from "./geometry";
 import { bounds, storedEdge } from "./geometry";
 import type { Component, ComponentGroup, Manifest } from "./manifest";
@@ -30,6 +31,7 @@ import {
   shiftDeck,
 } from "./plan";
 import {
+  fittedSquares,
   fixturesMarkup,
   floorsMarkup,
   gridMarkup,
@@ -59,6 +61,8 @@ export interface FloorPlanView {
   fit(): void;
   /** Keys pressed while the screen is showing. Returns true if it used the key. */
   key(event: KeyboardEvent): boolean;
+  /** Every deck to the printer. */
+  print(): void;
 }
 
 type Tool =
@@ -473,6 +477,8 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       button("−", () => zoom(1 / 1.25), { class: "fp-small", title: "Zoom out" }),
       button("+", () => zoom(1.25), { class: "fp-small", title: "Zoom in" }),
       button("Fit", fit, { class: "fp-small", title: "Fit the plan to the window" }),
+      button("SVG", () => void exportSvg(host.manifest, plan(), deck), { class: "fp-small", title: "Save this deck as an SVG drawing" }),
+      button("PNG", () => void exportPng(host.manifest, plan(), deck), { class: "fp-small", title: "Save this deck as a PNG image" }),
     ]);
     deckBar.replaceChildren(tabs, deckTools);
   }
@@ -508,7 +514,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     layers.floors.innerHTML = floorsMarkup(d, looks, SCREEN);
     layers.walls.innerHTML = wallsMarkup(d, SCREEN);
     layers.fixtures.innerHTML = fixturesMarkup(plan(), deck, SCREEN, symbolHref);
-    layers.labels.innerHTML = labelsMarkup(d, looks, SCREEN);
+    layers.labels.innerHTML = labelsMarkup(d, looks, SCREEN, fittedSquares(plan(), deck));
     layers.marks.innerHTML = under === undefined ? "" : unmatchedAccessMarkup(plan(), deck, under, SCREEN);
     drawPreview();
   }
@@ -787,6 +793,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   return {
     refresh: draw,
     fit,
+    print: () => printPlan(host.manifest, plan()),
     key(event) {
       const target = event.target as HTMLElement | null;
       if (target !== null && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT")) return false;

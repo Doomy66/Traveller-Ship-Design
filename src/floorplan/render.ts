@@ -164,13 +164,36 @@ export function wallsMarkup(deck: Deck, palette: Palette, width = 0.1, extra = "
   return d === "" ? "" : `<path d="${d}" stroke="${palette.wall}" stroke-width="${width}" stroke-linecap="square" fill="none"${extra}/>`;
 }
 
-/** A label in each room. FP 8.3. */
-export function labelsMarkup(deck: Deck, look: (owner: Owner) => OwnerLook, palette: Palette): string {
+/**
+ * Squares covered by a fitted room from the symbol library, a stateroom drawn
+ * complete. Those symbols carry their own lettering, so the room is not
+ * labelled a second time over the top of it.
+ */
+export function fittedSquares(plan: FloorPlan, deck: number): Set<string> {
+  const covered = new Set<string>();
+  for (const f of plan.fixtures) {
+    if (f.deck !== deck || "edge" in f || f.kind !== "symbol") continue;
+    const symbol = symbolById(f.symbol);
+    if (symbol === undefined || symbol.category !== "rooms") continue;
+    const [w, h] = footprint(symbol, f.rotation);
+    for (let dy = 0; dy < h; dy++) for (let dx = 0; dx < w; dx++) covered.add(`${f.x + dx},${f.y + dy}`);
+  }
+  return covered;
+}
+
+/** A label in each room, unless a fitted room's own lettering is there already. FP 8.3. */
+export function labelsMarkup(
+  deck: Deck,
+  look: (owner: Owner) => OwnerLook,
+  palette: Palette,
+  fitted: ReadonlySet<string> = new Set(),
+): string {
   const out: string[] = [];
   for (const region of regions(deck)) {
     const label = look(region.owner).label;
     if (label === "" || region.squares.length < 2) continue;
     const [x, y] = labelSquare(region);
+    if (fitted.has(`${x},${y}`)) continue;
     // Shrink long names in small rooms, within limits that stay legible.
     const xs = region.squares.map((s) => s[0]);
     const width = Math.max(...xs) - Math.min(...xs) + 1;

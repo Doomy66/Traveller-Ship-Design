@@ -4,7 +4,7 @@ A floor plan for one ship, laid out on the standard Traveller deck square, with 
 
 Clauses are numbered so code and tests can cite them, as ShipSpec does. A clause here is cited as FP and its number, so FP 3.2. Page numbers are PDF pages of *High Guard Update 2022*. This document carries no Mongoose text. Where the book gives guidance, the clause says what it means in its own words.
 
-This is a draft. Section 11 lists what is still open.
+Built through FP6 on 2026-10-11. Section 11 lists what was settled by default and can still be revisited.
 
 ## Contents
 
@@ -82,9 +82,13 @@ This is a draft. Section 11 lists what is still open.
 
 5.2 A component short of its target, or over it, is a **warning**, not an error. Plans are drawn by hand and the book's own plans are not exact. The amount by which it is out is shown beside the component.
 
-5.3 **The whole ship.** Every non-empty square on every deck, corridors included, is counted against two squares per hull ton. The book allows ten per cent either way. Outside that band is a warning.
+5.2.1 Required components not yet started are one warning that names them all, not a warning each. A new plan then opens on a single line of what is left to place.
+
+5.3 **The whole ship.** Every non-empty square on every deck, corridors included, is counted against two squares per hull ton. The book allows ten per cent either way. Outside that band is a warning, once every required component has been started; before then the plan is short because it is unfinished, which FP 5.2.1 already says. The panel shows the total against the band throughout.
 
 5.4 **Rooms.** Staterooms should be drawn as that many separate regions. Ten staterooms painted as one block of sixty squares is a warning that says so. A region counts as a room once walls enclose it, which FP 8.2 draws. No other component is counted room by room.
+
+5.4.1 Each stateroom is painted as itself: the owner of its squares is `staterooms#3` for the third. Two staterooms side by side are then two owners with a wall between them, which is what makes them two rooms. Too many rooms is a warning at once; too few only once all the stateroom squares are down.
 
 5.5 Squares owned by a key the design no longer has are **orphaned** (FP 9.2). They count towards the whole ship but belong to nothing.
 
@@ -106,7 +110,11 @@ This is a draft. Section 11 lists what is still open.
 
 7.4 The symbols are 60 pixels to the square. A symbol's footprint comes from its filename, where `[10x10]` means ten feet by ten, two squares by two. Most images carry a square of empty margin all round, so the image size is not the footprint.
 
-7.5 A fixture with no symbol is drawn as a plain outline with its name, so a missing image never breaks a plan.
+7.5 A fixture with no symbol is drawn as a dashed outline, so a missing image never breaks a plan.
+
+7.6 Doors, iris valves and floor hatches are drawn as lines rather than taken from the library: a door as a gap in the wall with its leaf across it, an iris valve as a crossed circle in the wall, a hatch as two circles on its square. They sit on edges or need to read at any zoom, which the library's door images, drawn as whole assemblies, do not. Lifts and stairs use the library's lift and stairs.
+
+7.7 The bundled set is 28 symbols in four groups: access (lifts, stairs, an airlock), fitted rooms (four staterooms, a low berth, a fresher), furniture (beds, a medical bed, chairs, couches, tables, desks, a counter) and consoles. `src/floorplan/symbols.json` lists each with the file it came from. The symbols are black line art, inverted on screen and drawn as they are on paper.
 
 ## 8. Drawing
 
@@ -114,7 +122,7 @@ This is a draft. Section 11 lists what is still open.
 
 8.2 A wall is drawn wherever a square meets a square of another owner or empty space. A door or iris valve on that edge opens it.
 
-8.3 Each region carries its component's label, as the book recommends labelling each part. A component with several regions labels each one.
+8.3 Each region carries its component's label, as the book recommends labelling each part. A component with several regions labels each one. A room with a fitted room from the library over its label square is not labelled again, since the symbol carries its own lettering.
 
 8.4 Plans are drawn in SVG, so they stay sharp at any zoom and print cleanly.
 
@@ -140,7 +148,9 @@ This is a draft. Section 11 lists what is still open.
 
 10.5 Problems from `check` sit above the deck, as the sheet's do on the design screen.
 
-10.6 Export to PNG and SVG, and printing, come after the editor works.
+10.6 **Getting it out.** Each deck exports as SVG, with the symbols it uses embedded so the file stands alone, or as PNG at the symbols' own 60 pixels to the square, smaller for a ship that would pass 8,000 pixels a side. Exports use paper colours. Every deck of a ship is framed by the bounds of all of them, so exported decks line up laid over each other. Print, on the floor plan screen, prints every deck that has anything on it, one to a page.
+
+10.6.1 Undo and Redo keep the last two hundred changes. Ctrl+Z, Ctrl+Y and Ctrl+Shift+Z work as expected, R turns the fitting about to be placed, Space held with a drag moves the view, as does dragging with the right button, and the wheel zooms about the pointer.
 
 10.7 **The overlay.** Another deck can be shown faintly beneath the one being edited, on the shared grid of FP 4.3.1, so lifts, shafts, stairwells and the edges of the hull can be lined up by eye. It is the deck above by default; any deck can be chosen, and the overlay turned off. The overlay is drawn only, never edited: painting always goes to the current deck.
 
@@ -148,8 +158,10 @@ This is a draft. Section 11 lists what is still open.
 
 ## 11. Open questions
 
-11.1 How large a ship the first version must handle. A 5,000-ton carrier is 10,000 squares; the Azhanti is 120,000. The book allows a coarser scale for very large ships. The proposal is to make ships up to about 5,000 tons work well first.
+These were settled by default when the first version was built, and any of them can be revisited.
 
-11.2 Whether the exterior hull outline is drawn by hand as a separate layer, as the book's first step suggests, or stays the outline of the squares.
+11.1 **Size.** Ships up to about 5,000 tons, 10,000 squares, are what the first version is built for. Larger plans work but are drawn square by square, and the Azhanti's 120,000 squares will be slow. The book's coarser scale for very large ships is not yet offered.
 
-11.3 Whether a component may be placed by stamping a symbol whose footprint covers its target, a stateroom symbol for a stateroom, rather than painting squares and adding furniture separately.
+11.2 **Hull outline.** The outline of the ship is the outline of its squares. There is no separately drawn exterior.
+
+11.3 **Stamping.** A component is placed by painting its squares. A fitted room from the library is furniture placed on top, not a way to place the component.

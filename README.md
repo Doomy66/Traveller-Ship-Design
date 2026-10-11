@@ -39,6 +39,23 @@ of writing, this is 100% Claude generated to my exacting requirements.
   rules make of it, so it cannot drift from the book. It saves as a `.ship`
   file. Print gives you the sheet on its own.
 
+## Floor plans
+
+The Floor plan button beside Design lays the ship out on Traveller's 1.5-metre
+deck squares, deck by deck. Every component that takes up room has to go
+somewhere: pick it, paint its squares, and the panel says how many it still
+wants. The book's guidance sets the targets, two squares to the ton and six to
+a stateroom, with the whole ship allowed ten per cent either way for corridors.
+Engineering can be split across two nacelles and a jump drive across two decks;
+it only has to add up.
+
+Decks share one grid, and the deck above can be shown faintly under the one
+being drawn, so lifts, hatches and stairwells line up. A shaft that stops short
+is marked. Furniture and fitted staterooms are Robert Pearce's Starship
+Symbols, as rendered by Eric B. Smith, under CC BY-NC 4.0. A deck exports as
+SVG or PNG, and the plan saves inside the ship's own file.
+[FloorPlanSpec.md](FloorPlanSpec.md) is the floor plan's contract.
+
 ## Where the numbers come from
 
 [ShipSpec.md](ShipSpec.md) is the contract. Every rule is a numbered clause

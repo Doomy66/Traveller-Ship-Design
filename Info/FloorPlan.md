@@ -37,6 +37,10 @@ Each phase ends with the tests passing, the build clean and a commit, as the shi
 
 ## Where we are
 
-FP1 done, 2026-10-11. Every sheet line has a key and, where it stands for several things, a count. `src/floorplan/manifest.ts` turns a design into the components to place, tested against all 40 ships, and a test keeps every other floor plan file away from the engine. Next is FP2, the plan model and `check`.
+FP1 to FP6 done, 2026-10-11. The floor plan screen opens from the bar beside Design. Painting, staterooms one by one, corridors, decks with an overlay, doors, iris valves, lifts, hatches, stairs, 28 bundled symbols, undo, SVG and PNG export and printing all work, and the plan saves inside the `.ship`. The open questions of FP 11 were settled by default and are written up there.
+
+Ideas not yet built, roughly in order of use: drag to move a placed fitting rather than remove and replace it; a coarser scale for ships over 5,000 tons; the reachability checks of FP 6.3; the geomorph tiles; a first layout suggested from the manifest.
+
+FP1, earlier the same day. Every sheet line has a key and, where it stands for several things, a count. `src/floorplan/manifest.ts` turns a design into the components to place, tested against all 40 ships, and a test keeps every other floor plan file away from the engine. Next is FP2, the plan model and `check`.
 
 Still open: the size target, a drawn hull outline, and stamping symbols as a way to place a component (FP 11).

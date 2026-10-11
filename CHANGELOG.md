@@ -5,6 +5,15 @@ user. Dates are the day the release was tagged.
 
 ## Unreleased
 
+- **Floor plans.** A Floor plan button beside Design lays the ship out on
+  Traveller's deck squares. Pick a component and paint its squares, two to the
+  ton, six for a stateroom, in any shape and on as many decks as you like. The
+  left panel shows each component placed against wanted. Doors and iris valves
+  go in walls; lifts, hatches and stairs join decks, and an overlay shows the
+  deck above faintly underneath so shafts line up. Furniture and fitted
+  staterooms come from Robert Pearce's Starship Symbols. Each deck exports as
+  SVG or PNG, Print gives every deck a page, and the plan saves inside the
+  `.ship`. `FloorPlanSpec.md` is its contract.
 - **A way in.** A landing screen in the style PlanetHex and MainLine share: a
   new design, a file, one of the book's ships, or back to the one open. The name
   in the bar returns to it without losing anything.

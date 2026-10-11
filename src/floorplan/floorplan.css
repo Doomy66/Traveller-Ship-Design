@@ -112,3 +112,16 @@
 .fp-status { padding: 4px 14px; border-top: 1px solid var(--line); color: var(--faint); font-size: 12px; min-height: 26px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fp-credit { margin: 8px 4px 0; font-size: 10px; color: var(--faint); }
 .fp-credit a { color: var(--muted); }
+
+/* ------------------------------------------------------------- the printout */
+/* Every deck, one to a page, on paper colours. The pages exist only while the
+   print dialog is up; nothing else of the application prints with them. */
+
+.fp-print { display: none; }
+@media print {
+  body.printing-plan > *:not(.fp-print) { display: none !important; }
+  body.printing-plan .fp-print { display: block; }
+  .fp-print-page { page-break-after: always; break-after: page; }
+  .fp-print-page:last-child { page-break-after: auto; break-after: auto; }
+  .fp-print-page svg { display: block; width: 100%; height: auto; max-height: 95vh; }
+}

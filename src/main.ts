@@ -314,7 +314,11 @@ function wire(): void {
   find("#save-as").addEventListener("click", () => void write(true));
   if (!canRewrite()) find("#save-as").remove();
 
-  find("#print").addEventListener("click", () => window.print());
+  // Print gives the sheet the page on the design screen, and every deck a page on the floor plan.
+  find("#print").addEventListener("click", () => {
+    if (screen === "plan" && planView !== undefined) planView.print();
+    else window.print();
+  });
 
   find("#view-design").addEventListener("click", () => showScreen("design"));
   find("#view-plan").addEventListener("click", () => showScreen("plan"));

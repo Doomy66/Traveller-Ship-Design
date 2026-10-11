@@ -11,7 +11,7 @@ import type { Bounds } from "./geometry";
 import { labelSquare, regions, walls } from "./geometry";
 import type { Component, ComponentGroup } from "./manifest";
 import type { Deck, EdgeFixture, FloorPlan, Owner, PlacedTile, SquareFixture } from "./plan";
-import { ACCESS_KINDS, baseKey, CORRIDOR, instanceOf, parseCell, tileFootprint } from "./plan";
+import { ACCESS_KINDS, baseKey, CELL, CORRIDOR, instanceOf, parseCell, squaresUnder, tileFootprint } from "./plan";
 import { ACCESS_SYMBOLS, PIXELS_PER_SQUARE, footprint, symbolById } from "./symbols";
 
 export type Floor = ComponentGroup | "corridor" | "orphan";
@@ -164,11 +164,15 @@ const esc = (text: string) =>
 
 const n = (v: number) => Number(v.toFixed(3)).toString();
 
-/** The grid over an area, as one path of lines. */
+/** The grid of whole squares over an area, as one path of lines. */
 export function gridMarkup(area: Bounds, palette: Palette): string {
   const parts: string[] = [];
-  for (let x = area.minX; x <= area.maxX + 1; x++) parts.push(`M${x} ${area.minY}V${area.maxY + 1}`);
-  for (let y = area.minY; y <= area.maxY + 1; y++) parts.push(`M${area.minX} ${y}H${area.maxX + 1}`);
+  const x0 = Math.floor(area.minX);
+  const y0 = Math.floor(area.minY);
+  const x1 = Math.ceil(area.maxX) + 1;
+  const y1 = Math.ceil(area.maxY) + 1;
+  for (let x = x0; x <= x1; x++) parts.push(`M${x} ${y0}V${y1}`);
+  for (let y = y0; y <= y1; y++) parts.push(`M${x0} ${y}H${x1}`);
   return `<path d="${parts.join("")}" stroke="${palette.grid}" stroke-width="0.03" fill="none"/>`;
 }
 
@@ -178,7 +182,7 @@ export function floorsMarkup(deck: Deck, look: (owner: Owner) => OwnerLook, pale
   for (const [key, owner] of Object.entries(deck.cells)) {
     const [x, y] = parseCell(key);
     const floor = look(owner).floor;
-    out.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${palette.floor[floor]}"${floor === "orphan" ? ` class="fp-orphan"` : ""}/>`);
+    out.push(`<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" fill="${palette.floor[floor]}"${floor === "orphan" ? ` class="fp-orphan"` : ""}/>`);
   }
   return out.join("");
 }
@@ -193,13 +197,13 @@ export function wallsMarkup(deck: Deck, palette: Palette, width = 0.1, extra = "
     .map(({ x, y, side }) => {
       switch (side) {
         case "n":
-          return `M${x} ${y}h1`;
+          return `M${x} ${y}h${CELL}`;
         case "s":
-          return `M${x} ${y + 1}h1`;
+          return `M${x} ${n(y + CELL)}h${CELL}`;
         case "w":
-          return `M${x} ${y}v1`;
+          return `M${x} ${y}v${CELL}`;
         case "e":
-          return `M${x + 1} ${y}v1`;
+          return `M${n(x + CELL)} ${y}v${CELL}`;
       }
     })
     .join("");
@@ -220,7 +224,7 @@ export function fittedSquares(plan: FloorPlan, deck: number): Set<string> {
     const symbol = symbolById(f.symbol);
     if (symbol === undefined || !LETTERED.has(symbol.category)) continue;
     const [w, h] = footprint(symbol, f.rotation);
-    for (let dy = 0; dy < h; dy++) for (let dx = 0; dx < w; dx++) covered.add(`${f.x + dx},${f.y + dy}`);
+    for (const [sx, sy] of squaresUnder(f.x, f.y, w, h)) covered.add(`${sx},${sy}`);
   }
   return covered;
 }
@@ -235,16 +239,17 @@ export function labelsMarkup(
   const out: string[] = [];
   for (const region of regions(deck)) {
     const label = look(region.owner).label;
-    // A number fits in a single square; a name needs two.
-    if (label === "" || (region.squares.length < 2 && label.length > 2)) continue;
+    // A number fits in a single square; a name needs two. A cell is a quarter of a square.
+    const squares = region.squares.length * CELL * CELL;
+    if (label === "" || squares < 0.75 || (squares < 2 && label.length > 2)) continue;
     const [x, y] = labelSquare(region);
     if (fitted.has(`${x},${y}`)) continue;
     // Shrink long names in small rooms, within limits that stay legible.
     const xs = region.squares.map((s) => s[0]);
-    const width = Math.max(...xs) - Math.min(...xs) + 1;
+    const width = Math.max(...xs) - Math.min(...xs) + CELL;
     const size = /^\d+$/.test(label) ? 0.5 : Math.max(0.22, Math.min(0.42, (width * 1.7) / Math.max(label.length, 1)));
     out.push(
-      `<text x="${n(x + 0.5)}" y="${n(y + 0.5)}" font-size="${n(size)}" fill="${palette.label}" text-anchor="middle" dominant-baseline="central" class="fp-label">${esc(label)}</text>`,
+      `<text x="${n(x + CELL / 2)}" y="${n(y + CELL / 2)}" font-size="${n(size)}" fill="${palette.label}" text-anchor="middle" dominant-baseline="central" class="fp-label">${esc(label)}</text>`,
     );
   }
   return out.join("");
@@ -390,7 +395,7 @@ export function overlayMarkup(deck: Deck, palette: Palette): string {
   const floors = Object.keys(deck.cells)
     .map((key) => {
       const [x, y] = parseCell(key);
-      return `<rect x="${x}" y="${y}" width="1" height="1"/>`;
+      return `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}"/>`;
     })
     .join("");
   const outline = wallsMarkup(deck, { ...palette, wall: palette.overlay }, 0.06, ` stroke-dasharray="0.2 0.12"`);

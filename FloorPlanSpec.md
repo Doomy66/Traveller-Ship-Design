@@ -67,7 +67,9 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 4.1 A plan holds the ship's decks, which component owns each square, the fixtures, and the key and tonnage of each component at the time the plan was last saved, so a later change to the design can be detected (section 9).
 
-4.2 Each square is empty, a corridor, or owned by exactly one component. A square never belongs to two.
+4.2 Each part of a deck is empty, a corridor, or owned by exactly one component. Nothing belongs to two.
+
+4.2.1 **The half square.** Everything sits on a grid of half squares: rooms, doors, fittings and tiles alike. A room is made of cells half a square on a side, four to the square, each named by its top left corner in squares, so "2.5,3". Painting is a square at a time or, with the half brush, half a square at a time, and the brush sits wherever the pointer puts it on the half square, not only on whole ones. Counting is still in squares: a cell is a quarter of one. A plan saved in the first version, whose cells were whole squares, is read with each square split into four.
 
 4.3 A deck grows to fit whatever is painted on it. There is no fixed hull outline in the first version: the outline of the ship is the outline of its squares.
 
@@ -105,7 +107,7 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 7.1 A **fixture** has a kind, a position on a deck, and a rotation of 0, 90, 180 or 270 degrees. Doors and iris valves in walls sit on the edge between two squares. Everything else sits on squares.
 
-7.1.1 A door may be wider than one square: dragging along a wall makes one door the length of the drag, drawn with two leaves meeting in the middle. Clicking makes a door one square wide, and doors clicked onto neighbouring squares stay separate doors, each with its own jambs. A new door or valve replaces any it overlaps. An iris valve in a wall is always one square.
+7.1.1 A door may be wider than one square: dragging along a wall makes one door the length of the drag, drawn with two leaves meeting in the middle. Clicking makes a door one square wide, centred on the pointer to the half square, and doors clicked side by side stay separate doors, each with its own jambs. A dragged door is as long as the drag, to the half square, and at least one square. A new door or valve replaces any it overlaps. An iris valve in a wall is always one square.
 
 7.1.2 Every piece on squares, from the library or a geomorph tile, can be **turned** a quarter at a time and **flipped**, mirrored left to right, which is how a port-side layout becomes a starboard one. A flipped piece is mirrored about its own middle before it is turned, so it keeps its footprint. R turns and F flips the selected piece, or the next one to be placed.
 
@@ -151,7 +153,7 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 10.2 **The left** lists the ship's components by group, numbered (FP 8.4). Each line shows placed against target and goes green when it is met. Choosing a line makes it the brush.
 
-10.3 **The middle** is the deck, with the deck tabs above it. Dragging paints squares for the brush. Dragging with the eraser clears them. Dragging with the corridor brush makes corridors.
+10.3 **The middle** is the deck, with the deck tabs above it. Dragging paints with the brush, a whole square or half a square at a time (FP 4.2.1). Dragging with the eraser clears. Dragging with the corridor brush makes corridors.
 
 10.4 **The right** holds everything else: the Move tool, Corridor and Erase, Undo and Redo; doors and iris valves for walls; lifts, iris valves and stairs between decks; Turn and Flip; the names-or-numbers switch; and below them the library (FP 7.7) and, at its foot, the geomorph folder (FP 12). A piece is placed with a click, and turned with R or flipped with F before or after.
 
@@ -165,7 +167,7 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 10.8 A lift, hatch or stairwell on the overlay deck that has no partner on the current deck is marked, so a shaft that stops short is easy to see.
 
-10.9 **Move.** The Move tool picks up whatever is under the pointer, in this order: a fitting, a door or valve in a wall, a painted room, a tile. Dragging moves it by whole squares, and it stays selected. R turns a selected tile or fitting in place, Delete removes the selection, and the arrow keys nudge it a square. A room moved onto other squares replaces what was there. Move is the tool the screen opens with.
+10.9 **Move.** The Move tool picks up whatever is under the pointer, in this order: a fitting, a door or valve in a wall, a painted room, a tile. Dragging moves it by half squares, and it stays selected. R turns and F flips a selected tile or fitting in place, Delete removes the selection, and the arrow keys nudge it half a square, or a whole one with Shift. A room moved onto other squares replaces what was there. Move is the tool the screen opens with.
 
 ## 11. Open questions
 

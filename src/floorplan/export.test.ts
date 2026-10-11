@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { deckDocument, exportName, frame } from "./export";
 import type { Manifest } from "./manifest";
-import { addDeck, emptyPlan, paint, placeFixture, placeTile, rectangle } from "./plan";
+import { addDeck, area, emptyPlan, paint, placeFixture, placeTile } from "./plan";
 
 const SOURCES = { symbol: (file: string) => file, tile: () => undefined };
 
@@ -16,8 +16,8 @@ const SHIP: Manifest = {
 };
 
 function twoDecks() {
-  let plan = paint(addDeck(emptyPlan()), 0, rectangle([0, 0], [4, 1]), "jump");
-  plan = paint(plan, 1, rectangle([10, 5], [11, 6]), "~corridor");
+  let plan = paint(addDeck(emptyPlan()), 0, area(0, 0, 5, 2), "jump");
+  plan = paint(plan, 1, area(10, 5, 2, 2), "~corridor");
   return placeFixture(plan, { kind: "door", deck: 0, x: 1, y: 0, edge: "n" });
 }
 

@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import type { PlacedTile } from "./plan";
 import {
   addDeck,
+  area,
   edgesOf,
   emptyPlan,
   moveSquares,
@@ -14,7 +15,6 @@ import {
   placeFixture,
   placeTile,
   readPlan,
-  rectangle,
   removeDeck,
   shiftDeck,
   tiledSquares,
@@ -31,7 +31,8 @@ describe("tiles on a plan", () => {
     expect(tileFootprint(CORE)).toEqual([6, 20]);
     expect(tileFootprint({ ...CORE, rotation: 90 })).toEqual([20, 6]);
     const covered = tiledSquares(placeTile(emptyPlan(), CORE), 0);
-    expect(covered.size).toBe(120);
+    // Six squares by twenty is a hundred and twenty squares, four cells each.
+    expect(covered.size).toBe(480);
     expect(covered.has("2,3")).toBe(true);
     expect(covered.has("7,22")).toBe(true);
     expect(covered.has("8,3")).toBe(false);
@@ -59,7 +60,7 @@ describe("tiles on a plan", () => {
 describe("doors", () => {
   it("can be wider than a square, as one fixture", () => {
     const plan = placeFixture(emptyPlan(), { kind: "door", deck: 0, x: 3, y: 2, edge: "n", length: 3 });
-    expect(edgesOf(plan.fixtures[0] as never)).toEqual(["3,2,n", "4,2,n", "5,2,n"]);
+    expect(edgesOf(plan.fixtures[0] as never)).toEqual(["3,2,n", "3.5,2,n", "4,2,n", "4.5,2,n", "5,2,n", "5.5,2,n"]);
   });
 
   it("stay separate side by side, each one its own", () => {
@@ -96,10 +97,16 @@ describe("placing pieces", () => {
 
 describe("moving a room", () => {
   it("carries its squares and owner by whole squares, over whatever is there", () => {
-    let plan = paint(emptyPlan(), 0, rectangle([0, 0], [1, 1]), "jump");
-    plan = paint(plan, 0, [[3, 0]], "~corridor");
-    plan = moveSquares(plan, 0, rectangle([0, 0], [1, 1]), 2, 0);
-    expect(plan.decks[0]!.cells).toEqual({ "2,0": "jump", "3,0": "jump", "2,1": "jump", "3,1": "jump" });
+    let plan = paint(emptyPlan(), 0, area(0, 0, 2, 2), "jump");
+    plan = paint(plan, 0, area(3, 0, 1, 1), "~corridor");
+    plan = moveSquares(plan, 0, area(0, 0, 2, 2), 2, 0);
+    expect(plan.decks[0]!.cells).toEqual(Object.fromEntries(area(2, 0, 2, 2).map(([x, y]) => [`${x},${y}`, "jump"])));
+  });
+
+  it("moves by half squares as readily as whole ones", () => {
+    let plan = paint(emptyPlan(), 0, area(0, 0, 1, 1), "jump");
+    plan = moveSquares(plan, 0, area(0, 0, 1, 1), 0.5, 1.5);
+    expect(Object.keys(plan.decks[0]!.cells).sort()).toEqual(["0.5,1.5", "0.5,2", "1,1.5", "1,2"]);
   });
 });
 

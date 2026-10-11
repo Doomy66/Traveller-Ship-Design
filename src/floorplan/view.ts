@@ -12,7 +12,7 @@
 
 import "./floorplan.css";
 import type { Report, Tally } from "./check";
-import { check } from "./check";
+import { check, formatSquares } from "./check";
 import { exportPng, exportSvg, printPlan } from "./export";
 import type { Bounds } from "./geometry";
 import { bounds, regions, storedEdge } from "./geometry";
@@ -30,7 +30,6 @@ import {
   paint,
   placeFixture,
   placeTile,
-  rectangle,
   removeDeck,
   removeFixture,
   removeTile,
@@ -40,6 +39,10 @@ import {
   shiftDeck,
   tiledSquares,
   tileFootprint,
+  area,
+  CELL,
+  cellOf,
+  toHalf,
 } from "./plan";
 import type { LabelMode } from "./render";
 import {
@@ -189,7 +192,9 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   const undo: FloorPlan[] = [];
   const redo: FloorPlan[] = [];
   let report: Report = check(host.manifest, host.plan);
-  let hover: { x: number; y: number; fx: number; fy: number } | undefined;
+  let hover: Point | undefined;
+  /** The brush's size in squares: a whole square, or half of one for detail. FP 10.3. */
+  let brush: 1 | 0.5 = 1;
   let fitted = false;
   let folderNote: { name: string; allowed: boolean } | undefined;
 
@@ -290,7 +295,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       chips.append(
         button(String(i), () => selectTool({ kind: "paint", owner }), {
           class: `fp-chip fp-${state}${chosen ? " on" : ""}`,
-          title: `Stateroom ${i}: ${placed} of ${SQUARES_PER_STATEROOM} squares`,
+          title: `Stateroom ${i}: ${formatSquares(placed)} of ${SQUARES_PER_STATEROOM} squares`,
         }),
       );
     }
@@ -319,7 +324,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       el("span", { class: "fp-number" }, [String(number)]),
       el("span", { class: "fp-swatch", style: `background:${SCREEN.floor[component.group]}` }),
       el("span", { class: "fp-name" }, [shortLabel(component)]),
-      el("span", { class: "fp-count" }, [`${tally.placed} / ${tally.target}${tally.required ? "" : " opt"}`]),
+      el("span", { class: "fp-count" }, [`${formatSquares(tally.placed)} / ${tally.target}${tally.required ? "" : " opt"}`]),
     );
     row.append(pick);
     if (several) row.append(stateroomChips(component, tally));
@@ -346,7 +351,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
         list.append(
           el("div", { class: "fp-row fp-orphaned" }, [
             el("span", { class: "fp-name" }, [orphan.label]),
-            el("span", { class: "fp-count" }, [`${orphan.squares}`]),
+            el("span", { class: "fp-count" }, [formatSquares(orphan.squares)]),
             button("Clear", () => clearOrphan(orphan.key), { class: "fp-clear", title: "Clear these squares on every deck" }),
           ]),
         );
@@ -359,9 +364,9 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       el("p", { class: "fp-hint" }, ["Pick a component, then paint its squares on the deck."]),
       list,
       el("div", { class: "fp-totals" }, [
-        el("div", {}, [`Corridors ${report.corridor}`]),
+        el("div", {}, [`Corridors ${formatSquares(report.corridor)}`]),
         el("div", { class: report.total === 0 ? "" : inBand ? "fp-met" : "fp-short" }, [
-          `Plan ${report.total} of ${ship.target} squares (${ship.low} to ${ship.high})`,
+          `Plan ${formatSquares(report.total)} of ${ship.target} squares (${ship.low} to ${ship.high})`,
         ]),
       ]),
     );
@@ -396,6 +401,10 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
         toolButton("Corridor", { kind: "corridor" }, "Paint corridor and access space, which belongs to no component", tool.kind === "corridor"),
         toolButton("Erase", { kind: "erase" }, "Clear squares", tool.kind === "erase"),
       ]),
+      el("div", { class: "fp-toolrow fp-seg", title: "How much the brush paints at a time" }, [
+        button("Brush 1", () => setBrush(1), { class: `fp-tool${brush === 1 ? " on" : ""}`, title: "Paint a whole square at a time" }),
+        button("½", () => setBrush(0.5), { class: `fp-tool${brush === 0.5 ? " on" : ""}`, title: "Paint half a square at a time, for detail" }),
+      ]),
       el("div", { class: "fp-toolrow" }, [
         button("Undo", undoOnce, { class: "fp-tool", title: "Undo (Ctrl+Z)", ...(undo.length === 0 ? { disabled: "" } : {}) }),
         button("Redo", redoOnce, { class: "fp-tool", title: "Redo (Ctrl+Y)", ...(redo.length === 0 ? { disabled: "" } : {}) }),
@@ -428,6 +437,12 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     fillTiles(browse);
     right.replaceChildren(tools, browse);
     browse.scrollTop = scroll;
+  }
+
+  function setBrush(size: 1 | 0.5): void {
+    brush = size;
+    drawRight();
+    drawPreview();
   }
 
   function setLabels(mode: LabelMode): void {
@@ -734,28 +749,43 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
 
   // ------------------------------------------------------------ hit testing
 
-  /** The square under a pointer, and where in it the pointer is. */
-  function at(event: PointerEvent | WheelEvent): { x: number; y: number; fx: number; fy: number } {
+  /**
+   * Where a pointer is: exactly, in squares, and the half-square cell it is
+   * in, with how far across that cell it is. Everything sits on the half
+   * square. FP 4.2.1.
+   */
+  interface Point {
+    readonly px: number;
+    readonly py: number;
+    readonly x: number;
+    readonly y: number;
+    readonly fx: number;
+    readonly fy: number;
+  }
+
+  function at(event: PointerEvent | WheelEvent): Point {
     const box = svg.getBoundingClientRect();
     const px = view.x + (event.clientX - box.left) / view.scale;
     const py = view.y + (event.clientY - box.top) / view.scale;
-    return { x: Math.floor(px), y: Math.floor(py), fx: px - Math.floor(px), fy: py - Math.floor(py) };
+    const x = cellOf(px);
+    const y = cellOf(py);
+    return { px, py, x, y, fx: (px - x) / CELL, fy: (py - y) / CELL };
   }
 
-  /** The wall nearest the pointer, in the stored north-or-west form, and how far away it is. */
-  function nearestEdge(p: { x: number; y: number; fx: number; fy: number }) {
+  /** The half-square stretch of wall nearest the pointer, in the stored north-or-west form, and how far away it is in squares. */
+  function nearestEdge(p: Point) {
     const choices = [
       { side: "n" as const, d: p.fy },
       { side: "s" as const, d: 1 - p.fy },
       { side: "w" as const, d: p.fx },
       { side: "e" as const, d: 1 - p.fx },
     ].sort((a, b) => a.d - b.d);
-    return { ...storedEdge({ x: p.x, y: p.y, side: choices[0]!.side }), distance: choices[0]!.d };
+    return { ...storedEdge({ x: p.x, y: p.y, side: choices[0]!.side }), distance: choices[0]!.d * CELL };
   }
 
-  /** Where something goes so that the pointer is in the middle of its footprint. */
-  function centredOrigin(p: { x: number; y: number }, w: number, h: number): [number, number] {
-    return [p.x - Math.floor((w - 1) / 2), p.y - Math.floor((h - 1) / 2)];
+  /** Where something of a size goes so the pointer is in its middle, on the half square. */
+  function centredOrigin(p: Point, w: number, h: number): [number, number] {
+    return [toHalf(p.px - w / 2), toHalf(p.py - h / 2)];
   }
 
   function fixtureSize(f: Pick<SquareFixture, "kind" | "symbol" | "rotation">): readonly [number, number] {
@@ -764,7 +794,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     return symbol === undefined ? [1, 1] : footprint(symbol, f.rotation);
   }
 
-  /** The square fixture on this deck covering a square, if any, with its index. */
+  /** The square fixture on this deck under a point, if any, with its index. */
   function fixtureAt(x: number, y: number): number | undefined {
     const fixtures = plan().fixtures;
     for (let i = fixtures.length - 1; i >= 0; i--) {
@@ -777,9 +807,9 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   }
 
   /** The door or iris valve in the wall nearest the pointer, if the pointer is close to it. */
-  function edgeFixtureAt(p: { x: number; y: number; fx: number; fy: number }): number | undefined {
+  function edgeFixtureAt(p: Point): number | undefined {
     const edge = nearestEdge(p);
-    if (edge.distance > 0.3) return undefined;
+    if (edge.distance > 0.2) return undefined;
     const key = `${edge.x},${edge.y},${edge.edge}`;
     const fixtures = plan().fixtures;
     for (let i = fixtures.length - 1; i >= 0; i--) {
@@ -789,7 +819,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     return undefined;
   }
 
-  /** The topmost tile on this deck covering a square, if any. */
+  /** The topmost tile on this deck under a point, if any. */
   function tileAt(x: number, y: number): number | undefined {
     const tiles = plan().tiles;
     for (let i = tiles.length - 1; i >= 0; i--) {
@@ -802,8 +832,8 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   }
 
   /** What the Move tool would pick up at a point: a fitting, a door, a room, a tile, in that order. */
-  function pickAt(p: { x: number; y: number; fx: number; fy: number }): Selection | undefined {
-    const fixture = fixtureAt(p.x, p.y);
+  function pickAt(p: Point): Selection | undefined {
+    const fixture = fixtureAt(p.px, p.py);
     if (fixture !== undefined) return { type: "fixture", index: fixture };
     const edge = edgeFixtureAt(p);
     if (edge !== undefined) return { type: "fixture", index: edge };
@@ -812,7 +842,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       const region = regions(d).find((r) => r.squares.some(([x, y]) => x === p.x && y === p.y));
       if (region !== undefined) return { type: "region", squares: region.squares };
     }
-    const tile = tileAt(p.x, p.y);
+    const tile = tileAt(p.px, p.py);
     if (tile !== undefined) return { type: "tile", index: tile };
     return undefined;
   }
@@ -845,7 +875,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       return ghost + outline(f.x, f.y, w, h);
     }
     return sel.squares
-      .map(([x, y]) => `<rect x="${x + dx}" y="${y + dy}" width="1" height="1" fill="${SCREEN.fixture}" fill-opacity="${dx === 0 && dy === 0 ? 0.18 : 0.4}"/>`)
+      .map(([x, y]) => `<rect x="${x + dx}" y="${y + dy}" width="${CELL}" height="${CELL}" fill="${SCREEN.fixture}" fill-opacity="${dx === 0 && dy === 0 ? 0.18 : 0.4}"/>`)
       .join("");
   }
 
@@ -853,10 +883,15 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     layers.selection.innerHTML = selection === undefined ? "" : selectionMarkup(selection, drag?.dx ?? 0, drag?.dy ?? 0, SCREEN.fixture);
   }
 
+  /**
+   * A stroke of the brush: the cells painted so far, and the corner of the
+   * brush where it last was. With Shift it is a rectangle from where it began.
+   */
   let stroke:
-    | { readonly owner: Owner | undefined; squares: Map<string, [number, number]>; last: [number, number]; anchor?: [number, number] }
+    | { readonly owner: Owner | undefined; cells: Map<string, [number, number]>; last: [number, number]; anchor?: [number, number] }
     | undefined;
-  let doorDrag: { start: { x: number; y: number; edge: "n" | "w" }; end: number } | undefined;
+  /** A door being dragged along a wall: the wall, where along it the drag began and where it is now. */
+  let doorDrag: { edge: "n" | "w"; fixed: number; start: number; end: number; moved: boolean } | undefined;
   let drag: { from: [number, number]; dx: number; dy: number } | undefined;
   let pan: { x: number; y: number; vx: number; vy: number } | undefined;
   let spaceHeld = false;
@@ -868,28 +903,57 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     return null;
   }
 
-  /** The door being dragged along a wall, from where it started to where the pointer is. */
+  /** The corner of the brush with the pointer in its middle, on the half square. */
+  function brushAt(p: Point): [number, number] {
+    return [toHalf(p.px - brush / 2), toHalf(p.py - brush / 2)];
+  }
+
+  /** The cells a stroke covers: everywhere the brush went, or the rectangle from where it began to where it is. */
+  function strokeCells(s: NonNullable<typeof stroke>): [number, number][] {
+    if (s.anchor === undefined) return [...s.cells.values()];
+    const x0 = Math.min(s.anchor[0], s.last[0]);
+    const y0 = Math.min(s.anchor[1], s.last[1]);
+    const x1 = Math.max(s.anchor[0], s.last[0]);
+    const y1 = Math.max(s.anchor[1], s.last[1]);
+    return area(x0, y0, x1 - x0 + brush, y1 - y0 + brush);
+  }
+
+  /** Lay the brush everywhere between its last corner and this one, so a fast drag leaves no gaps. */
+  function sweep(s: NonNullable<typeof stroke>, to: [number, number]): void {
+    const steps = line([s.last[0] / CELL, s.last[1] / CELL], [to[0] / CELL, to[1] / CELL]);
+    for (const [ix, iy] of steps) for (const c of area(ix * CELL, iy * CELL, brush, brush)) s.cells.set(cellKey(c[0], c[1]), c);
+  }
+
+  /**
+   * The door or valve being placed: a click puts one a square wide, centred
+   * on the pointer; a drag along the wall makes a door as long as the drag.
+   * An iris valve is always a square. FP 7.1.1.
+   */
   function doorSpan(): EdgeFixture | undefined {
     if (doorDrag === undefined || tool.kind !== "edge") return undefined;
-    const { start, end } = doorDrag;
-    const along = start.edge === "n" ? start.x : start.y;
-    const from = Math.min(along, end);
-    const length = tool.edge === "iris" ? 1 : Math.abs(end - along) + 1;
-    return start.edge === "n"
-      ? { kind: tool.edge, deck, x: tool.edge === "iris" ? start.x : from, y: start.y, edge: "n", ...(length > 1 ? { length } : {}) }
-      : { kind: tool.edge, deck, x: start.x, y: tool.edge === "iris" ? start.y : from, edge: "w", ...(length > 1 ? { length } : {}) };
+    const { edge, fixed, start, end, moved } = doorDrag;
+    let from: number;
+    let length: number;
+    if (tool.edge === "iris" || !moved) {
+      from = toHalf(start - 0.5);
+      length = 1;
+    } else {
+      from = cellOf(Math.min(start, end));
+      length = Math.max(1, cellOf(Math.max(start, end)) + CELL - from);
+    }
+    const at = edge === "n" ? { x: from, y: fixed } : { x: fixed, y: from };
+    return { kind: tool.edge, deck, ...at, edge, ...(length !== 1 ? { length } : {}) };
   }
 
   function drawPreview(): void {
     const parts: string[] = [];
     if (stroke !== undefined) {
       const colour = floorColour(stroke.owner);
-      const squares = stroke.anchor !== undefined ? rectangle(stroke.anchor, stroke.last) : [...stroke.squares.values()];
-      for (const [x, y] of squares) {
+      for (const [x, y] of strokeCells(stroke)) {
         parts.push(
           stroke.owner === undefined
-            ? `<rect x="${x + 0.15}" y="${y + 0.15}" width="0.7" height="0.7" fill="none" stroke="${colour}" stroke-width="0.08"/>`
-            : `<rect x="${x}" y="${y}" width="1" height="1" fill="${colour}" opacity="0.85"/>`,
+            ? `<rect x="${x + 0.08}" y="${y + 0.08}" width="0.34" height="0.34" fill="none" stroke="${colour}" stroke-width="0.05"/>`
+            : `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" fill="${colour}" opacity="0.85"/>`,
         );
       }
     } else if (doorDrag !== undefined) {
@@ -903,7 +967,6 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
         );
       }
     } else if (hover !== undefined && drag === undefined) {
-      const { x, y } = hover;
       if (tool.kind === "symbol") {
         const symbol = symbolById(tool.id);
         if (symbol !== undefined) {
@@ -921,22 +984,26 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
           parts.push(tileMarkup(ghost, SCREEN, tileHref(entry.id), 0.65));
         }
       } else if (tool.kind === "access") {
-        parts.push(symbolMarkup({ x, y, rotation, flip: flipped, symbol: tool.symbol ?? ACCESS_SYMBOLS[tool.access] }, SCREEN, symbolHref, 0.6));
+        const [ox, oy] = centredOrigin(hover, 1, 1);
+        parts.push(symbolMarkup({ x: ox, y: oy, rotation, flip: flipped, symbol: tool.symbol ?? ACCESS_SYMBOLS[tool.access] }, SCREEN, symbolHref, 0.6));
       } else if (tool.kind === "edge") {
         const edge = nearestEdge(hover);
+        const along = edge.edge === "n" ? hover.px : hover.py;
+        const from = toHalf(along - 0.5);
         parts.push(
           edge.edge === "n"
-            ? `<rect x="${edge.x}" y="${edge.y - 0.12}" width="1" height="0.24" fill="${SCREEN.fixture}" fill-opacity="0.35"/>`
-            : `<rect x="${edge.x - 0.12}" y="${edge.y}" width="0.24" height="1" fill="${SCREEN.fixture}" fill-opacity="0.35"/>`,
+            ? `<rect x="${from}" y="${edge.y - 0.12}" width="1" height="0.24" fill="${SCREEN.fixture}" fill-opacity="0.35"/>`
+            : `<rect x="${edge.x - 0.12}" y="${from}" width="0.24" height="1" fill="${SCREEN.fixture}" fill-opacity="0.35"/>`,
         );
       } else if (tool.kind !== "move") {
-        parts.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="none" stroke="${floorColour(strokeOwner() ?? undefined)}" stroke-width="0.06"/>`);
+        const [bx, by] = brushAt(hover);
+        parts.push(`<rect x="${bx}" y="${by}" width="${brush}" height="${brush}" fill="none" stroke="${floorColour(strokeOwner() ?? undefined)}" stroke-width="0.06"/>`);
       }
     }
     layers.preview.innerHTML = parts.join("");
   }
 
-  function ghostTile(entry: TileEntry, p: { x: number; y: number }): PlacedTile {
+  function ghostTile(entry: TileEntry, p: Point): PlacedTile {
     const footprintOf = rotation === 90 || rotation === 270 ? [entry.squares[1], entry.squares[0]] : [entry.squares[0], entry.squares[1]];
     const [ox, oy] = centredOrigin(p, footprintOf[0]!, footprintOf[1]!);
     // Adventure Class images carry two squares of margin all round; the real size replaces this once the image is read.
@@ -944,12 +1011,12 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     return { deck, x: ox, y: oy, rotation, ...(flipped ? { flip: true } : {}), tile: entry.id, squares: entry.squares, pixels, code: entry.code };
   }
 
-  function describe(x: number, y: number): string {
-    const owner = plan().decks[deck]?.cells[cellKey(x, y)];
+  function describe(p: Point): string {
+    const owner = plan().decks[deck]?.cells[cellKey(p.x, p.y)];
     const what = owner === undefined ? "empty" : owner === CORRIDOR ? "corridor" : looksFor(components(), plan())(owner).label;
     const hint =
       tool.kind === "move"
-        ? "Drag a tile, fitting, door or room to move it; R turns, Delete removes."
+        ? "Drag a tile, fitting, door or room to move it by half squares; R turns, F flips, Delete removes."
         : tool.kind === "paint" || tool.kind === "corridor" || tool.kind === "erase"
           ? "Drag to paint, Shift+drag for a rectangle."
           : tool.kind === "edge"
@@ -959,7 +1026,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
             : tool.kind === "tile" || tool.kind === "symbol"
               ? "Click to place; R turns, F flips. Use Move to take one away."
               : "Click to place. Use Move to take one away.";
-    return `${x}, ${y}: ${what}. ${hint} Wheel zooms; right-drag or Space-drag moves the view.`;
+    return `${p.px.toFixed(1)}, ${p.py.toFixed(1)}: ${what}. ${hint} Wheel zooms; right-drag or Space-drag moves the view.`;
   }
 
   // ------------------------------------------------------------ interaction
@@ -979,20 +1046,22 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
 
     if (tool.kind === "move") {
       selection = pickAt(p);
-      drag = selection === undefined ? undefined : { from: [p.x, p.y], dx: 0, dy: 0 };
+      drag = selection === undefined ? undefined : { from: [p.px, p.py], dx: 0, dy: 0 };
       drawSelection();
       return;
     }
     const owner = strokeOwner();
     if (owner !== null) {
-      const start: [number, number] = [p.x, p.y];
-      stroke = { owner, squares: new Map([[cellKey(p.x, p.y), start]]), last: start, ...(event.shiftKey ? { anchor: start } : {}) };
+      const start = brushAt(p);
+      stroke = { owner, cells: new Map(), last: start, ...(event.shiftKey ? { anchor: start } : {}) };
+      sweep(stroke, start);
       drawPreview();
       return;
     }
     if (tool.kind === "edge") {
       const edge = nearestEdge(p);
-      doorDrag = { start: { x: edge.x, y: edge.y, edge: edge.edge }, end: edge.edge === "n" ? edge.x : edge.y };
+      const along = edge.edge === "n" ? p.px : p.py;
+      doorDrag = { edge: edge.edge, fixed: edge.edge === "n" ? edge.y : edge.x, start: along, end: along, moved: false };
       drawPreview();
       return;
     }
@@ -1006,11 +1075,12 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     // Placing always places, even over another piece: a chair goes on a
     // fitted room's floor. Taking a piece away is Move and Delete.
     if (tool.kind === "access") {
+      const [ox, oy] = centredOrigin(p, 1, 1);
       const fixture: Fixture = {
         kind: tool.access,
         deck,
-        x: p.x,
-        y: p.y,
+        x: ox,
+        y: oy,
         rotation,
         ...(flipped ? { flip: true } : {}),
         ...(tool.symbol === undefined ? {} : { symbol: tool.symbol }),
@@ -1035,8 +1105,8 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     }
     const p = at(event);
     if (drag !== undefined) {
-      const dx = p.x - drag.from[0];
-      const dy = p.y - drag.from[1];
+      const dx = toHalf(p.px - drag.from[0]);
+      const dy = toHalf(p.py - drag.from[1]);
       if (dx !== drag.dx || dy !== drag.dy) {
         drag = { ...drag, dx, dy };
         drawSelection();
@@ -1044,25 +1114,26 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       return;
     }
     if (stroke !== undefined) {
-      const next: [number, number] = [p.x, p.y];
+      const next = brushAt(p);
       if (next[0] !== stroke.last[0] || next[1] !== stroke.last[1]) {
-        if (stroke.anchor === undefined) for (const sq of line(stroke.last, next)) stroke.squares.set(cellKey(sq[0], sq[1]), sq);
+        if (stroke.anchor === undefined) sweep(stroke, next);
         stroke.last = next;
         drawPreview();
       }
       return;
     }
     if (doorDrag !== undefined) {
-      const end = doorDrag.start.edge === "n" ? Math.floor(p.x + p.fx) : Math.floor(p.y + p.fy);
-      if (end !== doorDrag.end) {
-        doorDrag = { ...doorDrag, end };
+      const end = doorDrag.edge === "n" ? p.px : p.py;
+      const moved = doorDrag.moved || Math.abs(end - doorDrag.start) >= CELL;
+      if (cellOf(end) !== cellOf(doorDrag.end) || moved !== doorDrag.moved) {
+        doorDrag = { ...doorDrag, end, moved };
         drawPreview();
       }
       return;
     }
-    if (hover === undefined || hover.x !== p.x || hover.y !== p.y || tool.kind === "edge") {
+    if (hover === undefined || hover.x !== p.x || hover.y !== p.y || tool.kind === "edge" || tool.kind === "symbol" || tool.kind === "tile") {
       hover = p;
-      status.textContent = describe(p.x, p.y);
+      status.textContent = describe(p);
       drawPreview();
     }
   });
@@ -1071,8 +1142,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     if (stroke === undefined) return;
     const done = stroke;
     stroke = undefined;
-    const squares = done.anchor !== undefined ? rectangle(done.anchor, done.last) : [...done.squares.values()];
-    commit(paint(plan(), deck, squares, done.owner));
+    commit(paint(plan(), deck, strokeCells(done), done.owner));
     advanceStateroom();
   }
 
@@ -1094,16 +1164,24 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       drawSelection();
       return;
     }
-    const { dx, dy } = done;
+    moveSelection(done.dx, done.dy);
+  }
+
+  /** Move the selection by whole or half squares. FP 10.9. */
+  function moveSelection(dx: number, dy: number): void {
     const sel = selection;
+    if (sel === undefined) return;
     if (sel.type === "fixture") {
       const f = plan().fixtures[sel.index];
-      if (f !== undefined) commit(replaceFixture(plan(), sel.index, { ...f, x: f.x + dx, y: f.y + dy }), sel);
+      if (f !== undefined) commit(replaceFixture(plan(), sel.index, { ...f, x: toHalf(f.x + dx), y: toHalf(f.y + dy) }), sel);
     } else if (sel.type === "tile") {
       const t = plan().tiles[sel.index];
-      if (t !== undefined) commit(replaceTile(plan(), sel.index, { ...t, x: t.x + dx, y: t.y + dy }), sel);
+      if (t !== undefined) commit(replaceTile(plan(), sel.index, { ...t, x: toHalf(t.x + dx), y: toHalf(t.y + dy) }), sel);
     } else {
-      commit(moveSquares(plan(), deck, sel.squares, dx, dy), { type: "region", squares: sel.squares.map(([x, y]) => [x + dx, y + dy] as const) });
+      commit(moveSquares(plan(), deck, sel.squares, dx, dy), {
+        type: "region",
+        squares: sel.squares.map(([x, y]) => [toHalf(x + dx), toHalf(y + dy)] as const),
+      });
     }
   }
 
@@ -1250,18 +1328,9 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   }
 
   function nudgeSelection(dx: number, dy: number): void {
-    const sel = selection;
-    if (sel === undefined) return;
-    if (sel.type === "fixture") {
-      const f = plan().fixtures[sel.index];
-      if (f !== undefined) commit(replaceFixture(plan(), sel.index, { ...f, x: f.x + dx, y: f.y + dy }), sel);
-    } else if (sel.type === "tile") {
-      const t = plan().tiles[sel.index];
-      if (t !== undefined) commit(replaceTile(plan(), sel.index, { ...t, x: t.x + dx, y: t.y + dy }), sel);
-    } else {
-      commit(moveSquares(plan(), deck, sel.squares, dx, dy), { type: "region", squares: sel.squares.map(([x, y]) => [x + dx, y + dy] as const) });
-    }
+    moveSelection(dx, dy);
   }
+
 
   // -------------------------------------------------------------------- draw
 
@@ -1322,7 +1391,9 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
         const arrows: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
         const step = arrows[event.key];
         if (step !== undefined) {
-          nudgeSelection(step[0], step[1]);
+          // Half a square, or a whole one with Shift.
+          const unit = event.shiftKey ? 1 : CELL;
+          nudgeSelection(step[0] * unit, step[1] * unit);
           return true;
         }
       }

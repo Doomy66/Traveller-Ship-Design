@@ -24,8 +24,11 @@ user. Dates are the day the release was tagged.
   your own copy of Robert Pearce's Adventure Class geomorphs, and every tile in
   it can be laid on the deck. Paint the components over them; the tiles draw
   the walls.
-- **Move.** Drag tiles, furniture, doors and whole rooms; R turns, Delete
-  removes, the arrow keys nudge.
+- **Move.** Drag tiles, furniture, doors and whole rooms by half squares; R
+  turns, F flips, Delete removes, the arrow keys nudge half a square (a whole
+  one with Shift).
+- **Half squares.** Rooms, doors and every piece sit on a half-square grid, and
+  a half brush paints detail. Rooms are still counted in squares.
 - **Numbered rooms.** Components are numbered down the left, and rooms can be
   labelled by number, with a key on exported and printed plans, or by name
   while designing.

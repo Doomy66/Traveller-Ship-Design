@@ -9,6 +9,7 @@ import type { Manifest } from "./manifest";
 import type { FloorPlan } from "./plan";
 import {
   addDeck,
+  area,
   CORRIDOR,
   emptyPlan,
   instanceOwner,
@@ -16,7 +17,6 @@ import {
   paint,
   placeFixture,
   readPlan,
-  rectangle,
   remember,
   removeDeck,
   shiftDeck,
@@ -33,13 +33,15 @@ const SHIP: Manifest = {
   ],
 };
 
+/** Paint whole squares, from one corner square to another, both included. */
 const block = (plan: FloorPlan, owner: string, x0: number, y0: number, x1: number, y1: number, deck = 0) =>
-  paint(plan, deck, rectangle([x0, y0], [x1, y1]), owner);
+  paint(plan, deck, area(x0, y0, x1 - x0 + 1, y1 - y0 + 1), owner);
 
 describe("painting", () => {
   it("gives squares to one owner each, and takes them back", () => {
     let plan = block(emptyPlan(), "jump", 0, 0, 4, 1);
-    expect(Object.keys(plan.decks[0]!.cells)).toHaveLength(10);
+    // Ten squares is forty half-square cells.
+    expect(Object.keys(plan.decks[0]!.cells)).toHaveLength(40);
     plan = block(plan, CORRIDOR, 4, 0, 4, 1);
     expect(plan.decks[0]!.cells["4,0"]).toBe(CORRIDOR);
     plan = paint(plan, 0, [[0, 0]], undefined);
@@ -58,7 +60,7 @@ describe("decks", () => {
     let plan = block(emptyPlan(), "jump", 0, 0, 1, 0);
     plan = placeFixture(plan, { kind: "lift", deck: 0, x: 1, y: 0, rotation: 0 });
     plan = shiftDeck(plan, 0, 3, -2);
-    expect(Object.keys(plan.decks[0]!.cells).sort()).toEqual(["3,-2", "4,-2"]);
+    expect(Object.keys(plan.decks[0]!.cells).sort()).toEqual(area(3, -2, 2, 1).map(([x, y]) => `${x},${y}`).sort());
     expect(plan.fixtures[0]).toMatchObject({ x: 4, y: -2 });
   });
 
@@ -87,22 +89,25 @@ describe("decks", () => {
 describe("geometry", () => {
   it("finds rooms that touch edge to edge, not corner to corner", () => {
     let plan = block(emptyPlan(), "jump", 0, 0, 1, 1);
-    plan = paint(plan, 0, [[2, 2]], "jump");
+    plan = paint(plan, 0, [[2.5, 2.5]], "jump");
     const rooms = regions(plan.decks[0]!);
-    expect(rooms.map((r) => r.squares.length).sort()).toEqual([1, 4]);
+    // One cell on its own, and a block of two squares by two, which is sixteen cells.
+    expect(rooms.map((r) => r.squares.length).sort((a, b) => a - b)).toEqual([1, 16]);
   });
 
   it("walls a room all round, and draws a shared wall once", () => {
     let plan = block(emptyPlan(), "jump", 0, 0, 1, 0);
-    expect(walls(plan.decks[0]!)).toHaveLength(6);
-    plan = paint(plan, 0, [[2, 0]], CORRIDOR);
+    // Two squares by one: four cells along, two across, so twelve half-square sides.
+    expect(walls(plan.decks[0]!)).toHaveLength(12);
+    plan = block(plan, CORRIDOR, 2, 0, 2, 0);
     // Eight outer sides and one between the drive and the corridor.
-    expect(walls(plan.decks[0]!)).toHaveLength(9);
+    // Sixteen outer sides and the two between the drive and the corridor.
+    expect(walls(plan.decks[0]!)).toHaveLength(18);
   });
 
   it("stores every side as the north or west side of a square", () => {
-    expect(storedEdge({ x: 3, y: 4, side: "s" })).toEqual({ x: 3, y: 5, edge: "n" });
-    expect(storedEdge({ x: 3, y: 4, side: "e" })).toEqual({ x: 4, y: 4, edge: "w" });
+    expect(storedEdge({ x: 3, y: 4, side: "s" })).toEqual({ x: 3, y: 4.5, edge: "n" });
+    expect(storedEdge({ x: 3, y: 4, side: "e" })).toEqual({ x: 3.5, y: 4, edge: "w" });
   });
 
   it("labels an L-shaped room inside the room", () => {
@@ -128,6 +133,11 @@ describe("check", () => {
     const met = check(SHIP, block(emptyPlan(), "jump", 0, 0, 4, 1));
     expect(met.tallies.find((t) => t.key === "jump")!.status).toBe("met");
     expect(met.problems.some((p) => p.message.startsWith("Jump 1"))).toBe(false);
+  });
+
+  it("counts a half-square cell as a quarter of a square", () => {
+    const plan = paint(block(emptyPlan(), "jump", 0, 0, 1, 0), 0, [[2, 0], [2, 0.5]], "jump");
+    expect(check(SHIP, plan).tallies.find((t) => t.key === "jump")!.placed).toBe(2.5);
   });
 
   it("lists every component not yet started in one warning", () => {
@@ -246,7 +256,8 @@ describe("reading a saved plan", () => {
       decks: [{ name: "Main", cells: { "0,0": "jump", "bad": "jump", "1,0": 7 } }],
       fixtures: [{ kind: "door", deck: 0, x: 0, y: 0, edge: "n" }, { kind: "door", deck: 5, x: 0, y: 0, edge: "n" }, { kind: "piano" }],
     });
-    expect(damaged?.decks[0]!.cells).toEqual({ "0,0": "jump" });
+    // A plan with no version is an old one, whose cells were whole squares: each becomes four.
+    expect(damaged?.decks[0]!.cells).toEqual({ "0,0": "jump", "0.5,0": "jump", "0,0.5": "jump", "0.5,0.5": "jump" });
     expect(damaged?.fixtures).toHaveLength(1);
   });
 });

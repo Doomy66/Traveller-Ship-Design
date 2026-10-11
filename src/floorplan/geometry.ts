@@ -4,7 +4,7 @@
  */
 
 import type { Deck, Edge, Owner } from "./plan";
-import { cellKey, parseCell } from "./plan";
+import { CELL, cellKey, parseCell, toHalf } from "./plan";
 
 export interface Region {
   readonly owner: Owner;
@@ -12,10 +12,10 @@ export interface Region {
 }
 
 const STEPS: readonly (readonly [number, number])[] = [
-  [1, 0],
-  [-1, 0],
-  [0, 1],
-  [0, -1],
+  [CELL, 0],
+  [-CELL, 0],
+  [0, CELL],
+  [0, -CELL],
 ];
 
 /**
@@ -34,10 +34,12 @@ export function regions(deck: Deck): Region[] {
       const square = queue.pop()!;
       squares.push(square);
       for (const [dx, dy] of STEPS) {
-        const next = cellKey(square[0] + dx, square[1] + dy);
+        const nx = toHalf(square[0] + dx);
+        const ny = toHalf(square[1] + dy);
+        const next = cellKey(nx, ny);
         if (!seen.has(next) && deck.cells[next] === owner) {
           seen.add(next);
-          queue.push([square[0] + dx, square[1] + dy]);
+          queue.push([nx, ny]);
         }
       }
     }
@@ -62,10 +64,10 @@ export function walls(deck: Deck): Side[] {
   const out: Side[] = [];
   for (const [key, owner] of Object.entries(deck.cells)) {
     const [x, y] = parseCell(key);
-    const north = deck.cells[cellKey(x, y - 1)];
-    const south = deck.cells[cellKey(x, y + 1)];
-    const west = deck.cells[cellKey(x - 1, y)];
-    const east = deck.cells[cellKey(x + 1, y)];
+    const north = deck.cells[cellKey(x, toHalf(y - CELL))];
+    const south = deck.cells[cellKey(x, toHalf(y + CELL))];
+    const west = deck.cells[cellKey(toHalf(x - CELL), y)];
+    const east = deck.cells[cellKey(toHalf(x + CELL), y)];
     // A side shared with another occupied square is drawn once, by the square to the north or west of it.
     if (north === undefined) out.push({ x, y, side: "n" });
     if (west === undefined) out.push({ x, y, side: "w" });
@@ -83,9 +85,9 @@ export function storedEdge(side: Side): { x: number; y: number; edge: Edge } {
     case "w":
       return { x: side.x, y: side.y, edge: "w" };
     case "s":
-      return { x: side.x, y: side.y + 1, edge: "n" };
+      return { x: side.x, y: toHalf(side.y + CELL), edge: "n" };
     case "e":
-      return { x: side.x + 1, y: side.y, edge: "w" };
+      return { x: toHalf(side.x + CELL), y: side.y, edge: "w" };
   }
 }
 
@@ -121,7 +123,7 @@ export interface Bounds {
   readonly maxY: number;
 }
 
-/** The squares any of these decks use, or undefined if they are all empty. */
+/** The corners of the cells any of these decks use, or undefined if they are all empty. The far edge is a cell further on. */
 export function bounds(decks: readonly Deck[]): Bounds | undefined {
   let minX = Infinity;
   let minY = Infinity;

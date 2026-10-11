@@ -12,7 +12,7 @@ import type { Bounds } from "./geometry";
 import { bounds } from "./geometry";
 import type { Manifest } from "./manifest";
 import type { FloorPlan } from "./plan";
-import { tiledSquares, tileFootprint } from "./plan";
+import { CELL, tiledSquares, tileFootprint } from "./plan";
 import type { LabelMode, Palette } from "./render";
 import {
   fittedSquares,
@@ -34,14 +34,24 @@ const KEY_WIDTH = 11;
 
 /** The frame every deck of a plan is drawn in: all decks' squares and tiles, and a margin. */
 export function frame(plan: FloorPlan): Bounds {
-  let b = bounds(plan.decks);
+  // Cells are named by their corner, so the far edge of the plan is a cell further on.
+  const cells = bounds(plan.decks);
+  let b =
+    cells === undefined
+      ? undefined
+      : { minX: Math.floor(cells.minX), minY: Math.floor(cells.minY), maxX: Math.ceil(cells.maxX + CELL) - 1, maxY: Math.ceil(cells.maxY + CELL) - 1 };
   for (const t of plan.tiles) {
+    // A tile half a square off the grid widens the frame to the next whole square.
     const [w, h] = tileFootprint(t);
+    const x0 = Math.floor(t.x);
+    const y0 = Math.floor(t.y);
+    const x1 = Math.ceil(t.x + w) - 1;
+    const y1 = Math.ceil(t.y + h) - 1;
     b = {
-      minX: Math.min(b?.minX ?? t.x, t.x),
-      minY: Math.min(b?.minY ?? t.y, t.y),
-      maxX: Math.max(b?.maxX ?? t.x + w - 1, t.x + w - 1),
-      maxY: Math.max(b?.maxY ?? t.y + h - 1, t.y + h - 1),
+      minX: Math.min(b?.minX ?? x0, x0),
+      minY: Math.min(b?.minY ?? y0, y0),
+      maxX: Math.max(b?.maxX ?? x1, x1),
+      maxY: Math.max(b?.maxY ?? y1, y1),
     };
   }
   const area = b ?? { minX: 0, minY: 0, maxX: 9, maxY: 5 };

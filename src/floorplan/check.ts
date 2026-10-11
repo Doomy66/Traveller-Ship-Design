@@ -10,7 +10,7 @@ import { regions } from "./geometry";
 import type { Component, ComponentGroup, Manifest } from "./manifest";
 import { SQUARES_PER_TON } from "./manifest";
 import type { FloorPlan } from "./plan";
-import { ACCESS_KINDS, allSquares, baseKey, CORRIDOR } from "./plan";
+import { ACCESS_KINDS, allSquares, baseKey, CELL, CORRIDOR } from "./plan";
 
 /** The whole ship may be this far either way of two squares a ton. FP 5.3. */
 export const SHIP_TOLERANCE = 0.1;
@@ -56,7 +56,12 @@ export interface Report {
   readonly problems: readonly PlanProblem[];
 }
 
-const squares = (n: number) => `${n} ${n === 1 ? "square" : "squares"}`;
+/** Squares, to the quarter: a cell is a quarter of a square. */
+export const formatSquares = (n: number): string => String(Math.round(n * 100) / 100);
+const squares = (n: number) => `${formatSquares(n)} ${n === 1 ? "square" : "squares"}`;
+
+/** How much of a square one cell is. FP 4.2.1. */
+const PER_CELL = CELL * CELL;
 
 function statusOf(component: Component, placed: number): Status {
   if (placed === 0) return component.required ? "short" : "unplaced";
@@ -76,18 +81,18 @@ export function check(manifest: Manifest, plan: FloorPlan): Report {
   let corridor = 0;
   let total = 0;
   for (const square of allSquares(plan)) {
-    total += 1;
+    total += PER_CELL;
     if (square.owner === CORRIDOR) {
-      corridor += 1;
+      corridor += PER_CELL;
       continue;
     }
     const key = baseKey(square.owner);
-    placed.set(key, (placed.get(key) ?? 0) + 1);
+    placed.set(key, (placed.get(key) ?? 0) + PER_CELL);
     const hash = square.owner.indexOf("#");
     if (hash !== -1) {
       const n = Number(square.owner.slice(hash + 1));
       const counts = instances.get(key) ?? {};
-      counts[n] = (counts[n] ?? 0) + 1;
+      counts[n] = (counts[n] ?? 0) + PER_CELL;
       instances.set(key, counts);
     }
   }
@@ -113,7 +118,7 @@ export function check(manifest: Manifest, plan: FloorPlan): Report {
     } else if (status === "short") {
       warn(`${component.label} has ${squares(count)} of ${component.target}.`, "5.2");
     } else if (status === "over") {
-      warn(`${component.label} has ${squares(count)}, ${count - component.target} more than its ${component.target}.`, "5.2");
+      warn(`${component.label} has ${squares(count)}, ${formatSquares(count - component.target)} more than its ${component.target}.`, "5.2");
     }
     let rooms: Tally["rooms"];
     if (component.key === "staterooms") {

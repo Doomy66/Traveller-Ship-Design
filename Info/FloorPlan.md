@@ -42,6 +42,9 @@ Each phase ends with the tests passing, the build clean and a commit, as the shi
 
 ## Where we are
 
+Fifth pass, 2026-10-11. The whole plan sits on the half square: rooms paint, move and count in half-square cells (four to the square), doors start and end on half squares, fittings and tiles move by half squares. A half-square brush beside the whole one. Plans saved earlier, with whole-square cells, are split four ways when read (plan version 2).
+
+
 Fourth pass, 2026-10-11. The Symbols & Abbreviations sheet is cut into 69 pieces and filed into the library's sections, with new ones for freshers, medical, cargo and an arboretum; 132 pieces in all. `scripts/floorplan/sheet.py` does the cutting with a small PNG reader and writer of its own, since this machine has no imaging library. Placing a piece no longer removes one it lands on.
 
 

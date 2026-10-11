@@ -1,6 +1,10 @@
 /**
- * A floor plan: decks of squares, who owns each square, and the fixtures drawn
- * on top. FloorPlanSpec section 4.
+ * A floor plan: decks of squares, who owns each part of them, and the
+ * fixtures drawn on top. FloorPlanSpec section 4.
+ *
+ * Everything is measured in squares, and everything sits on a grid of half
+ * squares (FP 4.2.1). A room is made of cells half a square on a side, four
+ * to the square, each keyed by its top left corner: "2.5,3".
  *
  * Every function here is pure. A change makes a new plan rather than altering
  * the old one, which is what lets the editor keep an undo history by holding
@@ -18,6 +22,15 @@ export type Owner = string;
 
 export type Rotation = 0 | 90 | 180 | 270;
 
+/** The grid everything sits on: half a square. FP 4.2.1. */
+export const CELL = 0.5;
+
+/** A position put on the nearest half square. */
+export const toHalf = (v: number): number => Math.round(v / CELL) * CELL;
+
+/** A position put on the half square at or before it, which is the cell it falls in. */
+export const cellOf = (v: number): number => Math.floor(v / CELL) * CELL;
+
 /** Which edge of a square a door or iris valve sits on. Only north and west are stored; FP 7.1. */
 export type Edge = "n" | "w";
 
@@ -30,14 +43,14 @@ export type AccessKind = (typeof ACCESS_KINDS)[number];
 export interface EdgeFixture {
   readonly kind: EdgeKind;
   readonly deck: number;
-  /** The first edge it covers. */
+  /** Where it starts along the wall, in whole or half squares. */
   readonly x: number;
   readonly y: number;
   readonly edge: Edge;
   /**
    * Squares of wall it spans, along the wall: east from (x, y) for a north
-   * edge, south for a west one. Absent means one. A wide door is one fixture;
-   * two doors side by side are two. FP 7.1.1.
+   * edge, south for a west one, in whole or half squares. Absent means one.
+   * A wide door is one fixture; two doors side by side are two. FP 7.1.1.
    */
   readonly length?: number;
 }
@@ -46,7 +59,7 @@ export interface SquareFixture {
   /** An access kind, or `symbol` for furniture drawn from the symbol library. */
   readonly kind: AccessKind | "symbol";
   readonly deck: number;
-  /** The top left square of its footprint. */
+  /** The top left corner of its footprint, in whole or half squares. FP 7.1.3. */
   readonly x: number;
   readonly y: number;
   readonly rotation: Rotation;
@@ -64,7 +77,7 @@ export type Fixture = EdgeFixture | SquareFixture;
  */
 export interface PlacedTile {
   readonly deck: number;
-  /** The top left square of its footprint. */
+  /** The top left corner of its footprint, in whole or half squares. FP 7.1.3. */
   readonly x: number;
   readonly y: number;
   readonly rotation: Rotation;
@@ -82,7 +95,7 @@ export interface PlacedTile {
 
 export interface Deck {
   readonly name: string;
-  /** Squares by "x,y". An absent square is empty. */
+  /** Half-square cells by their top left corner, "x,y". An absent cell is empty. */
   readonly cells: Readonly<Record<string, Owner>>;
 }
 
@@ -93,7 +106,7 @@ export interface Remembered {
 }
 
 export interface FloorPlan {
-  readonly version: 1;
+  readonly version: 2;
   readonly decks: readonly Deck[];
   readonly fixtures: readonly Fixture[];
   /** Geomorph tiles, in the order they were laid, so later ones draw over earlier ones. */
@@ -101,7 +114,11 @@ export interface FloorPlan {
   readonly remembered: Readonly<Record<string, Remembered>>;
 }
 
-export const PLAN_VERSION = 1;
+/**
+ * 1 kept whole squares as its cells. 2 keeps half-square cells, four to the
+ * square, and reads a 1 by splitting each square in four.
+ */
+export const PLAN_VERSION = 2;
 
 export function emptyPlan(): FloorPlan {
   return { version: PLAN_VERSION, decks: [{ name: "Deck 1", cells: {} }], fixtures: [], tiles: [], remembered: {} };
@@ -132,7 +149,7 @@ function replaceDeck(plan: FloorPlan, at: number, deck: Deck): FloorPlan {
   return { ...plan, decks: plan.decks.map((d, i) => (i === at ? deck : d)) };
 }
 
-/** Give squares to an owner, or empty them with `undefined`. */
+/** Give cells to an owner, or empty them with `undefined`. Each is named by its top left corner. */
 export function paint(plan: FloorPlan, deck: number, squares: readonly (readonly [number, number])[], owner: Owner | undefined): FloorPlan {
   const target = plan.decks[deck];
   if (target === undefined || squares.length === 0) return plan;
@@ -145,20 +162,22 @@ export function paint(plan: FloorPlan, deck: number, squares: readonly (readonly
   return replaceDeck(plan, deck, { ...target, cells });
 }
 
-/** Every square in the rectangle between two corners, both included. */
+/** Every cell in the rectangle between two cells, both included. */
 export function rectangle(a: readonly [number, number], b: readonly [number, number]): [number, number][] {
   const out: [number, number][] = [];
   const [x0, x1] = [Math.min(a[0], b[0]), Math.max(a[0], b[0])];
   const [y0, y1] = [Math.min(a[1], b[1]), Math.max(a[1], b[1])];
-  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) out.push([x, y]);
+  for (let y = y0; y <= y1 + 1e-9; y += CELL) for (let x = x0; x <= x1 + 1e-9; x += CELL) out.push([toHalf(x), toHalf(y)]);
   return out;
 }
 
-/** Every square of a deck an owner has, or every square of a component with any instance. */
-export function squaresOf(deck: Deck, owner: Owner): [number, number][] {
-  return Object.entries(deck.cells)
-    .filter(([, o]) => o === owner)
-    .map(([key]) => parseCell(key));
+/**
+ * Every cell of an area of whole or half squares: x and y its top left
+ * corner, w and h its size. Painting a square at a time is this with w and h
+ * of one.
+ */
+export function area(x: number, y: number, w: number, h: number): [number, number][] {
+  return rectangle([x, y], [x + w - CELL, y + h - CELL]);
 }
 
 export function addDeck(plan: FloorPlan, name = `Deck ${plan.decks.length + 1}`): FloorPlan {
@@ -201,14 +220,14 @@ export function moveDeck(plan: FloorPlan, at: number, by: -1 | 1): FloorPlan {
   };
 }
 
-/** Move a whole deck by whole squares, fixtures and all. FP 4.3.2. */
+/** Move a whole deck by whole or half squares, fixtures and all. FP 4.3.2. */
 export function shiftDeck(plan: FloorPlan, at: number, dx: number, dy: number): FloorPlan {
   const deck = plan.decks[at];
   if (deck === undefined) return plan;
   const cells: Record<string, Owner> = {};
   for (const [key, owner] of Object.entries(deck.cells)) {
     const [x, y] = parseCell(key);
-    cells[cellKey(x + dx, y + dy)] = owner;
+    cells[cellKey(toHalf(x + dx), toHalf(y + dy))] = owner;
   }
   return {
     ...replaceDeck(plan, at, { ...deck, cells }),
@@ -217,11 +236,11 @@ export function shiftDeck(plan: FloorPlan, at: number, dx: number, dy: number): 
   };
 }
 
-/** Every edge an edge fixture covers, as "x,y,n" or "x,y,w". */
+/** Every half-square stretch of wall an edge fixture covers, as "x,y,n" or "x,y,w". */
 export function edgesOf(f: EdgeFixture): string[] {
   const out: string[] = [];
-  for (let i = 0; i < (f.length ?? 1); i++) {
-    out.push(f.edge === "n" ? `${f.x + i},${f.y},n` : `${f.x},${f.y + i},w`);
+  for (let along = 0; along < (f.length ?? 1) - 1e-9; along += CELL) {
+    out.push(f.edge === "n" ? `${toHalf(f.x + along)},${f.y},n` : `${f.x},${toHalf(f.y + along)},w`);
   }
   return out;
 }
@@ -274,13 +293,23 @@ export function tileFootprint(tile: Pick<PlacedTile, "squares" | "rotation">): r
   return tile.rotation === 90 || tile.rotation === 270 ? [h, w] : [w, h];
 }
 
-/** Every square a deck's tiles cover. FP 12.3. */
+/** The cells a footprint covers: those whose middle lies inside it. */
+export function squaresUnder(x: number, y: number, w: number, h: number): [number, number][] {
+  const out: [number, number][] = [];
+  const half = CELL / 2;
+  for (let cy = Math.ceil((y - half) / CELL) * CELL; cy + half < y + h; cy += CELL) {
+    for (let cx = Math.ceil((x - half) / CELL) * CELL; cx + half < x + w; cx += CELL) out.push([toHalf(cx), toHalf(cy)]);
+  }
+  return out;
+}
+
+/** Every cell a deck's tiles cover. FP 12.3. */
 export function tiledSquares(plan: FloorPlan, deck: number): Set<string> {
   const covered = new Set<string>();
   for (const t of plan.tiles) {
     if (t.deck !== deck || isOverlayTile(t)) continue;
     const [w, h] = tileFootprint(t);
-    for (let dy = 0; dy < h; dy++) for (let dx = 0; dx < w; dx++) covered.add(cellKey(t.x + dx, t.y + dy));
+    for (const [sx, sy] of squaresUnder(t.x, t.y, w, h)) covered.add(cellKey(sx, sy));
   }
   return covered;
 }
@@ -290,7 +319,7 @@ export function isOverlayTile(tile: Pick<PlacedTile, "tile">): boolean {
   return tile.tile.includes("-overlay-");
 }
 
-/** Move a set of squares on a deck by whole squares, keeping their owner. Whatever was under them is replaced. */
+/** Move a set of cells on a deck by whole or half squares, keeping their owner. Whatever was under them is replaced. */
 export function moveSquares(plan: FloorPlan, deck: number, squares: readonly (readonly [number, number])[], dx: number, dy: number): FloorPlan {
   const target = plan.decks[deck];
   if (target === undefined || squares.length === 0 || (dx === 0 && dy === 0)) return plan;
@@ -300,7 +329,7 @@ export function moveSquares(plan: FloorPlan, deck: number, squares: readonly (re
     const key = cellKey(x, y);
     const owner = cells[key];
     if (owner === undefined) continue;
-    moving.push([cellKey(x + dx, y + dy), owner]);
+    moving.push([cellKey(toHalf(x + dx), toHalf(y + dy)), owner]);
     delete cells[key];
   }
   for (const [key, owner] of moving) cells[key] = owner;
@@ -314,7 +343,7 @@ export function remember(plan: FloorPlan, components: readonly { key: string; la
   return { ...plan, remembered };
 }
 
-/** Squares, decks, owners: every square of the plan with where it is. */
+/** Every cell of the plan, with its deck, its corner and its owner. */
 export function* allSquares(plan: FloorPlan): Generator<{ deck: number; x: number; y: number; owner: Owner }> {
   for (const [deck, d] of plan.decks.entries()) {
     for (const [key, owner] of Object.entries(d.cells)) {
@@ -335,6 +364,8 @@ export function readPlan(raw: unknown): FloorPlan | undefined {
   if (typeof raw !== "object" || raw === null) return undefined;
   const value = raw as Partial<Record<keyof FloorPlan, unknown>>;
   if (!Array.isArray(value.decks)) return undefined;
+  // A version 1 plan's cells were whole squares; each becomes four.
+  const whole = value.version !== PLAN_VERSION;
   const decks: Deck[] = [];
   for (const d of value.decks as unknown[]) {
     if (typeof d !== "object" || d === null) continue;
@@ -342,7 +373,10 @@ export function readPlan(raw: unknown): FloorPlan | undefined {
     const cells: Record<string, Owner> = {};
     if (typeof deck.cells === "object" && deck.cells !== null) {
       for (const [key, owner] of Object.entries(deck.cells as Record<string, unknown>)) {
-        if (/^-?\d+,-?\d+$/.test(key) && typeof owner === "string" && owner !== "") cells[key] = owner;
+        if (!/^-?\d+(\.5)?,-?\d+(\.5)?$/.test(key) || typeof owner !== "string" || owner === "") continue;
+        const [x, y] = parseCell(key);
+        if (whole) for (const [cx, cy] of area(x, y, 1, 1)) cells[cellKey(cx, cy)] = owner;
+        else cells[key] = owner;
       }
     }
     decks.push({ name: typeof deck.name === "string" ? deck.name : `Deck ${decks.length + 1}`, cells });
@@ -354,10 +388,10 @@ export function readPlan(raw: unknown): FloorPlan | undefined {
     const it = f as Record<string, unknown>;
     if (typeof it["deck"] !== "number" || typeof it["x"] !== "number" || typeof it["y"] !== "number") continue;
     if (it["deck"] < 0 || it["deck"] >= decks.length) continue;
-    const at = { deck: it["deck"], x: Math.round(it["x"]), y: Math.round(it["y"]) };
+    const half = { deck: it["deck"], x: toHalf(it["x"]), y: toHalf(it["y"]) };
     if ((it["kind"] === "door" || it["kind"] === "iris") && (it["edge"] === "n" || it["edge"] === "w")) {
-      const length = typeof it["length"] === "number" && it["length"] > 1 ? Math.round(it["length"]) : undefined;
-      fixtures.push({ kind: it["kind"], edge: it["edge"], ...at, ...(length === undefined ? {} : { length }) });
+      const length = typeof it["length"] === "number" && it["length"] !== 1 ? Math.max(CELL, toHalf(it["length"])) : undefined;
+      fixtures.push({ kind: it["kind"], edge: it["edge"], ...half, ...(length === undefined ? {} : { length }) });
       continue;
     }
     const kind = it["kind"];
@@ -368,7 +402,7 @@ export function readPlan(raw: unknown): FloorPlan | undefined {
     fixtures.push({
       kind: kind as SquareFixture["kind"],
       rotation,
-      ...at,
+      ...half,
       ...(it["flip"] === true ? { flip: true } : {}),
       ...(symbol === undefined ? {} : { symbol }),
     });
@@ -386,8 +420,8 @@ export function readPlan(raw: unknown): FloorPlan | undefined {
     if (typeof it["x"] !== "number" || typeof it["y"] !== "number") continue;
     tiles.push({
       deck: it["deck"],
-      x: Math.round(it["x"]),
-      y: Math.round(it["y"]),
+      x: toHalf(it["x"]),
+      y: toHalf(it["y"]),
       rotation: ROTATIONS.includes(it["rotation"] as number) ? (it["rotation"] as Rotation) : 0,
       ...(it["flip"] === true ? { flip: true } : {}),
       tile: it["tile"],

@@ -68,6 +68,8 @@ Clauses are numbered so they can be cited from code and tests. Page numbers are 
 
 3.4 A design also carries **notes**: what the ship is for, in the designer's own words. No rule reads them, but the book gives every ship a paragraph of it and a sheet without one is only a list of parts. They save with the design and print with the sheet.
 
+3.5 A design may carry a **floor plan**, which says where each of its components is. No rule reads it and the engine does not know its shape, which [FloorPlanSpec.md](FloorPlanSpec.md) defines. It saves with the design so that one file is one ship.
+
 3.3 A field that is absent means "none", never a default the rules did not give. The one exception is the power plant, which every ship has.
 
 ## 4. The sequence
@@ -492,6 +494,8 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 8.5 The Open picker accepts `.json` as well as `.ship`, because designs saved before the extension changed are still designs.
 
 8.6 A save that succeeds says so. The place the design was written to is named where the state is shown, and a plain confirmation appears beside it for a few seconds: a save that goes out as a download has no filename to show afterwards, so without one there is nothing to tell a save from a dismissed picker.
+
+8.7 A design's floor plan (3.5) goes out and comes back with it untouched. Loading does not check it; the floor plan does that for itself when it is opened.
 
 ## 9. Open questions
 

@@ -28,6 +28,13 @@ describe("saving a design", () => {
     expect(sheet(back!).notes).toBe(written.notes);
   });
 
+  it("carries a floor plan there and back untouched, without the rules reading it", () => {
+    const floorPlan = { version: 1, decks: [{ name: "Deck 1", cells: { "0,0": "jump" } }], fixtures: [], remembered: {} };
+    const back = parse(serialise({ ...SCOUT_COURIER, floorPlan }));
+    expect(back?.floorPlan).toEqual(floorPlan);
+    expect(sheet(back!)).toEqual(sheet(SCOUT_COURIER));
+  });
+
   it("stamps the design with the spec version it was written under", () => {
     expect(JSON.parse(serialise(SCOUT_COURIER)).version).toBe(1);
   });

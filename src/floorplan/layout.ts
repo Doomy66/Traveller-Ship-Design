@@ -3,9 +3,10 @@
  *
  * Every component is laid down as a room of its target size along one
  * corridor, in order from the bow: command and weapons, accommodation, the
- * ship's systems, craft, cargo, fuel and, aft, the drives. Each room goes on
+ * ship's systems, craft, cargo and, aft, the drives. Each room goes on
  * whichever side of the corridor is shorter so far, so the two sides keep
- * level, and each but the fuel gets a door onto the corridor. A ship too long
+ * level, and each gets a door onto the corridor. Fuel is left for the
+ * designer, since a plan need not show it (FP 3.5). A ship too long
  * for one deck goes on to the next, with a lift at the bow end of every
  * corridor joining them.
  *
@@ -26,7 +27,6 @@ const FORE_TO_AFT: readonly ComponentGroup[] = [
   "systems",
   "craft",
   "cargo",
-  "fuel",
   "engineering",
 ];
 
@@ -40,7 +40,6 @@ interface Room {
   readonly depth: number;
   /** Squares along the corridor. */
   readonly width: number;
-  readonly door: boolean;
 }
 
 /**
@@ -53,18 +52,16 @@ function depthFor(squares: number): number {
 }
 
 function roomsOf(component: Component): Room[] {
-  const door = component.group !== "fuel";
   if (component.key === "staterooms") {
     return Array.from({ length: component.count }, (_, i) => ({
       owner: instanceOwner(component.key, i + 1),
       squares: SQUARES_PER_STATEROOM,
       depth: STATEROOM_DEPTH,
       width: Math.ceil(SQUARES_PER_STATEROOM / STATEROOM_DEPTH),
-      door,
     }));
   }
   const depth = depthFor(component.target);
-  return [{ owner: component.key, squares: component.target, depth, width: Math.ceil(component.target / depth), door }];
+  return [{ owner: component.key, squares: component.target, depth, width: Math.ceil(component.target / depth) }];
 }
 
 /** The rooms to lay, bow first, each group in the sheet's order. */
@@ -169,7 +166,6 @@ export function suggestLayout(manifest: Manifest, remembered: FloorPlan["remembe
   }
   for (const { room, deck, x, side } of laid) {
     for (const [sx, sy] of roomSquares(room, x, corridor, side)) set(deck, sx, sy, room.owner);
-    if (!room.door) continue;
     // The middle of the room's run along the corridor, on the wall between them.
     const door: EdgeFixture = { kind: "door", deck, x: x + Math.floor((room.width - 1) / 2), y: side === "north" ? corridor : corridor + 1, edge: "n" };
     fixtures.push(door);

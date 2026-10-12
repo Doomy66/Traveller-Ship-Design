@@ -24,11 +24,11 @@ const EVERY_SHIP: readonly Design[] = [
 ];
 
 describe("the suggested layout", () => {
-  it.each(EVERY_SHIP.map((d) => [d.name, d] as const))("places every component of the %s at its target, on joined decks", (_, design) => {
+  it.each(EVERY_SHIP.map((d) => [d.name, d] as const))("places every component of the %s at its target, bar fuel, on joined decks", (_, design) => {
     const m = manifest(design);
     const plan = suggestLayout(m);
     const report = check(m, plan);
-    for (const tally of report.tallies) expect([tally.key, tally.placed]).toEqual([tally.key, tally.target]);
+    for (const tally of report.tallies) expect([tally.key, tally.placed]).toEqual([tally.key, tally.key === "fuel" ? 0 : tally.target]);
     expect(report.cutOff).toEqual([]);
     expect(report.problems.filter((p) => p.severity === "warning" && p.clause !== "5.3")).toEqual([]);
   });
@@ -39,6 +39,7 @@ describe("the suggested layout", () => {
     const tally = check(m, plan).tallies.find((t) => t.key === "staterooms");
     expect(tally?.rooms).toEqual({ wanted: 4, drawn: 4 });
     expect(plan.fixtures.filter((f) => f.kind === "door")).toHaveLength(m.components.filter((c) => c.group !== "fuel" && c.target > 0).length + 3);
+    expect(check(m, plan).tallies.find((t) => t.key === "fuel")?.status).toBe("unplaced");
   });
 
   it("keeps every room in one piece", () => {

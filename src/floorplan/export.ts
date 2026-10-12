@@ -23,6 +23,7 @@ import {
   legendMarkup,
   looksFor,
   PAPER,
+  roomGridMarkup,
   tilesMarkup,
   wallsMarkup,
 } from "./render";
@@ -95,6 +96,7 @@ export function deckDocument(
     `<rect x="${area.minX}" y="${area.minY}" width="${w}" height="${h}" fill="${palette.background}"/>`,
     options.grid === false ? "" : gridMarkup(area, palette),
     floorsMarkup(d, look, palette),
+    options.grid === false ? "" : roomGridMarkup(d, palette),
     tilesMarkup(plan, deck, palette, sources.tile),
     wallsMarkup(d, palette, 0.1, "", tiledSquares(plan, deck), openings(plan, deck)),
     fixturesMarkup(plan, deck, palette, sources.symbol),

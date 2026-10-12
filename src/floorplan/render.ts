@@ -212,6 +212,31 @@ export function cellsPath(cells: readonly (readonly [number, number])[]): string
   return parts.join("");
 }
 
+let clipCount = 0;
+
+/**
+ * The whole-square grid carried across the rooms, in the background colour,
+ * so the squares can be counted inside a room as well as outside it. Only
+ * whole squares: the half-square cells a room is made of are not ruled.
+ */
+export function roomGridMarkup(deck: Deck, palette: Palette): string {
+  const cells = Object.keys(deck.cells).map(parseCell);
+  if (cells.length === 0) return "";
+  const x0 = Math.floor(Math.min(...cells.map((c) => c[0])));
+  const y0 = Math.floor(Math.min(...cells.map((c) => c[1])));
+  const x1 = Math.ceil(Math.max(...cells.map((c) => c[0])) + CELL);
+  const y1 = Math.ceil(Math.max(...cells.map((c) => c[1])) + CELL);
+  const lines: string[] = [];
+  for (let x = x0; x <= x1; x++) lines.push(`M${x} ${y0}V${y1}`);
+  for (let y = y0; y <= y1; y++) lines.push(`M${x0} ${y}H${x1}`);
+  // Unique within the page, since several decks' drawings can share one when printed.
+  const id = `fp-rooms-${(clipCount += 1)}`;
+  return (
+    `<clipPath id="${id}"><path d="${cellsPath(cells)}"/></clipPath>` +
+    `<path d="${lines.join("")}" clip-path="url(#${id})" stroke="${palette.background}" stroke-opacity="0.55" stroke-width="0.04" fill="none"/>`
+  );
+}
+
 /** The floor of every cell, coloured by what it is, one shape to a colour. */
 export function floorsMarkup(deck: Deck, look: (owner: Owner) => OwnerLook, palette: Palette): string {
   const byFloor = new Map<Floor, [number, number][]>();

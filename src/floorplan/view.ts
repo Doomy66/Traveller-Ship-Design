@@ -57,6 +57,7 @@ import {
   labelsMarkup,
   looksFor,
   overlayMarkup,
+  roomGridMarkup,
   SCREEN,
   shortLabel,
   symbolMarkup,
@@ -727,7 +728,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     const below = under === undefined ? undefined : plan().decks[under];
     const tiled = tiledSquares(plan(), deck);
     layers.overlay.innerHTML = below === undefined ? "" : overlayMarkup(below, SCREEN);
-    layers.floors.innerHTML = floorsMarkup(d, looks, SCREEN);
+    layers.floors.innerHTML = floorsMarkup(d, looks, SCREEN) + roomGridMarkup(d, SCREEN);
     layers.tiles.innerHTML = tilesMarkup(plan(), deck, SCREEN, tileHref);
     layers.walls.innerHTML = wallsMarkup(d, SCREEN, 0.1, "", tiled, openings(plan(), deck));
     layers.fixtures.innerHTML = fixturesMarkup(plan(), deck, SCREEN, symbolHref);

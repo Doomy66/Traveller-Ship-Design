@@ -68,6 +68,8 @@ const squares = (n: number) => `${formatSquares(n)} ${n === 1 ? "square" : "squa
 const PER_CELL = CELL * CELL;
 
 function statusOf(component: Component, placed: number): Status {
+  // A 0t item needs no squares; any it is given only mark where it is. FP 3.4.1.
+  if (component.target === 0) return placed === 0 ? "unplaced" : "met";
   if (placed === 0) return component.required ? "short" : "unplaced";
   if (placed < component.target) return "short";
   if (placed > component.target) return "over";

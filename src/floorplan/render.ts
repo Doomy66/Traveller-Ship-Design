@@ -114,6 +114,9 @@ export function shortLabel(component: Pick<Component, "key" | "label">): string 
   };
   const known = fixed[component.key];
   if (known !== undefined) return known;
+  // A ship's fixed mounts differ only in what they carry, so that is their name.
+  const mount = /^Fixed Mount \((.*)\)$/.exec(component.label);
+  if (mount !== null) return `Fixed ${mount[1]}`;
   return component.label.replace(/\s*\(.*?\)/g, "").replace(/\s+x\d+$/, "").trim();
 }
 

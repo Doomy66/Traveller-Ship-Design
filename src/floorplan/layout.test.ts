@@ -38,7 +38,7 @@ describe("the suggested layout", () => {
     const plan = suggestLayout(m);
     const tally = check(m, plan).tallies.find((t) => t.key === "staterooms");
     expect(tally?.rooms).toEqual({ wanted: 4, drawn: 4 });
-    expect(plan.fixtures.filter((f) => f.kind === "door")).toHaveLength(m.components.filter((c) => c.group !== "fuel").length + 3);
+    expect(plan.fixtures.filter((f) => f.kind === "door")).toHaveLength(m.components.filter((c) => c.group !== "fuel" && c.target > 0).length + 3);
   });
 
   it("keeps every room in one piece", () => {

@@ -326,7 +326,11 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       el("span", { class: "fp-number" }, [String(number)]),
       el("span", { class: "fp-swatch", style: `background:${SCREEN.floor[component.group]}` }),
       el("span", { class: "fp-name" }, [shortLabel(component)]),
-      el("span", { class: "fp-count" }, [`${formatSquares(tally.placed)} / ${tally.target}${tally.required ? "" : " opt"}`]),
+      el("span", { class: "fp-count" }, [
+        tally.target === 0
+          ? `${tally.placed > 0 ? `${formatSquares(tally.placed)}, ` : ""}0t`
+          : `${formatSquares(tally.placed)} / ${tally.target}${tally.required ? "" : " opt"}`,
+      ]),
     );
     row.append(pick);
     if (several) row.append(stateroomChips(component, tally));

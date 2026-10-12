@@ -22,10 +22,10 @@ const EVERY_SHIP: readonly Design[] = [
 
 describe("the manifest", () => {
   it.each(EVERY_SHIP.map((d) => [d.name, d] as const))(
-    "lists every line of the %s that takes up room, once, and nothing else",
+    "lists every line of the %s that takes up room, and its fixed mounts, computer and fuel scoops, once, and nothing else",
     (_, design) => {
       const wanted = sheet(design)
-        .lines.filter((line) => (line.tons ?? 0) > 0)
+        .lines.filter((line) => (line.tons ?? 0) > 0 || ["Weapons", "Computer"].includes(line.section) || line.label === "Fuel Scoops")
         .filter((line) => !["Hull", "Hull Options", "Armour", "Software"].includes(line.section))
         .map((line) => line.key);
       expect(manifest(design).components.map((c) => c.key)).toEqual(wanted);
@@ -64,10 +64,10 @@ describe("the manifest", () => {
     expect(one.rooms).toBe(1);
   });
 
-  it("makes fuel optional and everything else required", () => {
+  it("makes fuel and the 0t items optional and everything else required", () => {
     const components = manifest(PATROL_CORVETTE).components;
     expect(components.find((c) => c.key === "fuel")?.required).toBe(false);
-    expect(components.filter((c) => c.key !== "fuel").every((c) => c.required)).toBe(true);
+    expect(components.filter((c) => c.key !== "fuel" && c.target > 0).every((c) => c.required)).toBe(true);
   });
 
   it("carries a squadron's number, but asks for its hangars as one target", () => {
@@ -108,5 +108,14 @@ describe("the floor plan's boundary", () => {
       .filter(([, text]) => /from\s+["']\.\.\/(\.\.\/)*(engine|rules)\//.test(text))
       .map(([path]) => path);
     expect(offenders).toEqual([]);
+  });
+
+  it("lists fixed mounts, the computer and fuel scoops as 0t items, needing no squares", () => {
+    const scout = manifest(SCOUT_COURIER).components.filter((c) => c.target === 0).map((c) => c.label);
+    expect(scout).toEqual(["Computer/5bis", "Fuel Scoops"]);
+    const wasp = CATALOGUE.map((e) => e.design).find((d) => d.name === "Wasp Heavy Fighter")!;
+    const zero = manifest(wasp).components.filter((c) => c.target === 0);
+    expect(zero.map((c) => c.key)).toEqual(["computer", "weapon:0", "weapon:1"]);
+    expect(zero.every((c) => c.tons === 0 && !c.required)).toBe(true);
   });
 });

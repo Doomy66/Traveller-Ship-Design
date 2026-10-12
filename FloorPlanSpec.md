@@ -53,7 +53,9 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 3.3 Keys come from the structure of the design, not from labels, because labels change with the figures in them: "Thrust 6" becomes "Thrust 5" when the drive changes. The jump drive is `jump`. The third weapon line is `weapon:2`, the first craft's berth is `craft:0:berth`, and so on. The sheet gives every line its key and, where a line stands for several things, its count. Those are the only changes the floor plan asks of the engine, and ShipSpec 5.2.2 and 5.2.3 define them.
 
-3.4 **Left off the plan.** The hull, armour, and hull options take no squares here, as the book says. Stealth is a hull option, so a stealth coating that takes tonnage is left off with the rest of the hull. Software has nothing to place. Neither do lines with no tonnage, such as fuel scoops and fixed mounts on firmpoints.
+3.4 **Left off the plan.** The hull, armour, and hull options take no squares here, as the book says. Stealth is a hull option, so a stealth coating that takes tonnage is left off with the rest of the hull. Software has nothing to place. Neither do most lines with no tonnage, such as carried craft, whose room is their docking space or hangar.
+
+3.4.1 **0t items.** Fixed mounts, the computer and fuel scoops take no tonnage, but a plan may want to show where they are, so they are listed in their groups as 0t items. They need no squares, are never short or over, and are left out of the suggested layout (FP 7.9). Squares painted for one mark where it is and count towards the whole ship like any other.
 
 3.5 **Optional.** Fuel is listed with everything else but may be placed or left off, because the book allows a deck of nothing but fuel to be left off. Unplaced fuel is not a shortfall. Fuel that is placed is counted like anything else.
 

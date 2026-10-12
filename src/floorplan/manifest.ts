@@ -55,6 +55,15 @@ export const SQUARES_PER_STATEROOM = 6;
 /** Sheet sections that never go on a plan: the hull and what is spread over it, and software. FP 3.4. */
 const LEFT_OFF: ReadonlySet<string> = new Set(["Hull", "Hull Options", "Armour", "Software"]);
 
+/**
+ * Lines listed even at no tons, as 0t items: a fixed mount is built into the
+ * hull, a computer into the bridge and fuel scoops into the skin, but a plan
+ * may still want to show where they are. Other lines of no tons, carried
+ * craft and the rest, are left off. FP 3.4.1.
+ */
+const SHOWN_AT_NO_TONS: ReadonlySet<string> = new Set(["Weapons", "Computer"]);
+const shownAtNoTons = (line: SheetLine): boolean => SHOWN_AT_NO_TONS.has(line.section) || /^fuel scoops?$/i.test(line.label);
+
 const GROUPS: Readonly<Record<string, ComponentGroup>> = {
   "M-Drive": "engineering",
   "R-Drive": "engineering",
@@ -84,7 +93,10 @@ function squaresFor(tons: number): number {
 function componentFrom(line: SheetLine): Component | undefined {
   if (LEFT_OFF.has(line.section)) return undefined;
   const tons = line.tons ?? 0;
-  if (tons <= 0) return undefined;
+  if (tons <= 0) {
+    if (!shownAtNoTons(line)) return undefined;
+    return { key: line.key, label: line.label, group: GROUPS[line.section] ?? "systems", tons: 0, target: 0, count: line.count ?? 1, rooms: 1, required: false };
+  }
   const count = line.count ?? 1;
   const staterooms = line.key === "staterooms";
   return {

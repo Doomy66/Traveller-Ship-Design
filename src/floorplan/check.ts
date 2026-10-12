@@ -9,8 +9,9 @@
 import { regions } from "./geometry";
 import type { Component, ComponentGroup, Manifest } from "./manifest";
 import { SQUARES_PER_TON } from "./manifest";
-import type { FloorPlan } from "./plan";
-import { ACCESS_KINDS, allSquares, baseKey, CELL, CORRIDOR } from "./plan";
+import type { Fixture, FloorPlan, SquareFixture } from "./plan";
+import { ACCESS_KINDS, allSquares, baseKey, CELL, cellKey, CORRIDOR, squaresUnder, tileFootprint } from "./plan";
+import { ACCESS_SYMBOLS, footprint, symbolById } from "./symbols";
 
 /** The whole ship may be this far either way of two squares a ton. FP 5.3. */
 export const SHIP_TOLERANCE = 0.1;
@@ -211,20 +212,54 @@ export function check(manifest: Manifest, plan: FloorPlan): Report {
   };
 }
 
+/** Library pieces in the access section that do not join decks. */
+const NOT_BETWEEN_DECKS: ReadonlySet<string> = new Set(["airlock"]);
+
+/**
+ * Whether a fixture joins decks: a lift, hatch or stairs placed with those
+ * tools, or a piece from the library's access section, the elevators,
+ * stairwells and hatches, but not the airlock. FP 6.1.
+ */
+export function joinsDecks(fixture: Fixture): fixture is SquareFixture {
+  if ("edge" in fixture) return false;
+  if ((ACCESS_KINDS as readonly string[]).includes(fixture.kind)) return true;
+  const symbol = symbolById(fixture.symbol);
+  return fixture.kind === "symbol" && symbol?.category === "access" && !NOT_BETWEEN_DECKS.has(symbol.id);
+}
+
+/** The cells a fixture that joins decks covers, by its footprint as turned. */
+export function accessCells(fixture: SquareFixture): string[] {
+  const symbol = symbolById(fixture.symbol ?? (fixture.kind === "symbol" ? undefined : ACCESS_SYMBOLS[fixture.kind]));
+  const [w, h] = symbol === undefined ? [1, 1] : footprint(symbol, fixture.rotation);
+  return squaresUnder(fixture.x, fixture.y, w, h).map(([x, y]) => cellKey(x, y));
+}
+
+/** Geomorph tiles whose names say they carry a way between decks. FP 12.2.1. */
+const ACCESS_TILE = /(^|-)(lifts?|stairs|elevator|vertical-access|hatch(es)?|ladders?)(-|$)/;
+
 /**
  * Decks that cannot be reached from the first. Two decks are joined where
- * each has an access fixture on the same square (FP 4.3.1). An empty deck is
- * not counted as cut off; there is nothing on it to reach.
+ * each has a lift, hatch, stairs or elevator and the two overlap on the
+ * shared grid (FP 4.3.1), so a pair of elevators joins decks as a lift does.
+ * A geomorph tile counts as one over its whole footprint when its name says
+ * it has a lift, stairs, an elevator, a hatch or vertical access. An empty
+ * deck is not counted as cut off; there is nothing on it to reach.
  */
 export function unreachableDecks(plan: FloorPlan): number[] {
   if (plan.decks.length < 2) return [];
   const shafts = new Map<string, Set<number>>();
-  for (const fixture of plan.fixtures) {
-    if ("edge" in fixture || !(ACCESS_KINDS as readonly string[]).includes(fixture.kind)) continue;
-    const at = `${fixture.x},${fixture.y}`;
-    const decks = shafts.get(at) ?? new Set<number>();
-    decks.add(fixture.deck);
-    shafts.set(at, decks);
+  const join = (deck: number, cells: readonly string[]) => {
+    for (const at of cells) {
+      const decks = shafts.get(at) ?? new Set<number>();
+      decks.add(deck);
+      shafts.set(at, decks);
+    }
+  };
+  for (const fixture of plan.fixtures) if (joinsDecks(fixture)) join(fixture.deck, accessCells(fixture));
+  for (const tile of plan.tiles) {
+    if (!ACCESS_TILE.test(tile.tile)) continue;
+    const [w, h] = tileFootprint(tile);
+    join(tile.deck, squaresUnder(tile.x, tile.y, w, h).map(([x, y]) => cellKey(x, y)));
   }
   const reached = new Set<number>([0]);
   let grew = true;

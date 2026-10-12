@@ -103,7 +103,7 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 ## 6. Access
 
-6.1 A ship with more than one deck needs a way between them. A lift, a hatch or stairs placed on two decks at the same square joins them.
+6.1 A ship with more than one deck needs a way between them. A lift, a hatch or stairs on two decks joins them where the two overlap on the shared grid, by the squares each covers as turned. That counts the Lift, Iris, Hatch and Stairs tools, the library's access pieces (its elevators, stairwells, hatches and iris valves, but not its airlock), and a geomorph tile whose name says it has a lift, stairs, an elevator, a hatch or vertical access, over the whole of its footprint.
 
 6.2 Every deck must be joined to the others. A deck with no way in is a warning.
 
@@ -165,7 +165,7 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 10.3 **The middle** is the deck, with the deck tabs above it. Dragging paints with the brush, a whole square at a time (FP 4.2.2). Dragging with the eraser clears. Dragging with the corridor brush makes corridors.
 
-10.4 **The right** holds everything else: the Move tool, Corridor and Erase, Undo and Redo; doors and iris valves for walls; lifts, iris valves and stairs between decks; Turn and Flip; the names-or-numbers switch; and below them the library (FP 7.7) and, at its foot, the geomorph folder (FP 12). A piece is placed with a click, and turned with R or flipped with F before or after.
+10.4 **The right** holds everything else: the Move tool, Corridor and Erase, Undo and Redo; doors and iris valves for walls; lifts, iris valves, hatches and stairs between decks; Turn and Flip; the names-or-numbers switch; and below them the library (FP 7.7) and, at its foot, the geomorph folder (FP 12). A piece is placed with a click, and turned with R or flipped with F before or after.
 
 10.5 Problems from `check` sit above the deck, as the sheet's do on the design screen.
 

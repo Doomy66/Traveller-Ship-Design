@@ -445,6 +445,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
         toolButton("Lift", { kind: "access", access: "lift" }, "A lift joins every deck with one on the same square", isAccess("lift")),
         toolButton("Iris, floor", { kind: "access", access: "hatch", symbol: "iris-floor" }, "An iris valve in the floor, to the deck below", isAccess("hatch", "iris-floor")),
         toolButton("Iris, ceiling", { kind: "access", access: "hatch", symbol: "iris-ceiling" }, "An iris valve in the ceiling, to the deck above", isAccess("hatch", "iris-ceiling")),
+        toolButton("Hatch", { kind: "access", access: "hatch", symbol: "sheet-hatch-updown" }, "A hatch and ladder, up and down, joins decks where they line up", isAccess("hatch", "sheet-hatch-updown")),
         toolButton("Stairs", { kind: "access", access: "stairs" }, "Stairs join decks where they line up", isAccess("stairs")),
       ]),
       el("h3", { class: "fp-group" }, ["Turn and flip"]),

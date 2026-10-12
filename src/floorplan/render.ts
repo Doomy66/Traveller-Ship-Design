@@ -11,7 +11,8 @@ import type { Bounds } from "./geometry";
 import { labelPoint, regions, storedEdge, walls } from "./geometry";
 import type { Component, ComponentGroup } from "./manifest";
 import type { Deck, EdgeFixture, FloorPlan, Owner, PlacedTile, SquareFixture } from "./plan";
-import { ACCESS_KINDS, baseKey, CELL, CORRIDOR, instanceOf, parseCell, tileFootprint } from "./plan";
+import { baseKey, CELL, CORRIDOR, instanceOf, parseCell, tileFootprint } from "./plan";
+import { accessCells, joinsDecks } from "./check";
 import { ACCESS_SYMBOLS, PIXELS_PER_SQUARE, footprint, symbolById } from "./symbols";
 
 export type Floor = ComponentGroup | "corridor" | "orphan";
@@ -471,15 +472,15 @@ export function overlayMarkup(deck: Deck, palette: Palette): string {
  * a shaft that stops short. FP 10.8.
  */
 export function unmatchedAccessMarkup(plan: FloorPlan, current: number, overlay: number, palette: Palette): string {
-  const isAccess = (f: (typeof plan.fixtures)[number]): f is SquareFixture =>
-    !("edge" in f) && (ACCESS_KINDS as readonly string[]).includes(f.kind);
-  const here = new Set(plan.fixtures.filter((f) => f.deck === current && isAccess(f)).map((f) => `${f.x},${f.y}`));
+  const here = new Set(plan.fixtures.filter((f) => f.deck === current).filter(joinsDecks).flatMap(accessCells));
   return plan.fixtures
-    .filter((f): f is SquareFixture => f.deck === overlay && isAccess(f))
+    .filter((f): f is SquareFixture => f.deck === overlay && joinsDecks(f))
     .map((f) => {
-      const matched = here.has(`${f.x},${f.y}`);
+      const matched = accessCells(f).some((c) => here.has(c));
       const colour = matched ? palette.overlay : palette.warn;
-      return `<rect x="${f.x + 0.06}" y="${f.y + 0.06}" width="0.88" height="0.88" fill="none" stroke="${colour}" stroke-width="0.07" stroke-dasharray="0.16 0.1"${matched ? "" : ` class="fp-unmatched"`}/>`;
+      const symbol = symbolById(f.symbol ?? (f.kind === "symbol" ? undefined : ACCESS_SYMBOLS[f.kind]));
+      const [w, h] = symbol === undefined ? [1, 1] : footprint(symbol, f.rotation);
+      return `<rect x="${f.x + 0.06}" y="${f.y + 0.06}" width="${w - 0.12}" height="${h - 0.12}" fill="none" stroke="${colour}" stroke-width="0.07" stroke-dasharray="0.16 0.1"${matched ? "" : ` class="fp-unmatched"`}/>`;
     })
     .join("");
 }

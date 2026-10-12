@@ -342,6 +342,34 @@ describe("access between decks", () => {
   it("does not count an empty deck as cut off", () => {
     expect(unreachableDecks(addDeck(block(emptyPlan(), "jump", 0, 0, 1, 1)))).toEqual([]);
   });
+
+  it("joins decks through library elevators and hatches, by the squares they cover", () => {
+    // The pair of elevators, two squares by one, on three decks as FOO3 has them.
+    let plan = addDeck(twoDecks());
+    plan = block(plan, "cargo", 0, 0, 1, 1, 2);
+    for (const deck of [0, 1, 2]) plan = placeFixture(plan, { kind: "symbol", symbol: "sheet-elevator-double", deck, x: 12, y: 6, rotation: 270 });
+    expect(unreachableDecks(plan)).toEqual([]);
+    // Turned differently on one deck, they still share a square.
+    plan = placeFixture(twoDecks(), { kind: "symbol", symbol: "sheet-elevator-double", deck: 0, x: 0, y: 0, rotation: 0 });
+    plan = placeFixture(plan, { kind: "symbol", symbol: "sheet-hatch-updown", deck: 1, x: 1, y: 0, rotation: 0 });
+    expect(unreachableDecks(plan)).toEqual([]);
+  });
+
+  it("does not join decks through an airlock or furniture", () => {
+    let plan = placeFixture(twoDecks(), { kind: "symbol", symbol: "airlock", deck: 0, x: 0, y: 0, rotation: 0 });
+    plan = placeFixture(plan, { kind: "symbol", symbol: "airlock", deck: 1, x: 0, y: 0, rotation: 0 });
+    expect(unreachableDecks(plan)).toEqual([1]);
+  });
+
+  it("joins decks through geomorph tiles that carry vertical access", () => {
+    const tile = (deck: number, name: string) => ({
+      deck, x: 0, y: 0, rotation: 0 as const, tile: name, squares: [10, 4] as const, pixels: [840, 480] as const, code: "AS-112",
+    });
+    let plan = { ...twoDecks(), tiles: [tile(0, "as-112-50x20-20-dtons-fuel-vertical-access"), tile(1, "as-112-50x20-20-dtons-fuel-vertical-access")] };
+    expect(unreachableDecks(plan)).toEqual([]);
+    plan = { ...twoDecks(), tiles: [tile(0, "as-101-50x20-20-dtons-fuel"), tile(1, "as-101-50x20-20-dtons-fuel")] };
+    expect(unreachableDecks(plan)).toEqual([1]);
+  });
 });
 
 describe("reading a saved plan", () => {

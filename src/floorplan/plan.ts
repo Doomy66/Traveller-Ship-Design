@@ -344,6 +344,48 @@ export function moveSquares(plan: FloorPlan, deck: number, squares: readonly (re
   return replaceDeck(plan, deck, { ...target, cells });
 }
 
+/**
+ * Turn a set of cells a quarter clockwise, or mirror it left to right, about
+ * the middle of the box around them, keeping their owners. The box's middle
+ * stays where it was, to the half square, rounding towards it so that turning
+ * four times or flipping twice puts the room back exactly. Whatever was under
+ * the new cells is replaced. FP 7.1.2. Returns the plan and the cells now
+ * held, in the order given.
+ */
+export function turnSquares(
+  plan: FloorPlan,
+  deck: number,
+  squares: readonly (readonly [number, number])[],
+  how: "turn" | "flip",
+): { plan: FloorPlan; squares: [number, number][] } {
+  const target = plan.decks[deck];
+  if (target === undefined || squares.length === 0) return { plan, squares: squares.map(([x, y]) => [x, y]) };
+  const minX = Math.min(...squares.map(([x]) => x));
+  const minY = Math.min(...squares.map(([, y]) => y));
+  const w = Math.max(...squares.map(([x]) => x)) + CELL - minX;
+  const h = Math.max(...squares.map(([, y]) => y)) + CELL - minY;
+  const towardsZero = (v: number) => Math.trunc(v / CELL) * CELL;
+  const shiftX = how === "turn" ? towardsZero((w - h) / 2) : 0;
+  const shiftY = how === "turn" ? towardsZero((h - w) / 2) : 0;
+  const to = squares.map(([x, y]): [number, number] => {
+    const u = x - minX;
+    const v = y - minY;
+    const [nu, nv] = how === "turn" ? [h - v - CELL, u] : [w - u - CELL, v];
+    return [toHalf(minX + shiftX + nu), toHalf(minY + shiftY + nv)];
+  });
+  const cells: Record<string, Owner> = { ...target.cells };
+  const moving: [string, Owner][] = [];
+  for (const [i, [x, y]] of squares.entries()) {
+    const key = cellKey(x, y);
+    const owner = cells[key];
+    if (owner === undefined) continue;
+    moving.push([cellKey(...to[i]!), owner]);
+    delete cells[key];
+  }
+  for (const [key, owner] of moving) cells[key] = owner;
+  return { plan: replaceDeck(plan, deck, { ...target, cells }), squares: to };
+}
+
 /** Note what each component is now, so a later change to the design shows up. FP 9.1. */
 export function remember(plan: FloorPlan, components: readonly { key: string; label: string; tons: number }[]): FloorPlan {
   const remembered: Record<string, Remembered> = {};

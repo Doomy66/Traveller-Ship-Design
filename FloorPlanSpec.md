@@ -89,7 +89,7 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 5.2.1 Required components not yet started are one warning that names them all, not a warning each. A new plan then opens on a single line of what is left to place.
 
-5.3 **The whole ship.** Every non-empty square on every deck, corridors included, is counted against two squares per hull ton. The book allows ten per cent either way. Outside that band is a warning, once every required component has been started; before then the plan is short because it is unfinished, which FP 5.2.1 already says. The panel shows the total against the band throughout.
+5.3 **The whole ship.** Every non-empty square on every deck, corridors included, is counted against two squares per hull ton. The book allows ten per cent either way. Fuel the plan leaves off comes off the target first, since fuel is optional (FP 3.5): the squares of fuel not drawn, all of them or what is left after some is drawn. Outside that band is a warning, once every required component has been started; before then the plan is short because it is unfinished, which FP 5.2.1 already says. The panel shows the total against the band throughout.
 
 5.4 **Rooms.** Staterooms should be drawn as that many separate regions. Ten staterooms painted as one block of sixty squares is a warning that says so. A region counts as a room once walls enclose it, which FP 8.2 draws. No other component is counted room by room.
 
@@ -113,7 +113,7 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 7.1.4 **An opening** is a stretch of wall left out, so two rooms run into one another: a lounge open to a galley, a bridge open to its sensor stations. It is placed like a door, a square for a click or as many as a drag, and moved like one. Nothing is drawn for it in use, on paper or in an export; on screen a faint dotted line shows where it is, so it can be found and moved.
 
-7.1.2 Every piece on squares, from the library or a geomorph tile, can be **turned** a quarter at a time and **flipped**, mirrored left to right, which is how a port-side layout becomes a starboard one. A flipped piece is mirrored about its own middle before it is turned, so it keeps its footprint. R turns and F flips the selected piece, or the next one to be placed.
+7.1.2 Every piece on squares, from the library or a geomorph tile, can be **turned** a quarter at a time and **flipped**, mirrored left to right, which is how a port-side layout becomes a starboard one. A flipped piece is mirrored about its own middle before it is turned, so it keeps its footprint. R turns and F flips the selected piece, or the next one to be placed. A painted room selected with Move turns and flips too, about the middle of the box around it, kept to the half square so that four turns or two flips put it back exactly; like a moved room, it replaces what it lands on, and its doors stay where they are.
 
 7.2 The kinds: door, iris valve and opening in walls; lift, iris valve in the floor, iris valve in the ceiling, and stairs between decks; and furniture and fitted rooms from the library. An iris valve can be a door in a wall or a way up or down, which is why it appears in both places.
 
@@ -173,7 +173,7 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 10.8 A lift, hatch or stairwell on the overlay deck that has no partner on the current deck is marked, so a shaft that stops short is easy to see.
 
-10.9 **Move.** The Move tool picks up whatever is under the pointer, in this order: a fitting, a door or valve in a wall, a painted room, a tile. Dragging moves it by half squares, and it stays selected. R turns and F flips a selected tile or fitting in place, Delete removes the selection, and the arrow keys nudge it half a square, or a whole one with Shift. A room moved onto other squares replaces what was there. Move is the tool the screen opens with.
+10.9 **Move.** The Move tool picks up whatever is under the pointer, in this order: a fitting, a door or valve in a wall, a painted room, a tile. Dragging moves it by half squares, and it stays selected. R turns and F flips a selected tile, fitting or room in place (FP 7.1.2), Delete removes the selection, and the arrow keys nudge it half a square, or a whole one with Shift. A room moved onto other squares replaces what was there. Move is the tool the screen opens with.
 
 ## 11. Open questions
 

@@ -20,6 +20,7 @@ import {
   remember,
   removeDeck,
   shiftDeck,
+  turnSquares,
 } from "./plan";
 
 /** A small ship to plan: 20 tons, so a 40-square plan, two staterooms. */
@@ -52,6 +53,46 @@ describe("painting", () => {
     const before = emptyPlan();
     block(before, "jump", 0, 0, 2, 2);
     expect(before.decks[0]!.cells).toEqual({});
+  });
+});
+
+describe("turning and flipping a room", () => {
+  // An L of whole squares: three along the top, one hanging down at the left.
+  const L = () => paint(block(emptyPlan(), "jump", 0, 0, 2, 0), 0, area(0, 1, 1, 1), "jump");
+  const cellsOf = (plan: FloorPlan) => Object.keys(plan.decks[0]!.cells);
+
+  it("turns a quarter clockwise about its middle", () => {
+    const start = L();
+    const { plan } = turnSquares(start, 0, cellsOf(start).map((k) => k.split(",").map(Number) as [number, number]), "turn");
+    // A 3 by 2 box becomes 2 by 3, its middle kept to the half square: the
+    // top row becomes the right-hand column, and the foot of the L the top left.
+    const owned = cellsOf(plan).map((k) => k.split(",").map(Number) as [number, number]);
+    expect(owned).toHaveLength(16);
+    expect(Math.min(...owned.map(([x]) => x))).toBe(0.5);
+    expect(Math.min(...owned.map(([, y]) => y))).toBe(-0.5);
+    expect(plan.decks[0]!.cells["0.5,-0.5"]).toBe("jump");
+    expect(plan.decks[0]!.cells["0.5,0.5"]).toBeUndefined();
+  });
+
+  it("comes back exactly after four turns or two flips", () => {
+    const start = L();
+    let plan = start;
+    let squares = cellsOf(start).map((k) => k.split(",").map(Number) as [number, number]);
+    for (let i = 0; i < 4; i++) ({ plan, squares } = turnSquares(plan, 0, squares, "turn"));
+    expect(plan.decks[0]!.cells).toEqual(start.decks[0]!.cells);
+    squares = cellsOf(start).map((k) => k.split(",").map(Number) as [number, number]);
+    plan = start;
+    for (let i = 0; i < 2; i++) ({ plan, squares } = turnSquares(plan, 0, squares, "flip"));
+    expect(plan.decks[0]!.cells).toEqual(start.decks[0]!.cells);
+  });
+
+  it("mirrors left to right in its own box", () => {
+    const start = L();
+    const { plan } = turnSquares(start, 0, cellsOf(start).map((k) => k.split(",").map(Number) as [number, number]), "flip");
+    // The foot of the L moves from the left to the right.
+    expect(plan.decks[0]!.cells["2,1"]).toBe("jump");
+    expect(plan.decks[0]!.cells["0,1"]).toBeUndefined();
+    expect(plan.decks[0]!.cells["0,0"]).toBe("jump");
   });
 });
 
@@ -185,15 +226,33 @@ describe("check", () => {
       plan = block(plan, instanceOwner("staterooms", 1), 0, 2, 2, 3);
       return block(plan, instanceOwner("staterooms", 2), 3, 2, 5, 3);
     };
-    const report = check(SHIP, block(placed(), CORRIDOR, 0, 4, 7, 4));
-    expect(report.ship).toEqual({ target: 40, low: 36, high: 44 });
-    expect(report.total).toBe(30);
+    // With the fuel drawn, the band is the whole forty squares.
+    const fuelled = () => block(placed(), "fuel", 6, 0, 8, 1);
+    const report = check(SHIP, block(fuelled(), CORRIDOR, 0, 4, 7, 4));
+    expect(report.ship).toEqual({ target: 40, low: 36, high: 44, undrawn: 0 });
+    expect(report.total).toBe(30 + 6);
     expect(report.corridor).toBe(8);
-    expect(report.problems.map((p) => p.message)).toContain(
-      "The plan covers 30 squares, outside the 36 to 44 a 20-ton ship allows.",
-    );
-    const fits = check(SHIP, block(placed(), CORRIDOR, 0, 4, 7, 5));
+    expect(report.problems.some((p) => p.clause === "5.3")).toBe(false);
+    const short = check(SHIP, block(fuelled(), CORRIDOR, 0, 4, 3, 4));
+    expect(short.problems.map((p) => p.message)).toContain("The plan covers 32 squares, outside the 36 to 44 a 20-ton ship allows.");
+  });
+
+  it("leaves fuel that is not drawn out of the ship's total, since fuel is optional", () => {
+    // Without its six squares of fuel the band is 34, less and more ten per cent.
+    let plan = block(emptyPlan(), "jump", 0, 0, 4, 1);
+    plan = block(plan, instanceOwner("staterooms", 1), 0, 2, 2, 3);
+    plan = block(plan, instanceOwner("staterooms", 2), 3, 2, 5, 3);
+    const fits = check(SHIP, block(block(plan, CORRIDOR, 0, 4, 7, 4), CORRIDOR, 0, 5, 1, 5));
+    expect(fits.ship).toEqual({ target: 34, low: 31, high: 37, undrawn: 6 });
+    expect(fits.total).toBe(30 + 2);
     expect(fits.problems.some((p) => p.clause === "5.3")).toBe(false);
+    const over = check(SHIP, block(plan, CORRIDOR, 0, 4, 7, 5));
+    expect(over.problems.map((p) => p.message)).toContain(
+      "The plan covers 38 squares, outside the 31 to 37 a 20-ton ship allows with 6 squares of fuel not drawn.",
+    );
+    // Some fuel drawn: only what is still missing comes off.
+    const some = check(SHIP, block(plan, "fuel", 6, 0, 6, 1));
+    expect(some.ship.undrawn).toBe(4);
   });
 
   it("says nothing of the ship's total while components are still to be placed", () => {

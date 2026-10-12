@@ -50,7 +50,11 @@ export interface Report {
   readonly corridor: number;
   /** Every non-empty square, corridors and orphans included. FP 5.3. */
   readonly total: number;
-  readonly ship: { readonly target: number; readonly low: number; readonly high: number };
+  /**
+   * The band the whole plan should fall in. `undrawn` is the squares of
+   * optional components, fuel, left off the plan, which the target leaves out.
+   */
+  readonly ship: { readonly target: number; readonly low: number; readonly high: number; readonly undrawn: number };
   /** Decks with no way to the first deck. FP 6.2. */
   readonly cutOff: readonly number[];
   readonly problems: readonly PlanProblem[];
@@ -173,14 +177,19 @@ export function check(manifest: Manifest, plan: FloorPlan): Report {
     }
   }
 
-  // The whole ship, ten per cent either way. FP 5.3.
-  const target = manifest.usableTons * SQUARES_PER_TON;
+  // The whole ship, ten per cent either way, less any fuel not drawn, since
+  // the plan may leave it off. FP 5.3.
+  const undrawn = manifest.components
+    .filter((c) => !c.required)
+    .reduce((sum, c) => sum + Math.max(0, c.target - (placed.get(c.key) ?? 0)), 0);
+  const target = manifest.usableTons * SQUARES_PER_TON - undrawn;
   const low = Math.ceil(target * (1 - SHIP_TOLERANCE));
   const high = Math.floor(target * (1 + SHIP_TOLERANCE));
   // Only once every required component is started: until then the total is
   // short because the plan is unfinished, which the list above already says.
   if (total > 0 && untouched.length === 0 && (total < low || total > high)) {
-    warn(`The plan covers ${squares(total)}, outside the ${low} to ${high} a ${manifest.usableTons}-ton ship allows.`, "5.3");
+    const without = undrawn > 0 ? ` with ${squares(undrawn)} of fuel not drawn` : "";
+    warn(`The plan covers ${squares(total)}, outside the ${low} to ${high} a ${manifest.usableTons}-ton ship allows${without}.`, "5.3");
   }
 
   // Every deck joined to the first, through lifts, hatches and stairs that line up. FP 6.1, 6.2.
@@ -194,7 +203,7 @@ export function check(manifest: Manifest, plan: FloorPlan): Report {
     orphans,
     corridor,
     total,
-    ship: { target, low, high },
+    ship: { target, low, high, undrawn },
     cutOff,
     problems,
   };

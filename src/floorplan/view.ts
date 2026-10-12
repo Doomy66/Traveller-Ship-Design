@@ -28,6 +28,7 @@ import {
   instanceOwner,
   moveDeck,
   moveSquares,
+  turnSquares,
   openings,
   paint,
   placeFixture,
@@ -371,7 +372,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       el("div", { class: "fp-totals" }, [
         el("div", {}, [`Corridors ${formatSquares(report.corridor)}`]),
         el("div", { class: report.total === 0 ? "" : inBand ? "fp-met" : "fp-short" }, [
-          `Plan ${formatSquares(report.total)} of ${ship.target} squares (${ship.low} to ${ship.high})`,
+          `Plan ${formatSquares(report.total)} of ${ship.target} squares (${ship.low} to ${ship.high})${ship.undrawn > 0 ? `, less ${formatSquares(ship.undrawn)} for fuel not drawn` : ""}`,
         ]),
       ]),
     );
@@ -1028,7 +1029,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     const what = owner === undefined ? "empty" : owner === CORRIDOR ? "corridor" : looksFor(components(), plan())(owner).label;
     const hint =
       tool.kind === "move"
-        ? "Drag a tile, fitting, door or room to move it by half squares; R turns, F flips, Delete removes, the arrows nudge."
+        ? "Drag a tile, fitting, door or room to move it by half squares; R turns and F flips a tile, fitting or room, Delete removes, the arrows nudge."
         : tool.kind === "paint" || tool.kind === "corridor" || tool.kind === "erase"
           ? "Drag to paint, Shift+drag for a rectangle."
           : tool.kind === "edge"
@@ -1296,9 +1297,17 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     else commit(paint(plan(), deck, sel.squares, undefined));
   }
 
+  /** Turn or mirror the selected room in place. FP 7.1.2. */
+  function turnRegion(sel: Extract<Selection, { type: "region" }>, how: "turn" | "flip"): boolean {
+    const done = turnSquares(plan(), deck, sel.squares, how);
+    commit(done.plan, { type: "region", squares: done.squares });
+    return true;
+  }
+
   function turnSelection(): boolean {
     const sel = selection;
-    if (sel === undefined || sel.type === "region") return false;
+    if (sel === undefined) return false;
+    if (sel.type === "region") return turnRegion(sel, "turn");
     const next = (r: Rotation) => ((r + 90) % 360) as Rotation;
     if (sel.type === "tile") {
       const t = plan().tiles[sel.index];
@@ -1311,10 +1320,11 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     return true;
   }
 
-  /** Mirror the selected tile or piece, if it is one. */
+  /** Mirror the selected tile, piece or room. */
   function flipSelection(): boolean {
     const sel = selection;
-    if (sel === undefined || sel.type === "region") return false;
+    if (sel === undefined) return false;
+    if (sel.type === "region") return turnRegion(sel, "flip");
     if (sel.type === "tile") {
       const t = plan().tiles[sel.index];
       if (t !== undefined) commit(replaceTile(plan(), sel.index, { ...t, flip: t.flip !== true }), sel);

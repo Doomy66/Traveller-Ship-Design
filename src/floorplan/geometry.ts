@@ -116,6 +116,34 @@ export function labelSquare(region: Region): readonly [number, number] {
   return best;
 }
 
+/**
+ * Where a room's label is centred: the middle of the room, on the half
+ * square, so a label sits squarely in its room rather than in one cell of
+ * it. Where the middle falls outside the room, as in an L, the middle of the
+ * cell nearest it instead. FP 8.3.
+ */
+export function labelPoint(region: Region): readonly [number, number] {
+  let sx = 0;
+  let sy = 0;
+  for (const [x, y] of region.squares) {
+    sx += x + CELL / 2;
+    sy += y + CELL / 2;
+  }
+  const px = toHalf(sx / region.squares.length);
+  const py = toHalf(sy / region.squares.length);
+  const inside = new Set(region.squares.map(([x, y]) => cellKey(x, y)));
+  // The point is a corner of four cells; it is in the room if any of them is.
+  const corners = [
+    [px - CELL, py - CELL],
+    [px, py - CELL],
+    [px - CELL, py],
+    [px, py],
+  ];
+  if (corners.some(([x, y]) => inside.has(cellKey(toHalf(x!), toHalf(y!))))) return [px, py];
+  const [x, y] = labelSquare(region);
+  return [x + CELL / 2, y + CELL / 2];
+}
+
 export interface Bounds {
   readonly minX: number;
   readonly minY: number;

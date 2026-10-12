@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import { check, unreachableDecks } from "./check";
-import { labelSquare, regions, storedEdge, walls } from "./geometry";
+import { labelPoint, labelSquare, regions, storedEdge, walls } from "./geometry";
 import type { Manifest } from "./manifest";
 import type { FloorPlan } from "./plan";
 import {
@@ -110,11 +110,22 @@ describe("geometry", () => {
     expect(storedEdge({ x: 3, y: 4, side: "e" })).toEqual({ x: 3.5, y: 4, edge: "w" });
   });
 
+  it("centres a room's label on the half square at its middle", () => {
+    // Three squares by two: the middle is at 1.5, 1.
+    expect(labelPoint(regions(block(emptyPlan(), "jump", 0, 0, 2, 1).decks[0]!)[0]!)).toEqual([1.5, 1]);
+    // Two squares by two, slid half a square by Move: the middle is at 1.5, 1.5.
+    const moved = paint(emptyPlan(), 0, area(0.5, 0.5, 2, 2), "jump");
+    expect(labelPoint(regions(moved.decks[0]!)[0]!)).toEqual([1.5, 1.5]);
+  });
+
   it("labels an L-shaped room inside the room", () => {
     let plan = block(emptyPlan(), "jump", 0, 0, 0, 4);
     plan = block(plan, "jump", 0, 4, 4, 4);
     const [x, y] = labelSquare(regions(plan.decks[0]!)[0]!);
     expect(plan.decks[0]!.cells[`${x},${y}`]).toBe("jump");
+    // The middle of an L is out in its elbow, so the label goes in a cell of the room instead.
+    const [lx, ly] = labelPoint(regions(plan.decks[0]!)[0]!);
+    expect(plan.decks[0]!.cells[`${Math.floor(lx / 0.5) * 0.5},${Math.floor(ly / 0.5) * 0.5}`]).toBe("jump");
   });
 });
 

@@ -133,7 +133,7 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 8.2 A wall is drawn wherever a square meets a square of another owner or empty space. A door or iris valve on that edge opens it.
 
-8.3 Each region carries its component's label, as the book recommends labelling each part. A component with several regions labels each one. A room with a fitted room from the library over its label square is not labelled again, since the symbol carries its own lettering.
+8.3 Each region carries its component's label, as the book recommends labelling each part. The label is centred on the middle of the room, on the half square, or in a cell of the room where its middle falls outside it, as in an L. A component with several regions labels each one. A room with a fitted room from the library over its label square is not labelled again, since the symbol carries its own lettering.
 
 8.4 **Numbers or names.** Every component has a number, and the panel shows it beside the name. Components are numbered by group, in the panel's order, then by the sheet's order within the group, so the numbers read straight down the list. Rooms are labelled by name while a plan is being designed, or by number, as a finished plan is used. A switch on the right chooses which. A numbered plan exports and prints with a key beside it, listing the number and name of every component it shows. Every stateroom carries the stateroom number.
 

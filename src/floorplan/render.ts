@@ -8,10 +8,10 @@
  */
 
 import type { Bounds } from "./geometry";
-import { labelSquare, regions, walls } from "./geometry";
+import { labelPoint, regions, walls } from "./geometry";
 import type { Component, ComponentGroup } from "./manifest";
 import type { Deck, EdgeFixture, FloorPlan, Owner, PlacedTile, SquareFixture } from "./plan";
-import { ACCESS_KINDS, baseKey, CELL, CORRIDOR, instanceOf, parseCell, squaresUnder, tileFootprint } from "./plan";
+import { ACCESS_KINDS, baseKey, CELL, cellOf, CORRIDOR, instanceOf, parseCell, squaresUnder, tileFootprint } from "./plan";
 import { ACCESS_SYMBOLS, PIXELS_PER_SQUARE, footprint, symbolById } from "./symbols";
 
 export type Floor = ComponentGroup | "corridor" | "orphan";
@@ -242,14 +242,15 @@ export function labelsMarkup(
     // A number fits in a single square; a name needs two. A cell is a quarter of a square.
     const squares = region.squares.length * CELL * CELL;
     if (label === "" || squares < 0.75 || (squares < 2 && label.length > 2)) continue;
-    const [x, y] = labelSquare(region);
-    if (fitted.has(`${x},${y}`)) continue;
+    const [x, y] = labelPoint(region);
+    // Left out where a fitted room's own lettering covers the spot.
+    if (fitted.has(`${cellOf(x)},${cellOf(y)}`)) continue;
     // Shrink long names in small rooms, within limits that stay legible.
     const xs = region.squares.map((s) => s[0]);
     const width = Math.max(...xs) - Math.min(...xs) + CELL;
     const size = /^\d+$/.test(label) ? 0.5 : Math.max(0.22, Math.min(0.42, (width * 1.7) / Math.max(label.length, 1)));
     out.push(
-      `<text x="${n(x + CELL / 2)}" y="${n(y + CELL / 2)}" font-size="${n(size)}" fill="${palette.label}" text-anchor="middle" dominant-baseline="central" class="fp-label">${esc(label)}</text>`,
+      `<text x="${n(x)}" y="${n(y)}" font-size="${n(size)}" fill="${palette.label}" text-anchor="middle" dominant-baseline="central" class="fp-label">${esc(label)}</text>`,
     );
   }
   return out.join("");

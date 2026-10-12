@@ -15,7 +15,6 @@ import type { FloorPlan } from "./plan";
 import { CELL, openings, tiledSquares, tileFootprint } from "./plan";
 import type { LabelMode, Palette } from "./render";
 import {
-  fittedSquares,
   fixturesMarkup,
   floorsMarkup,
   gridMarkup,
@@ -100,7 +99,7 @@ export function deckDocument(
     tilesMarkup(plan, deck, palette, sources.tile),
     wallsMarkup(d, palette, 0.1, "", tiledSquares(plan, deck), openings(plan, deck)),
     fixturesMarkup(plan, deck, palette, sources.symbol),
-    labelsMarkup(d, look, palette, fittedSquares(plan, deck)),
+    labelsMarkup(d, look, palette),
     `<text x="${area.minX + 0.5}" y="${area.minY + 1}" font-size="0.6" font-weight="600" fill="${palette.label}">${esc(title)}</text>`,
     keyed ? legendMarkup(manifest.components, plan, area.maxX + 2, area.minY + 1, palette) : "",
     `</svg>`,

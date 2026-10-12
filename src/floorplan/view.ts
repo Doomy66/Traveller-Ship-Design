@@ -48,7 +48,6 @@ import {
 import type { LabelMode } from "./render";
 import {
   cellsPath,
-  fittedSquares,
   fixturesMarkup,
   floorsMarkup,
   gridMarkup,
@@ -732,7 +731,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     layers.tiles.innerHTML = tilesMarkup(plan(), deck, SCREEN, tileHref);
     layers.walls.innerHTML = wallsMarkup(d, SCREEN, 0.1, "", tiled, openings(plan(), deck));
     layers.fixtures.innerHTML = fixturesMarkup(plan(), deck, SCREEN, symbolHref);
-    layers.labels.innerHTML = labelsMarkup(d, looks, SCREEN, fittedSquares(plan(), deck));
+    layers.labels.innerHTML = labelsMarkup(d, looks, SCREEN);
     layers.marks.innerHTML = under === undefined ? "" : unmatchedAccessMarkup(plan(), deck, under, SCREEN);
     readMissingTiles();
     drawSelection();

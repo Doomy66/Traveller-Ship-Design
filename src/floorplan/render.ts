@@ -11,7 +11,7 @@ import type { Bounds } from "./geometry";
 import { labelPoint, regions, storedEdge, walls } from "./geometry";
 import type { Component, ComponentGroup } from "./manifest";
 import type { Deck, EdgeFixture, FloorPlan, Owner, PlacedTile, SquareFixture } from "./plan";
-import { ACCESS_KINDS, baseKey, CELL, cellOf, CORRIDOR, instanceOf, parseCell, squaresUnder, tileFootprint } from "./plan";
+import { ACCESS_KINDS, baseKey, CELL, CORRIDOR, instanceOf, parseCell, tileFootprint } from "./plan";
 import { ACCESS_SYMBOLS, PIXELS_PER_SQUARE, footprint, symbolById } from "./symbols";
 
 export type Floor = ComponentGroup | "corridor" | "orphan";
@@ -287,30 +287,14 @@ export function wallsMarkup(
 }
 
 /**
- * Squares covered by a fitted room from the symbol library, a stateroom drawn
- * complete. Those symbols carry their own lettering, so the room is not
- * labelled a second time over the top of it.
+ * A label in each room, drawn over everything in it, geomorph pieces
+ * included, with a halo of the background colour so it reads over their
+ * lines. FP 8.3.
  */
-const LETTERED: ReadonlySet<string> = new Set(["rooms", "common", "engineering", "turrets"]);
-
-export function fittedSquares(plan: FloorPlan, deck: number): Set<string> {
-  const covered = new Set<string>();
-  for (const f of plan.fixtures) {
-    if (f.deck !== deck || "edge" in f || f.kind !== "symbol") continue;
-    const symbol = symbolById(f.symbol);
-    if (symbol === undefined || !LETTERED.has(symbol.category)) continue;
-    const [w, h] = footprint(symbol, f.rotation);
-    for (const [sx, sy] of squaresUnder(f.x, f.y, w, h)) covered.add(`${sx},${sy}`);
-  }
-  return covered;
-}
-
-/** A label in each room, unless a fitted room's own lettering is there already. FP 8.3. */
 export function labelsMarkup(
   deck: Deck,
   look: (owner: Owner) => OwnerLook,
   palette: Palette,
-  fitted: ReadonlySet<string> = new Set(),
 ): string {
   const out: string[] = [];
   for (const region of regions(deck)) {
@@ -319,14 +303,12 @@ export function labelsMarkup(
     const squares = region.squares.length * CELL * CELL;
     if (label === "" || squares < 0.75 || (squares < 2 && label.length > 2)) continue;
     const [x, y] = labelPoint(region);
-    // Left out where a fitted room's own lettering covers the spot.
-    if (fitted.has(`${cellOf(x)},${cellOf(y)}`)) continue;
     // Shrink long names in small rooms, within limits that stay legible.
     const xs = region.squares.map((s) => s[0]);
     const width = Math.max(...xs) - Math.min(...xs) + CELL;
     const size = /^\d+$/.test(label) ? 0.5 : Math.max(0.22, Math.min(0.42, (width * 1.7) / Math.max(label.length, 1)));
     out.push(
-      `<text x="${n(x)}" y="${n(y)}" font-size="${n(size)}" fill="${palette.label}" text-anchor="middle" dominant-baseline="central" class="fp-label">${esc(label)}</text>`,
+      `<text x="${n(x)}" y="${n(y)}" font-size="${n(size)}" fill="${palette.label}" stroke="${palette.background}" stroke-width="0.09" stroke-linejoin="round" paint-order="stroke" text-anchor="middle" dominant-baseline="central" class="fp-label">${esc(label)}</text>`,
     );
   }
   return out.join("");

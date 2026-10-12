@@ -23,7 +23,14 @@ export function renderSheet(into: Element, sheet: Sheet, onNotes: (notes: string
   // Problems first. A designer who has just broken something should not have to
   // scroll past a correct-looking sheet to be told.
   if (sheet.problems.length > 0) into.append(problemPanel(sheet));
-  into.append(componentTable(sheet));
+  // On paper the description sits to the right of the table, in the room the
+  // table leaves; the box above is for typing it and does not print.
+  const description = sheet.notes.trim();
+  into.append(
+    description === ""
+      ? componentTable(sheet)
+      : el("div", { class: "sheet-body" }, [componentTable(sheet), el("div", { class: "notes-print" }, [description])]),
+  );
   into.append(totals(sheet));
   into.append(powerPanel(sheet));
   into.append(crewPanel(sheet));

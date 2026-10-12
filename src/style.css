@@ -401,6 +401,8 @@ textarea.notes::placeholder { color: var(--faint); font-style: italic; }
 textarea.notes:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 table.components { width: max-content; max-width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+/* The description's printed copy, beside the table; the notes box is for the screen. */
+.notes-print { display: none; }
 table.components th, table.components td { padding: 2px 5px; text-align: left; vertical-align: top; }
 table.components thead th { color: var(--muted); font-weight: 400; border-bottom: 1px solid var(--line); }
 table.components tbody th { color: var(--accent); font-weight: 600; white-space: nowrap; }
@@ -457,7 +459,6 @@ ul.problems .note .tag { background: var(--note); color: #14161a; }
   dl.figures { gap: 0 12px; }
   .sheet-panel { margin-bottom: 8px; }
   .sheet-sub { margin-bottom: 4px; }
-  textarea.notes { margin-bottom: 8px; }
   ul.problems li { margin-bottom: 2px; }
   .bar, .panel-form, .landing, .floorplan-screen { display: none !important; }
   /* The sheet prints from either screen, the floor plan's included. */
@@ -466,8 +467,10 @@ ul.problems .note .tag { background: var(--note); color: #14161a; }
   /* With the floor plan's decks to follow, the sheet has its page to itself. */
   body.print-with-plan .panel-sheet { break-after: page; page-break-after: always; }
   .panel-sheet { background: #fff; max-width: none; overflow: visible; padding: 0; }
-  textarea.notes { background: none; border: none; padding: 0; color: #111; }
-  textarea.notes:placeholder-shown { display: none; }
+  textarea.notes { display: none; }
+  .sheet-body { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0 16px; align-items: start; }
+  .sheet-body table.components { max-width: none; }
+  .notes-print { display: block; white-space: pre-wrap; color: #111; padding-top: 2px; }
   .sheet-panel h3, table.components tbody th, .sheet-head h2 { color: #111; }
   table.components thead th, dl.figures dt, .sheet-sub { color: #555; }
   table.components thead th, dl.figures .sum, table.components tr.subtotal td:last-child { border-color: #ccc; }

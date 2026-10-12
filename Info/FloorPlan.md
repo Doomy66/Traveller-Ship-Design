@@ -38,9 +38,12 @@ Each phase ends with the tests passing, the build clean and a commit, as the shi
 
 **FP6. Export.** PNG, SVG and print.
 
-**Later.** The geomorph tiles, a drawn hull outline, the FP 6.3 reachability checks, a coarser scale for very large ships, and suggesting a first layout from the manifest.
+**Later.** A drawn hull outline, the FP 6.3 reachability checks, and a coarser scale for very large ships. The geomorph tiles, Move and the suggested layout have been done since.
 
 ## Where we are
+
+Sixth pass, 2026-10-12. Suggest a layout (FP 7.9) lays every component down at its target along a corridor, bow to stern, with a door to each room and a lift between decks when the ship needs two; `src/floorplan/layout.ts`, tested against every ship. The printed sheet now carries the description to the right of the component table.
+
 
 Fifth pass, 2026-10-11 and 12. The plan is stored on the half square: rooms are half-square cells (four to the square), and doors, fittings and tiles can sit on half squares. Editing is in whole squares (painting, placing, putting doors in); only Move goes in half squares, at the author's request. Plans saved earlier, with whole-square cells, are split four ways when read (plan version 2).
 
@@ -57,7 +60,7 @@ First pass:
 
 FP1 to FP6 done, 2026-10-11. The floor plan screen opens from the bar beside Design. Painting, staterooms one by one, corridors, decks with an overlay, doors, iris valves, lifts, hatches, stairs, 28 bundled symbols, undo, SVG and PNG export and printing all work, and the plan saves inside the `.ship`. The open questions of FP 11 were settled by default and are written up there.
 
-Ideas not yet built, roughly in order of use: drag to move a placed fitting rather than remove and replace it; a coarser scale for ships over 5,000 tons; the reachability checks of FP 6.3; the geomorph tiles; a first layout suggested from the manifest.
+Ideas not yet built at the time, all but two done since: drag to move a placed fitting; a coarser scale for ships over 5,000 tons (still to do); the reachability checks of FP 6.3 (still to do); the geomorph tiles; a first layout suggested from the manifest.
 
 FP1, earlier the same day. Every sheet line has a key and, where it stands for several things, a count. `src/floorplan/manifest.ts` turns a design into the components to place, tested against all 40 ships, and a test keeps every other floor plan file away from the engine. Next is FP2, the plan model and `check`.
 

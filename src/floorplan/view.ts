@@ -16,6 +16,7 @@ import { check, formatSquares } from "./check";
 import { exportPng, exportSvg } from "./export";
 import type { Bounds } from "./geometry";
 import { bounds, regions, storedEdge } from "./geometry";
+import { suggestLayout } from "./layout";
 import type { Component, ComponentGroup, Manifest } from "./manifest";
 import { SQUARES_PER_STATEROOM } from "./manifest";
 import type { AccessKind, EdgeFixture, EdgeKind, Fixture, FloorPlan, Owner, PlacedTile, Rotation, SquareFixture } from "./plan";
@@ -362,6 +363,10 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     left.replaceChildren(
       el("h2", { class: "fp-heading" }, [host.manifest.shipName]),
       el("p", { class: "fp-hint" }, ["Pick a component, then paint its squares on the deck."]),
+      button("Suggest a layout", suggest, {
+        class: "fp-suggest",
+        title: "Lay every component down as a room along a corridor, to move about from there. Undo puts back what was here.",
+      }),
       list,
       el("div", { class: "fp-totals" }, [
         el("div", {}, [`Corridors ${formatSquares(report.corridor)}`]),
@@ -372,6 +377,15 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     );
     const restored = left.querySelector(".fp-list");
     if (restored !== null) restored.scrollTop = scroll;
+  }
+
+  /** A first layout from the manifest, in place of whatever is drawn. FP 7.9. */
+  function suggest(): void {
+    const drawn = plan().decks.some((d) => Object.keys(d.cells).length > 0) || plan().fixtures.length > 0 || plan().tiles.length > 0;
+    if (drawn && !confirm("Replace this plan with a suggested layout? Undo will bring it back.")) return;
+    deck = 0;
+    commit(suggestLayout(host.manifest, plan().remembered));
+    fit();
   }
 
   function clearOrphan(key: string): void {

@@ -32,6 +32,7 @@
 .fp-seg .fp-tool:first-child { border-radius: 4px 0 0 4px; }
 .fp-seg .fp-tool:last-child { border-radius: 0 4px 4px 0; border-left: 0; }
 .fp-hint { margin: 0 12px 4px; color: var(--faint); font-size: 12px; }
+.fp-suggest { margin: 2px 12px 6px; align-self: flex-start; }
 .fp-toolrow { display: flex; gap: 6px; flex-wrap: wrap; }
 .fp-tool { padding: 3px 9px; }
 .fp-tool.on, .fp-tab.on, .fp-symbol.on, .fp-chip.on { border-color: var(--accent); background: #3a3015; color: #f4dfa6; }

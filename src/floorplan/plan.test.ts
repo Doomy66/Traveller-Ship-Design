@@ -14,7 +14,9 @@ import {
   emptyPlan,
   instanceOwner,
   moveDeck,
+  moveSquaresToDeck,
   paint,
+  parseCell,
   placeFixture,
   readPlan,
   remember,
@@ -53,6 +55,39 @@ describe("painting", () => {
     const before = emptyPlan();
     block(before, "jump", 0, 0, 2, 2);
     expect(before.decks[0]!.cells).toEqual({});
+  });
+});
+
+describe("moving a room to another deck", () => {
+  const cellsOf = (plan: FloorPlan, deck: number, owner: string) =>
+    Object.entries(plan.decks[deck]!.cells).filter(([, o]) => o === owner).map(([k]) => parseCell(k));
+  const twoDecks = () => addDeck(block(emptyPlan(), "jump", 0, 0, 2, 1));
+
+  it("keeps its place when the other deck is clear there", () => {
+    const start = twoDecks();
+    const done = moveSquaresToDeck(start, 0, cellsOf(start, 0, "jump"), 1)!;
+    expect(cellsOf(done.plan, 0, "jump")).toEqual([]);
+    expect(cellsOf(done.plan, 1, "jump").sort()).toEqual(cellsOf(start, 0, "jump").sort());
+    expect(done.squares).toHaveLength(24);
+  });
+
+  it("goes into the nearest empty space rather than onto another room", () => {
+    // Deck 2 has a cargo hold where the drive is, three squares wide.
+    const start = block(twoDecks(), "cargo", 0, 0, 2, 1, 1);
+    const done = moveSquaresToDeck(start, 0, cellsOf(start, 0, "jump"), 1)!;
+    expect(cellsOf(done.plan, 1, "cargo")).toHaveLength(24);
+    const landed = cellsOf(done.plan, 1, "jump");
+    expect(landed).toHaveLength(24);
+    for (const [x, y] of landed) expect(done.plan.decks[1]!.cells[`${x},${y}`]).toBe("jump");
+    // Two rows deep, so the nearest clear place is two squares up or down.
+    expect(Math.abs(Math.min(...landed.map(([, y]) => y)))).toBe(2);
+    expect(Math.min(...landed.map(([x]) => x))).toBe(0);
+  });
+
+  it("does nothing for the deck it is on, or with nothing selected", () => {
+    const start = twoDecks();
+    expect(moveSquaresToDeck(start, 0, cellsOf(start, 0, "jump"), 0)).toBeUndefined();
+    expect(moveSquaresToDeck(start, 0, [], 1)).toBeUndefined();
   });
 });
 

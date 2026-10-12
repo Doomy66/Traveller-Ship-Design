@@ -344,6 +344,64 @@ export function moveSquares(plan: FloorPlan, deck: number, squares: readonly (re
   return replaceDeck(plan, deck, { ...target, cells });
 }
 
+/** How far, in whole squares each way, a room sent to another deck looks for space before going past the deck's edge. */
+const SEARCH_SQUARES = 60;
+
+/**
+ * Move a room's cells to another deck, into empty space: where they are, if
+ * nothing is there, or else the nearest place, by whole squares, where none
+ * lands on a painted cell or a tile. Its doors stay behind, as they do when a
+ * room is moved on its deck. FP 4.3.3. Returns the plan and the cells now
+ * held, in the order given, or undefined if there is nothing to move.
+ */
+export function moveSquaresToDeck(
+  plan: FloorPlan,
+  from: number,
+  squares: readonly (readonly [number, number])[],
+  to: number,
+): { plan: FloorPlan; squares: [number, number][] } | undefined {
+  const source = plan.decks[from];
+  const target = plan.decks[to];
+  if (source === undefined || target === undefined || from === to) return undefined;
+  const moving = squares.filter(([x, y]) => source.cells[cellKey(x, y)] !== undefined);
+  if (moving.length === 0) return undefined;
+
+  const taken = tiledSquares(plan, to);
+  for (const key of Object.keys(target.cells)) taken.add(key);
+  const fits = (dx: number, dy: number) => moving.every(([x, y]) => !taken.has(cellKey(toHalf(x + dx), toHalf(y + dy))));
+
+  // Rings of whole squares outward, nearest first in each, as far as a deck
+  // of an ordinary ship runs. Failing that, just past the deck's right-hand
+  // edge, where there is always room.
+  let offset: [number, number] | undefined;
+  for (let r = 0; r <= SEARCH_SQUARES && offset === undefined; r++) {
+    const ring: [number, number][] = [];
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) if (Math.max(Math.abs(dx), Math.abs(dy)) === r) ring.push([dx, dy]);
+    }
+    ring.sort((a, b) => a[0] ** 2 + a[1] ** 2 - (b[0] ** 2 + b[1] ** 2));
+    offset = ring.find(([dx, dy]) => fits(dx, dy));
+  }
+  if (offset === undefined) {
+    let deckRight = -Infinity;
+    for (const key of taken) deckRight = Math.max(deckRight, parseCell(key)[0]);
+    let roomLeft = Infinity;
+    for (const [x] of moving) roomLeft = Math.min(roomLeft, x);
+    offset = [Math.ceil(deckRight + CELL - roomLeft), 0];
+  }
+  const [dx, dy] = offset;
+
+  const left: Record<string, Owner> = { ...source.cells };
+  const arrived: Record<string, Owner> = { ...target.cells };
+  for (const [x, y] of moving) {
+    const key = cellKey(x, y);
+    arrived[cellKey(toHalf(x + dx), toHalf(y + dy))] = left[key]!;
+    delete left[key];
+  }
+  const decks = plan.decks.map((d, i) => (i === from ? { ...d, cells: left } : i === to ? { ...d, cells: arrived } : d));
+  return { plan: { ...plan, decks }, squares: moving.map(([x, y]) => [toHalf(x + dx), toHalf(y + dy)]) };
+}
+
 /**
  * Turn a set of cells a quarter clockwise, or mirror it left to right, about
  * the middle of the box around them, keeping their owners. The box's middle

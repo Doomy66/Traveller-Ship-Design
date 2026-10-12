@@ -28,6 +28,7 @@ import {
   instanceOwner,
   moveDeck,
   moveSquares,
+  moveSquaresToDeck,
   turnSquares,
   openings,
   paint,
@@ -225,6 +226,15 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   const canvas = el("div", { class: "fp-canvas" });
   canvas.append(svg);
   const status = el("div", { class: "fp-status" });
+  const sendPick = el("select", {
+    class: "fp-send",
+    "aria-label": "Move the selected room to another deck",
+    title: "Move the selected room to another deck, into empty space there (Page Up and Page Down for the deck above or below)",
+  }) as HTMLSelectElement;
+  sendPick.addEventListener("change", () => {
+    const v = sendPick.value;
+    if (v !== "") sendRoom(v === "new" ? "new" : Number(v));
+  });
   const main = el("section", { class: "fp-main", "aria-label": "Decks" }, [problems, deckBar, canvas, status]);
   root.replaceChildren(el("div", { class: "fp" }, [left, main, right]));
 
@@ -659,6 +669,13 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       drawCanvas();
     });
 
+    // The selected room, sent to another deck. FP 4.3.3.
+    sendPick.replaceChildren(new Option("Room to deck…", ""));
+    for (const [at, d] of plan().decks.entries()) if (at !== deck) sendPick.append(new Option(`To ${d.name}`, String(at)));
+    sendPick.append(new Option("To a new deck", "new"));
+    sendPick.value = "";
+    sendPick.disabled = selection?.type !== "region";
+
     const shift = (dx: number, dy: number, label: string, title: string) =>
       button(label, () => commit(shiftDeck(plan(), deck, dx, dy)), { class: "fp-small", title });
 
@@ -694,6 +711,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
           commit(next);
         }, { class: "fp-small", ...(plan().decks.length <= 1 ? { disabled: "" } : {}) }),
         overlayPick,
+        sendPick,
         el("span", { class: "spacer" }),
         button("−", () => zoom(1 / 1.25), { class: "fp-small", title: "Zoom out" }),
         button("+", () => zoom(1.25), { class: "fp-small", title: "Zoom in" }),
@@ -909,6 +927,23 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
 
   function drawSelection(): void {
     layers.selection.innerHTML = selection === undefined ? "" : selectionMarkup(selection, drag?.dx ?? 0, drag?.dy ?? 0, SCREEN.fixture);
+    sendPick.disabled = selection?.type !== "region";
+  }
+
+  /**
+   * Send the selected room to another deck, a new one with "new", into empty
+   * space there, and follow it. FP 4.3.3.
+   */
+  function sendRoom(to: number | "new"): void {
+    const sel = selection;
+    if (sel?.type !== "region") return;
+    let next = plan();
+    const target = to === "new" ? next.decks.length : to;
+    if (to === "new") next = addDeck(next);
+    const done = moveSquaresToDeck(next, deck, sel.squares, target);
+    if (done === undefined) return;
+    deck = target;
+    commit(done.plan, { type: "region", squares: done.squares });
   }
 
   /**
@@ -1413,6 +1448,11 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       if (down && tool.kind === "move" && selection !== undefined) {
         if (event.key === "Delete" || event.key === "Backspace") {
           removeSelection();
+          return true;
+        }
+        if ((event.key === "PageUp" || event.key === "PageDown") && selection.type === "region") {
+          const to = deck + (event.key === "PageUp" ? -1 : 1);
+          if (to >= 0 && to < plan().decks.length) sendRoom(to);
           return true;
         }
         const arrows: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };

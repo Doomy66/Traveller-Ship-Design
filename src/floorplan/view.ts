@@ -47,6 +47,7 @@ import {
 } from "./plan";
 import type { LabelMode } from "./render";
 import {
+  cellsPath,
   fittedSquares,
   fixturesMarkup,
   floorsMarkup,
@@ -883,9 +884,8 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
           : symbolMarkup({ ...f, x: f.x + dx, y: f.y + dy, symbol: f.symbol ?? (f.kind === "symbol" ? undefined : ACCESS_SYMBOLS[f.kind]) }, SCREEN, symbolHref, 0.6);
       return ghost + outline(f.x, f.y, w, h);
     }
-    return sel.squares
-      .map(([x, y]) => `<rect x="${x + dx}" y="${y + dy}" width="${CELL}" height="${CELL}" fill="${SCREEN.fixture}" fill-opacity="${dx === 0 && dy === 0 ? 0.18 : 0.4}"/>`)
-      .join("");
+    const moved = sel.squares.map(([x, y]) => [x + dx, y + dy] as const);
+    return `<path d="${cellsPath(moved)}" fill="${SCREEN.fixture}" fill-opacity="${dx === 0 && dy === 0 ? 0.18 : 0.4}"/>`;
   }
 
   function drawSelection(): void {
@@ -953,13 +953,8 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     const parts: string[] = [];
     if (stroke !== undefined) {
       const colour = floorColour(stroke.owner);
-      for (const [x, y] of strokeCells(stroke)) {
-        parts.push(
-          stroke.owner === undefined
-            ? `<rect x="${x + 0.08}" y="${y + 0.08}" width="0.34" height="0.34" fill="none" stroke="${colour}" stroke-width="0.05"/>`
-            : `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" fill="${colour}" opacity="0.85"/>`,
-        );
-      }
+      // One shape, so the preview has no seams either; erasing shows as a faint red wash.
+      parts.push(`<path d="${cellsPath(strokeCells(stroke))}" fill="${colour}" opacity="${stroke.owner === undefined ? 0.35 : 0.85}"/>`);
     } else if (doorDrag !== undefined) {
       const span = doorSpan();
       if (span !== undefined) {

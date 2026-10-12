@@ -21,7 +21,7 @@ import {
   tiledSquares,
   tileFootprint,
 } from "./plan";
-import { fixturesMarkup, PAPER, SCREEN, tileMarkup, wallsMarkup } from "./render";
+import { fixturesMarkup, floorsMarkup, PAPER, SCREEN, tileMarkup, wallsMarkup } from "./render";
 import { SYMBOLS } from "./symbols";
 import { parseTileName, tileId } from "./tiles";
 
@@ -79,6 +79,17 @@ describe("doors", () => {
   it("keep their width through a save", () => {
     const plan = placeFixture(emptyPlan(), { kind: "door", deck: 0, x: 0, y: 0, edge: "w", length: 2 });
     expect(readPlan(JSON.parse(JSON.stringify(plan)))?.fixtures).toEqual(plan.fixtures);
+  });
+});
+
+describe("drawing floors", () => {
+  it("draws each colour as one shape, a row of touching cells as one strip, so no seams show", () => {
+    const plan = paint(emptyPlan(), 0, area(0, 0, 3, 2), "jump");
+    const markup = floorsMarkup(plan.decks[0]!, () => ({ floor: "engineering", label: "" }), PAPER);
+    expect(markup.match(/<path/g)).toHaveLength(1);
+    expect(markup).not.toContain("<rect");
+    // Two squares deep is four rows of half-square cells, each one strip three squares long.
+    expect(markup.match(/h3v0\.5/g)).toHaveLength(4);
   });
 });
 

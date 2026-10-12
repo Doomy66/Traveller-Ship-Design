@@ -181,14 +181,49 @@ export function gridMarkup(area: Bounds, palette: Palette): string {
 }
 
 /** The floor of every square, coloured by what it is. */
-export function floorsMarkup(deck: Deck, look: (owner: Owner) => OwnerLook, palette: Palette): string {
-  const out: string[] = [];
-  for (const [key, owner] of Object.entries(deck.cells)) {
-    const [x, y] = parseCell(key);
-    const floor = look(owner).floor;
-    out.push(`<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" fill="${palette.floor[floor]}"${floor === "orphan" ? ` class="fp-orphan"` : ""}/>`);
+/**
+ * Cells as one path: each row's touching cells as one strip. Drawn as a
+ * single shape, the cells fill without the faint seams a browser leaves
+ * between separate rectangles that only touch.
+ */
+export function cellsPath(cells: readonly (readonly [number, number])[]): string {
+  const rows = new Map<number, number[]>();
+  for (const [x, y] of cells) {
+    const row = rows.get(y) ?? [];
+    row.push(x);
+    rows.set(y, row);
   }
-  return out.join("");
+  const parts: string[] = [];
+  for (const [y, xs] of rows) {
+    xs.sort((a, b) => a - b);
+    let start = xs[0]!;
+    let end = start + CELL;
+    for (const x of xs.slice(1)) {
+      if (Math.abs(x - end) < 1e-9) {
+        end = x + CELL;
+        continue;
+      }
+      parts.push(`M${n(start)} ${n(y)}h${n(end - start)}v${CELL}h${n(start - end)}Z`);
+      start = x;
+      end = x + CELL;
+    }
+    parts.push(`M${n(start)} ${n(y)}h${n(end - start)}v${CELL}h${n(start - end)}Z`);
+  }
+  return parts.join("");
+}
+
+/** The floor of every cell, coloured by what it is, one shape to a colour. */
+export function floorsMarkup(deck: Deck, look: (owner: Owner) => OwnerLook, palette: Palette): string {
+  const byFloor = new Map<Floor, [number, number][]>();
+  for (const [key, owner] of Object.entries(deck.cells)) {
+    const floor = look(owner).floor;
+    const cells = byFloor.get(floor) ?? [];
+    cells.push(parseCell(key));
+    byFloor.set(floor, cells);
+  }
+  return [...byFloor]
+    .map(([floor, cells]) => `<path d="${cellsPath(cells)}" fill="${palette.floor[floor]}"${floor === "orphan" ? ` class="fp-orphan"` : ""}/>`)
+    .join("");
 }
 
 /**
@@ -416,12 +451,7 @@ export function legendMarkup(components: readonly Component[], plan: FloorPlan, 
 
 /** Another deck, faint, to line this one up against. FP 10.7. */
 export function overlayMarkup(deck: Deck, palette: Palette): string {
-  const floors = Object.keys(deck.cells)
-    .map((key) => {
-      const [x, y] = parseCell(key);
-      return `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}"/>`;
-    })
-    .join("");
+  const floors = `<path d="${cellsPath(Object.keys(deck.cells).map(parseCell))}"/>`;
   const outline = wallsMarkup(deck, { ...palette, wall: palette.overlay }, 0.06, ` stroke-dasharray="0.2 0.12"`);
   return `<g fill="${palette.overlay}" fill-opacity="0.12">${floors}</g><g opacity="0.85">${outline}</g>`;
 }

@@ -111,9 +111,11 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 7.1.1 A door may be wider than one square: dragging along a wall makes one door the length of the drag, drawn with two leaves meeting in the middle. Clicking makes a door one square wide in the square of wall under the pointer, and doors clicked side by side stay separate doors, each with its own jambs. A dragged door is as many squares long as the drag. Move can then slide a door half a square along its wall. A new door or valve replaces any it overlaps. An iris valve in a wall is always one square.
 
+7.1.4 **An opening** is a stretch of wall left out, so two rooms run into one another: a lounge open to a galley, a bridge open to its sensor stations. It is placed like a door, a square for a click or as many as a drag, and moved like one. Nothing is drawn for it in use, on paper or in an export; on screen a faint dotted line shows where it is, so it can be found and moved.
+
 7.1.2 Every piece on squares, from the library or a geomorph tile, can be **turned** a quarter at a time and **flipped**, mirrored left to right, which is how a port-side layout becomes a starboard one. A flipped piece is mirrored about its own middle before it is turned, so it keeps its footprint. R turns and F flips the selected piece, or the next one to be placed.
 
-7.2 The kinds: door and iris valve in walls; lift, iris valve in the floor, iris valve in the ceiling, and stairs between decks; and furniture and fitted rooms from the library. An iris valve can be a door in a wall or a way up or down, which is why it appears in both places.
+7.2 The kinds: door, iris valve and opening in walls; lift, iris valve in the floor, iris valve in the ceiling, and stairs between decks; and furniture and fitted rooms from the library. An iris valve can be a door in a wall or a way up or down, which is why it appears in both places.
 
 7.3 Fixtures are drawn with Robert Pearce's Traveller Starship Symbols, and a few pieces of his Adventure Class Geomorphs, as rendered to PNG by Eric B. Smith. They are under Creative Commons Attribution Non-Commercial 4.0. A small chosen set is copied into the repository under `public/floorplan/symbols/`, and both men are credited in the colophon and in a licence file beside the symbols.
 

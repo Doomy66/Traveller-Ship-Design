@@ -8,7 +8,7 @@
  */
 
 import type { Bounds } from "./geometry";
-import { labelPoint, regions, walls } from "./geometry";
+import { labelPoint, regions, storedEdge, walls } from "./geometry";
 import type { Component, ComponentGroup } from "./manifest";
 import type { Deck, EdgeFixture, FloorPlan, Owner, PlacedTile, SquareFixture } from "./plan";
 import { ACCESS_KINDS, baseKey, CELL, cellOf, CORRIDOR, instanceOf, parseCell, squaresUnder, tileFootprint } from "./plan";
@@ -27,6 +27,8 @@ export interface Palette {
   readonly warn: string;
   /** Applied to the symbol images, which are black line art. */
   readonly symbolFilter: string;
+  /** Whether to draw faint marks for things that are invisible in use, such as an opening in a wall. */
+  readonly hints: boolean;
 }
 
 /** On screen, over the dark theme. The floors stay muted so walls and labels read over them. */
@@ -53,6 +55,7 @@ export const SCREEN: Palette = {
   // Inverting turns green trees pink and a blue fountain orange; turning the
   // hue half way round puts them back, and does nothing to grey.
   symbolFilter: "invert(0.92) hue-rotate(180deg)",
+  hints: true,
 };
 
 /** On paper and in exports: pale floors, black walls, the symbols as drawn. */
@@ -77,6 +80,7 @@ export const PAPER: Palette = {
   overlay: "#3a5a9a",
   warn: "#c0302a",
   symbolFilter: "none",
+  hints: false,
 };
 
 /** What the drawing needs to know about each owner, which the caller works out from the manifest. */
@@ -191,9 +195,21 @@ export function floorsMarkup(deck: Deck, look: (owner: Owner) => OwnerLook, pale
  * Walls wherever a square meets another owner or empty space, as one path.
  * Squares under a geomorph tile get none, since the tile draws its own. FP 8.2, 12.3.
  */
-export function wallsMarkup(deck: Deck, palette: Palette, width = 0.1, extra = "", tiled: ReadonlySet<string> = new Set()): string {
+export function wallsMarkup(
+  deck: Deck,
+  palette: Palette,
+  width = 0.1,
+  extra = "",
+  tiled: ReadonlySet<string> = new Set(),
+  open: ReadonlySet<string> = new Set(),
+): string {
   const d = walls(deck)
     .filter(({ x, y }) => !tiled.has(`${x},${y}`))
+    // An opening leaves its stretch of wall out altogether. FP 7.1.4.
+    .filter((side) => {
+      const e = storedEdge(side);
+      return !open.has(`${e.x},${e.y},${e.edge}`);
+    })
     .map(({ x, y, side }) => {
       switch (side) {
         case "n":
@@ -264,6 +280,13 @@ export function labelsMarkup(
  */
 function edgeMarkup(fixture: EdgeFixture, palette: Palette): string {
   const length = fixture.length ?? 1;
+  // An opening is the wall left out, which wallsMarkup does. On screen a
+  // faint dotted line shows where it is, so it can be found and moved.
+  if (fixture.kind === "open") {
+    if (!palette.hints) return "";
+    const d = fixture.edge === "n" ? `M${n(fixture.x)} ${n(fixture.y)}h${n(length)}` : `M${n(fixture.x)} ${n(fixture.y)}v${n(length)}`;
+    return `<path class="fp-open" d="${d}" stroke="${palette.wall}" stroke-opacity="0.35" stroke-width="0.04" stroke-dasharray="0.08 0.12" fill="none"/>`;
+  }
   const horizontal = fixture.edge === "n";
   // Work along the wall in "a" and across it in "b", then turn into x and y.
   const a0 = (horizontal ? fixture.x : fixture.y) + 0.12;

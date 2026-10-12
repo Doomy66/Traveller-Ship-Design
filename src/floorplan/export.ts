@@ -12,7 +12,7 @@ import type { Bounds } from "./geometry";
 import { bounds } from "./geometry";
 import type { Manifest } from "./manifest";
 import type { FloorPlan } from "./plan";
-import { CELL, tiledSquares, tileFootprint } from "./plan";
+import { CELL, openings, tiledSquares, tileFootprint } from "./plan";
 import type { LabelMode, Palette } from "./render";
 import {
   fittedSquares,
@@ -96,7 +96,7 @@ export function deckDocument(
     options.grid === false ? "" : gridMarkup(area, palette),
     floorsMarkup(d, look, palette),
     tilesMarkup(plan, deck, palette, sources.tile),
-    wallsMarkup(d, palette, 0.1, "", tiledSquares(plan, deck)),
+    wallsMarkup(d, palette, 0.1, "", tiledSquares(plan, deck), openings(plan, deck)),
     fixturesMarkup(plan, deck, palette, sources.symbol),
     labelsMarkup(d, look, palette, fittedSquares(plan, deck)),
     `<text x="${area.minX + 0.5}" y="${area.minY + 1}" font-size="0.6" font-weight="600" fill="${palette.label}">${esc(title)}</text>`,

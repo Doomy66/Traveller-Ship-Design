@@ -11,6 +11,7 @@ import {
   edgesOf,
   emptyPlan,
   moveSquares,
+  openings,
   paint,
   placeFixture,
   placeTile,
@@ -20,7 +21,7 @@ import {
   tiledSquares,
   tileFootprint,
 } from "./plan";
-import { fixturesMarkup, PAPER, tileMarkup } from "./render";
+import { fixturesMarkup, PAPER, SCREEN, tileMarkup, wallsMarkup } from "./render";
 import { SYMBOLS } from "./symbols";
 import { parseTileName, tileId } from "./tiles";
 
@@ -77,6 +78,29 @@ describe("doors", () => {
 
   it("keep their width through a save", () => {
     const plan = placeFixture(emptyPlan(), { kind: "door", deck: 0, x: 0, y: 0, edge: "w", length: 2 });
+    expect(readPlan(JSON.parse(JSON.stringify(plan)))?.fixtures).toEqual(plan.fixtures);
+  });
+});
+
+describe("openings", () => {
+  it("leave out the wall between two rooms, as long as they are drawn", () => {
+    // Two rooms side by side, three squares deep, with the wall between them at x = 2.
+    let plan = paint(emptyPlan(), 0, area(0, 0, 2, 3), "jump");
+    plan = paint(plan, 0, area(2, 0, 2, 3), "~corridor");
+    const shared = (p: typeof plan) => (wallsMarkup(p.decks[0]!, PAPER, 0.1, "", new Set(), openings(p, 0)).match(/M2 [\d.]+v0\.5/g) ?? []).length;
+    expect(shared(plan)).toBe(6);
+    plan = placeFixture(plan, { kind: "open", deck: 0, x: 2, y: 0.5, edge: "w", length: 2 });
+    expect(shared(plan)).toBe(2);
+  });
+
+  it("draw nothing on paper, and a faint line on screen to find them by", () => {
+    const plan = placeFixture(emptyPlan(), { kind: "open", deck: 0, x: 2, y: 0, edge: "w", length: 2 });
+    expect(fixturesMarkup(plan, 0, PAPER, (f) => f)).toBe("");
+    expect(fixturesMarkup(plan, 0, SCREEN, (f) => f)).toContain("fp-open");
+  });
+
+  it("come back from a saved plan", () => {
+    const plan = placeFixture(emptyPlan(), { kind: "open", deck: 0, x: 2, y: 0, edge: "w", length: 2 });
     expect(readPlan(JSON.parse(JSON.stringify(plan)))?.fixtures).toEqual(plan.fixtures);
   });
 });

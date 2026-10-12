@@ -27,6 +27,7 @@ import {
   instanceOwner,
   moveDeck,
   moveSquares,
+  openings,
   paint,
   placeFixture,
   placeTile,
@@ -407,6 +408,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       el("div", { class: "fp-toolrow" }, [
         toolButton("Door", { kind: "edge", edge: "door" }, "Click a wall for a door; drag along it for a wider one. Doors on neighbouring squares stay separate.", tool.kind === "edge" && tool.edge === "door"),
         toolButton("Iris valve", { kind: "edge", edge: "iris" }, "Click a wall for an iris valve in it", tool.kind === "edge" && tool.edge === "iris"),
+        toolButton("Open", { kind: "edge", edge: "open" }, "Take the wall out between two rooms: click for a square of it, drag along it for more", tool.kind === "edge" && tool.edge === "open"),
       ]),
       el("h3", { class: "fp-group" }, ["Between decks"]),
       el("div", { class: "fp-toolrow" }, [
@@ -726,7 +728,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     layers.overlay.innerHTML = below === undefined ? "" : overlayMarkup(below, SCREEN);
     layers.floors.innerHTML = floorsMarkup(d, looks, SCREEN);
     layers.tiles.innerHTML = tilesMarkup(plan(), deck, SCREEN, tileHref);
-    layers.walls.innerHTML = wallsMarkup(d, SCREEN, 0.1, "", tiled);
+    layers.walls.innerHTML = wallsMarkup(d, SCREEN, 0.1, "", tiled, openings(plan(), deck));
     layers.fixtures.innerHTML = fixturesMarkup(plan(), deck, SCREEN, symbolHref);
     layers.labels.innerHTML = labelsMarkup(d, looks, SCREEN, fittedSquares(plan(), deck));
     layers.marks.innerHTML = under === undefined ? "" : unmatchedAccessMarkup(plan(), deck, under, SCREEN);
@@ -1023,7 +1025,9 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
           : tool.kind === "edge"
             ? tool.edge === "door"
               ? "Click a wall for a door, drag along it for a wide one."
-              : "Click a wall for an iris valve."
+              : tool.edge === "open"
+                ? "Click a wall to take a square of it out, drag along it for more."
+                : "Click a wall for an iris valve."
             : tool.kind === "tile" || tool.kind === "symbol"
               ? "Click to place; R turns, F flips. Use Move to take one away."
               : "Click to place. Use Move to take one away.";

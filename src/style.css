@@ -449,7 +449,16 @@ ul.problems .note .tag { background: var(--note); color: #14161a; }
 
 @media print {
   :root { color-scheme: light; }
-  body { background: #fff; color: #111; }
+  /* Tighter than on screen, so the sheet keeps to its page. */
+  body { background: #fff; color: #111; line-height: 1.25; }
+  table.components th, table.components td { padding: 0 4px; }
+  table.components tr.section-start > * { padding-top: 4px; }
+  table.components { margin-bottom: 8px; }
+  dl.figures { gap: 0 12px; }
+  .sheet-panel { margin-bottom: 8px; }
+  .sheet-sub { margin-bottom: 4px; }
+  textarea.notes { margin-bottom: 8px; }
+  ul.problems li { margin-bottom: 2px; }
   .bar, .panel-form, .landing, .floorplan-screen { display: none !important; }
   /* The sheet prints from either screen, the floor plan's included. */
   body.at-landing .layout, body.at-plan .layout { display: block; }

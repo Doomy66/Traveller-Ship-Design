@@ -27,7 +27,7 @@ import {
   wallsMarkup,
 } from "./render";
 import { ACCESS_SYMBOLS, PIXELS_PER_SQUARE, symbolById } from "./symbols";
-import { readFolderImage, tileHref } from "./tiles";
+import { readFolderImage } from "./tiles";
 
 /** Room for the key to the right of a numbered plan, in squares. */
 const KEY_WIDTH = 11;
@@ -200,18 +200,39 @@ export async function exportPng(manifest: Manifest, plan: FloorPlan, deck: numbe
  * as the print dialog is up, after the design's own sheet. Undefined for a
  * plan with nothing drawn on it.
  */
-export function printPages(manifest: Manifest, plan: FloorPlan, labels: LabelMode = "names"): HTMLElement | undefined {
+export async function printPages(manifest: Manifest, plan: FloorPlan, labels: LabelMode = "names"): Promise<HTMLElement | undefined> {
   const used = plan.decks
     .map((d, at) => ({ d, at }))
     .filter(({ d, at }) => Object.keys(d.cells).length > 0 || plan.tiles.some((t) => t.deck === at) || plan.fixtures.some((f) => f.deck === at));
   if (used.length === 0) return undefined;
+  // The pieces' images go in as data, and are decoded before the pages are
+  // handed back. Printed straight after being added, pages that pointed at
+  // image files printed before the files had loaded, and showed no pieces.
+  const sources = await embedded(plan);
+  await Promise.all(
+    [...new Set([...plan.fixtures, ...plan.tiles].map((item) => imageOf(item, sources)).filter((uri): uri is string => uri !== undefined))].map(
+      async (uri) => {
+        const image = new Image();
+        image.src = uri;
+        await image.decode().catch(() => undefined);
+      },
+    ),
+  );
   const holder = document.createElement("div");
   holder.className = "fp-print";
   for (const { at } of used) {
     const page = document.createElement("section");
     page.className = "fp-print-page";
-    page.innerHTML = deckDocument(manifest, plan, at, { symbol: (file) => `./${file}`, tile: tileHref }, { labels });
+    page.innerHTML = deckDocument(manifest, plan, at, sources, { labels });
     holder.append(page);
   }
   return holder;
+}
+
+/** The image a fixture or tile is drawn with, if it has one. */
+function imageOf(item: FloorPlan["fixtures"][number] | FloorPlan["tiles"][number], sources: Sources): string | undefined {
+  if ("tile" in item) return sources.tile(item.tile);
+  if ("edge" in item) return undefined;
+  const symbol = symbolById(item.symbol ?? (item.kind === "symbol" ? undefined : ACCESS_SYMBOLS[item.kind]));
+  return symbol === undefined ? undefined : sources.symbol(symbol.file);
 }

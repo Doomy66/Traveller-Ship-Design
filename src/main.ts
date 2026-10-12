@@ -318,9 +318,9 @@ function wire(): void {
   // Print gives the design's sheet the first page and every deck of the
   // floor plan a page after it, from either screen. The decks follow the
   // floor plan's Names or Numbers switch.
-  find("#print").addEventListener("click", () => {
+  find("#print").addEventListener("click", async () => {
     drawSheet();
-    const pages = design.floorPlan === undefined ? undefined : printPages(currentManifest(), currentPlan(), planView?.labels() ?? "names");
+    const pages = design.floorPlan === undefined ? undefined : await printPages(currentManifest(), currentPlan(), planView?.labels() ?? "names");
     if (pages !== undefined) {
       document.body.append(pages);
       document.body.classList.add("print-with-plan");

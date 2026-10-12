@@ -27,8 +27,9 @@ user. Dates are the day the release was tagged.
 - **Move.** Drag tiles, furniture, doors and whole rooms by half squares; R
   turns, F flips, Delete removes, the arrow keys nudge half a square (a whole
   one with Shift).
-- **Half squares.** Rooms, doors and every piece sit on a half-square grid, and
-  a half brush paints detail. Rooms are still counted in squares.
+- **Half squares when moving.** Painting and placing are in whole squares; Move
+  slides rooms, doors and pieces by half squares to line them up. Rooms are
+  still counted in squares.
 - **Numbered rooms.** Components are numbered down the left, and rooms can be
   labelled by number, with a key on exported and printed plans, or by name
   while designing.

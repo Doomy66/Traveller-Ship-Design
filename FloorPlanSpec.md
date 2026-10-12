@@ -163,7 +163,7 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 10.5 Problems from `check` sit above the deck, as the sheet's do on the design screen.
 
-10.6 **Getting it out.** Each deck exports as SVG, with the symbols it uses embedded so the file stands alone, or as PNG at the symbols' own 60 pixels to the square, smaller for a ship that would pass 8,000 pixels a side. Exports use paper colours. Every deck of a ship is framed by the bounds of all of them, so exported decks line up laid over each other. Print, on the floor plan screen, prints every deck that has anything on it, one to a page.
+10.6 **Getting it out.** Each deck exports as SVG, with the symbols it uses embedded so the file stands alone, or as PNG at the symbols' own 60 pixels to the square, smaller for a ship that would pass 8,000 pixels a side. Exports use paper colours. Every deck of a ship is framed by the bounds of all of them, so exported decks line up laid over each other. Print, from either screen, gives the design's sheet the first page and every deck that has anything on it a page after, labelled by name or number as the switch is set.
 
 10.6.1 Undo and Redo keep the last two hundred changes. Ctrl+Z, Ctrl+Y and Ctrl+Shift+Z work as expected, R turns the fitting about to be placed, Space held with a drag moves the view, as does dragging with the right button, and the wheel zooms about the pointer.
 

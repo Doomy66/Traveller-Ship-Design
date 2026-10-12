@@ -195,28 +195,23 @@ export async function exportPng(manifest: Manifest, plan: FloorPlan, deck: numbe
 }
 
 /**
- * Every deck that has anything on it, one to a page, on paper colours. The
- * pages are put in the document only for as long as the print dialog is up.
+ * The plan's printed pages: every deck that has anything on it, one to a
+ * page, on paper colours. The caller puts them in the document for as long
+ * as the print dialog is up, after the design's own sheet. Undefined for a
+ * plan with nothing drawn on it.
  */
-export function printPlan(manifest: Manifest, plan: FloorPlan, labels: LabelMode = "names"): void {
-  const holder = document.createElement("div");
-  holder.className = "fp-print";
+export function printPages(manifest: Manifest, plan: FloorPlan, labels: LabelMode = "names"): HTMLElement | undefined {
   const used = plan.decks
     .map((d, at) => ({ d, at }))
-    .filter(({ d, at }) => Object.keys(d.cells).length > 0 || plan.tiles.some((t) => t.deck === at));
-  for (const { at } of used.length > 0 ? used : [{ at: 0 }]) {
+    .filter(({ d, at }) => Object.keys(d.cells).length > 0 || plan.tiles.some((t) => t.deck === at) || plan.fixtures.some((f) => f.deck === at));
+  if (used.length === 0) return undefined;
+  const holder = document.createElement("div");
+  holder.className = "fp-print";
+  for (const { at } of used) {
     const page = document.createElement("section");
     page.className = "fp-print-page";
     page.innerHTML = deckDocument(manifest, plan, at, { symbol: (file) => `./${file}`, tile: tileHref }, { labels });
     holder.append(page);
   }
-  document.body.append(holder);
-  document.body.classList.add("printing-plan");
-  const done = () => {
-    holder.remove();
-    document.body.classList.remove("printing-plan");
-    window.removeEventListener("afterprint", done);
-  };
-  window.addEventListener("afterprint", done);
-  window.print();
+  return holder;
 }

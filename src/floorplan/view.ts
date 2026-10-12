@@ -13,7 +13,7 @@
 import "./floorplan.css";
 import type { Report, Tally } from "./check";
 import { check, formatSquares } from "./check";
-import { exportPng, exportSvg, printPlan } from "./export";
+import { exportPng, exportSvg } from "./export";
 import type { Bounds } from "./geometry";
 import { bounds, regions, storedEdge } from "./geometry";
 import type { Component, ComponentGroup, Manifest } from "./manifest";
@@ -96,8 +96,8 @@ export interface FloorPlanView {
   fit(): void;
   /** Keys pressed while the screen is showing. Returns true if it used the key. */
   key(event: KeyboardEvent): boolean;
-  /** Every deck to the printer. */
-  print(): void;
+  /** How rooms are labelled just now, which printing follows. */
+  labels(): LabelMode;
 }
 
 type Tool =
@@ -1359,7 +1359,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   return {
     refresh: draw,
     fit,
-    print: () => printPlan(host.manifest, plan(), labels),
+    labels: () => labels,
     key(event) {
       const target = event.target as HTMLElement | null;
       if (target !== null && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT")) return false;

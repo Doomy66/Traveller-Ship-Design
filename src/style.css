@@ -450,9 +450,12 @@ ul.problems .note .tag { background: var(--note); color: #14161a; }
 @media print {
   :root { color-scheme: light; }
   body { background: #fff; color: #111; }
-  .bar, .panel-form, .landing { display: none !important; }
-  body.at-landing .layout { display: block; }
+  .bar, .panel-form, .landing, .floorplan-screen { display: none !important; }
+  /* The sheet prints from either screen, the floor plan's included. */
+  body.at-landing .layout, body.at-plan .layout { display: block; }
   .layout { display: block; height: auto; }
+  /* With the floor plan's decks to follow, the sheet has its page to itself. */
+  body.print-with-plan .panel-sheet { break-after: page; page-break-after: always; }
   .panel-sheet { background: #fff; max-width: none; overflow: visible; padding: 0; }
   textarea.notes { background: none; border: none; padding: 0; color: #111; }
   textarea.notes:placeholder-shown { display: none; }

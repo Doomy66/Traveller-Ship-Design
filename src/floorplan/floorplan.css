@@ -131,13 +131,12 @@
 .fp-credit a { color: var(--muted); }
 
 /* ------------------------------------------------------------- the printout */
-/* Every deck, one to a page, on paper colours. The pages exist only while the
-   print dialog is up; nothing else of the application prints with them. */
+/* Every deck, one to a page, on paper colours, after the design's sheet. The
+   pages exist only while the print dialog is up. */
 
 .fp-print { display: none; }
 @media print {
-  body.printing-plan > *:not(.fp-print) { display: none !important; }
-  body.printing-plan .fp-print { display: block; }
+  .fp-print { display: block; }
   .fp-print-page { page-break-after: always; break-after: page; }
   .fp-print-page:last-child { page-break-after: auto; break-after: auto; }
   .fp-print-page svg { display: block; width: 100%; height: auto; max-height: 95vh; }

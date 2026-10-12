@@ -33,6 +33,8 @@ user. Dates are the day the release was tagged.
 - **Numbered rooms.** Components are numbered down the left, and rooms can be
   labelled by number, with a key on exported and printed plans, or by name
   while designing.
+- **Print the whole ship.** Print gives the design sheet the first page and
+  each deck of the floor plan a page after it, from either screen.
 - **Openings.** An Open stretch of wall, clicked or dragged like a door, takes
   the line out between two rooms so they run into one another.
 - **Wide doors and iris valves.** Drag along a wall for a door wider than a

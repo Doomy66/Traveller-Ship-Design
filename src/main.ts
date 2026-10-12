@@ -24,6 +24,7 @@ import type { FloorPlan } from "./floorplan/plan";
 import { emptyPlan, readPlan, remember } from "./floorplan/plan";
 import type { FloorPlanHost, FloorPlanView } from "./floorplan/view";
 import { renderFloorPlan } from "./floorplan/view";
+import { printPages } from "./floorplan/export";
 import { APP_VERSION, HELP, RELEASE_NOTES, suggestionLink } from "./version";
 
 /** A bare hull to start from: the smallest thing the rules will price. */
@@ -314,10 +315,23 @@ function wire(): void {
   find("#save-as").addEventListener("click", () => void write(true));
   if (!canRewrite()) find("#save-as").remove();
 
-  // Print gives the sheet the page on the design screen, and every deck a page on the floor plan.
+  // Print gives the design's sheet the first page and every deck of the
+  // floor plan a page after it, from either screen. The decks follow the
+  // floor plan's Names or Numbers switch.
   find("#print").addEventListener("click", () => {
-    if (screen === "plan" && planView !== undefined) planView.print();
-    else window.print();
+    drawSheet();
+    const pages = design.floorPlan === undefined ? undefined : printPages(currentManifest(), currentPlan(), planView?.labels() ?? "names");
+    if (pages !== undefined) {
+      document.body.append(pages);
+      document.body.classList.add("print-with-plan");
+    }
+    const done = () => {
+      pages?.remove();
+      document.body.classList.remove("print-with-plan");
+      window.removeEventListener("afterprint", done);
+    };
+    window.addEventListener("afterprint", done);
+    window.print();
   });
 
   find("#view-design").addEventListener("click", () => showScreen("design"));

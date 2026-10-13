@@ -200,6 +200,25 @@ for ident, name, category, rel, (sw, sh), (cx, cy), (kx0, ky0, kx1, ky1) in CUTS
         "source": f"{rel} cut at {(cx, cy)}",
     })
 
+# Fittings that stand against a wall, drawn against that edge of their
+# footprint rather than in its middle, as they are turned: a toilet's cistern
+# and a sink's tap to the wall behind, a bed's head, a desk's or console's
+# back, a booth into its corner. Read off the drawings.
+ALIGN = {
+    "sheet-toilet": "top", "sheet-toilet-sink": "top", "sheet-sink-round": "top", "sheet-sink-square": "top",
+    "sheet-sink-wide": "top", "sheet-sinks": "top", "sheet-shower-round": "top", "sheet-galley": "top",
+    "sheet-repair-bench": "top", "sheet-window": "top", "sheet-computer-panel": "top", "sheet-panel-3": "top",
+    "sheet-couch": "top", "sheet-desk-3": "top", "counter": "top", "couch": "top",
+    "sheet-bed": "left", "sheet-bed-storage": "left", "sheet-autodoc": "left", "sheet-medical-bed": "left",
+    "sheet-restraint-bed": "left", "bed": "left", "desk": "left", "desk-large": "left", "console": "left",
+    "console-wide": "left",
+    "sheet-bunks": "top-left", "sheet-booth": "top-left",
+}
+assert set(ALIGN) <= {e["id"] for e in catalogue}, set(ALIGN) - {e["id"] for e in catalogue}
+for entry in catalogue:
+    if entry["id"] in ALIGN:
+        entry["align"] = ALIGN[entry["id"]]
+
 with open(CAT, "w", encoding="utf-8", newline="\n") as f:
     json.dump(catalogue, f, indent=1)
     f.write("\n")

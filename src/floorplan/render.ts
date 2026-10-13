@@ -396,8 +396,8 @@ export function symbolMarkup(
     w *= k;
     h *= k;
   }
-  const top = symbol.align === "top" ? cy - sh / 2 : cy - h / 2;
-  const left = symbol.align === "left" ? cx - sw / 2 : cx - w / 2;
+  const top = symbol.align === "top" || symbol.align === "top-left" ? cy - sh / 2 : cy - h / 2;
+  const left = symbol.align === "left" || symbol.align === "top-left" ? cx - sw / 2 : cx - w / 2;
   const filter = palette.symbolFilter === "none" ? "" : ` style="filter:${palette.symbolFilter}"`;
   return (
     `<image href="${esc(href(symbol.file))}" x="${n(left)}" y="${n(top)}" width="${n(w)}" height="${n(h)}"` +

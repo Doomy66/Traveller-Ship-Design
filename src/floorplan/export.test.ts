@@ -88,6 +88,14 @@ describe("library pieces drawn to their footprint", () => {
     }
   });
 
+  it("puts a toilet against the wall behind it, and a corner booth into its corner", () => {
+    const toilet = image("sheet-toilet");
+    expect(toilet.y).toBe(4);
+    expect(toilet.x + toilet.width / 2).toBeCloseTo(3.5);
+    const booth = image("sheet-booth");
+    expect([booth.x, booth.y]).toEqual([3, 4]);
+  });
+
   it("sets a small locker against the top of its square", () => {
     const small = image("sheet-locker-small");
     expect(small.width).toBeCloseTo(1);

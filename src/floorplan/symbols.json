@@ -1308,7 +1308,8 @@
    116,
    61
   ],
-  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Bed 001 [5x10].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Bed 001 [5x10].png",
+  "align": "left"
  },
  {
   "id": "bed-small",
@@ -1405,7 +1406,8 @@
    121,
    61
   ],
-  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Couch & Chairs 017 [5x10].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Couch & Chairs 017 [5x10].png",
+  "align": "top"
  },
  {
   "id": "lounge-seating",
@@ -1500,7 +1502,8 @@
    45,
    61
   ],
-  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Desk 002 [4x5].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Desk 002 [4x5].png",
+  "align": "left"
  },
  {
   "id": "desk-large",
@@ -1519,7 +1522,8 @@
    55,
    121
   ],
-  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Desk 008 [5x10].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Desk 008 [5x10].png",
+  "align": "left"
  },
  {
   "id": "counter",
@@ -1538,7 +1542,8 @@
    61,
    25
   ],
-  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Counter 007 [2x5].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Counter 007 [2x5].png",
+  "align": "top"
  },
  {
   "id": "console",
@@ -1557,7 +1562,8 @@
    61,
    121
   ],
-  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Console 008 [5x10].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Console 008 [5x10].png",
+  "align": "left"
  },
  {
   "id": "console-wide",
@@ -1576,7 +1582,8 @@
    73,
    181
   ],
-  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Console 006 [6x15].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Console 006 [6x15].png",
+  "align": "left"
  },
  {
   "id": "bridge-console",
@@ -1633,7 +1640,8 @@
    80,
    44
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (50, 172, 124, 214)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (50, 172, 124, 214)",
+  "align": "left"
  },
  {
   "id": "sheet-bed-storage",
@@ -1652,7 +1660,8 @@
    103,
    61
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (153, 166, 248, 222)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (153, 166, 248, 222)",
+  "align": "left"
  },
  {
   "id": "sheet-bunks",
@@ -1671,7 +1680,8 @@
    88,
    77
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (50, 220, 132, 292)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (50, 220, 132, 292)",
+  "align": "top-left"
  },
  {
   "id": "sheet-triple-bunks",
@@ -1766,7 +1776,8 @@
    35,
    58
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (186, 293, 220, 347)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (186, 293, 220, 347)",
+  "align": "top"
  },
  {
   "id": "sheet-chairs",
@@ -1804,7 +1815,8 @@
    119,
    32
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (136, 362, 247, 393)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (136, 362, 247, 393)",
+  "align": "top"
  },
  {
   "id": "sheet-locker",
@@ -1903,7 +1915,8 @@
    125,
    19
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (50, 1008, 164, 1027)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (50, 1008, 164, 1027)",
+  "align": "top"
  },
  {
   "id": "sheet-repair-bench",
@@ -1922,7 +1935,8 @@
    246,
    65
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (50, 1043, 274, 1104)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (50, 1043, 274, 1104)",
+  "align": "top"
  },
  {
   "id": "sheet-panel-1",
@@ -1979,7 +1993,8 @@
    66,
    54
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (310, 880, 372, 937)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (310, 880, 372, 937)",
+  "align": "top"
  },
  {
   "id": "sheet-fresher",
@@ -2017,7 +2032,8 @@
    26,
    41
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (80, 610, 108, 650)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (80, 610, 108, 650)",
+  "align": "top"
  },
  {
   "id": "sheet-toilet",
@@ -2036,7 +2052,8 @@
    28,
    36
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (80, 653, 108, 690)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (80, 653, 108, 690)",
+  "align": "top"
  },
  {
   "id": "sheet-sink-round",
@@ -2055,7 +2072,8 @@
    31,
    28
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (228, 653, 259, 686)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (228, 653, 259, 686)",
+  "align": "top"
  },
  {
   "id": "sheet-sink-square",
@@ -2074,7 +2092,8 @@
    26,
    27
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (260, 653, 286, 686)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (260, 653, 286, 686)",
+  "align": "top"
  },
  {
   "id": "sheet-sink-wide",
@@ -2093,7 +2112,8 @@
    51,
    30
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (288, 654, 337, 686)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (288, 654, 337, 686)",
+  "align": "top"
  },
  {
   "id": "sheet-sinks",
@@ -2112,7 +2132,8 @@
    45,
    25
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (339, 656, 385, 686)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (339, 656, 385, 686)",
+  "align": "top"
  },
  {
   "id": "sheet-shower",
@@ -2150,7 +2171,8 @@
    68,
    59
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (120, 688, 182, 744)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (120, 688, 182, 744)",
+  "align": "top"
  },
  {
   "id": "sheet-medical-bed",
@@ -2169,7 +2191,8 @@
    81,
    42
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (46, 1153, 124, 1194)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (46, 1153, 124, 1194)",
+  "align": "left"
  },
  {
   "id": "sheet-autodoc",
@@ -2188,7 +2211,8 @@
    82,
    49
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (303, 1153, 380, 1197)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (303, 1153, 380, 1197)",
+  "align": "left"
  },
  {
   "id": "sheet-privacy-screen",
@@ -2226,7 +2250,8 @@
    81,
    46
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (48, 1228, 124, 1270)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (48, 1228, 124, 1270)",
+  "align": "left"
  },
  {
   "id": "sheet-low-berth",
@@ -2264,7 +2289,8 @@
    86,
    87
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (46, 1410, 128, 1492)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (46, 1410, 128, 1492)",
+  "align": "top-left"
  },
  {
   "id": "sheet-table-4",
@@ -2416,7 +2442,8 @@
    96,
    30
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (48, 1608, 140, 1640)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (48, 1608, 140, 1640)",
+  "align": "top"
  },
  {
   "id": "sheet-machinery",
@@ -2530,7 +2557,8 @@
    165,
    52
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (686, 566, 837, 614)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (686, 566, 837, 614)",
+  "align": "top"
  },
  {
   "id": "sheet-elevator",

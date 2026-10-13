@@ -1,4 +1,4 @@
-"""Just enough PNG to cut pieces out of a sheet: read any 8-bit PNG to RGBA rows, write RGBA.
+"""Just enough PNG to cut pieces out of a sheet: read a non-interlaced PNG of 8 bits, or a palette or grey one of fewer, to RGBA rows; write RGBA.
 
 No imaging library, so the scripts run on a bare Python install.
 """
@@ -18,7 +18,8 @@ def read(path):
         pos += 12 + length
         if kind == b"IHDR":
             width, height, depth, ctype, _, _, interlace = struct.unpack(">IIBBBBB", body)
-            assert depth == 8 and interlace == 0, "only 8-bit, non-interlaced PNGs"
+            assert interlace == 0, "only non-interlaced PNGs"
+            assert depth == 8 or (ctype in (0, 3) and depth in (1, 2, 4)), "only 8-bit PNGs, or palette and grey of fewer bits"
         elif kind == b"PLTE":
             palette = [tuple(body[i:i + 3]) for i in range(0, len(body), 3)]
         elif kind == b"tRNS":
@@ -28,16 +29,18 @@ def read(path):
         elif kind == b"IEND":
             break
     channels = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}[ctype]
-    stride = width * channels
+    # Fewer than 8 bits pack several pixels to a byte; filtering is then by whole bytes.
+    stride = (width * depth + 7) // 8 if depth < 8 else width * channels
+    step = channels if depth == 8 else 1
     raw = zlib.decompress(idat)
     rows, prev = [], bytearray(stride)
     for y in range(height):
         f = raw[y * (stride + 1)]
         line = bytearray(raw[y * (stride + 1) + 1:(y + 1) * (stride + 1)])
         for i in range(stride):
-            a = line[i - channels] if i >= channels else 0
+            a = line[i - step] if i >= step else 0
             b = prev[i]
-            c = prev[i - channels] if i >= channels else 0
+            c = prev[i - step] if i >= step else 0
             if f == 1:
                 line[i] = (line[i] + a) & 255
             elif f == 2:
@@ -50,6 +53,12 @@ def read(path):
                 line[i] = (line[i] + (a if pa <= pb and pa <= pc else b if pb <= pc else c)) & 255
         rows.append(line)
         prev = line
+    if depth < 8:
+        # Unpack to one value a byte, scaling grey up to the full range.
+        per = 8 // depth
+        mask = (1 << depth) - 1
+        scale = 255 // mask if ctype == 0 else 1
+        rows = [bytearray(((line[x // per] >> (8 - depth * (x % per + 1))) & mask) * scale for x in range(width)) for line in rows]
     out = []
     for line in rows:
         px = []

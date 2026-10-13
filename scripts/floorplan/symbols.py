@@ -9,17 +9,17 @@ Footprints come from the bracketed size in each filename, in feet. The two
 numbers are not always width then height, so the image's own aspect decides
 which is which. Squares are five feet, rounded up. Images are 60 pixels to the
 square and drawn centred on their footprint, so any margin round the drawing
-does not matter.
+does not matter. Their white is made clear, so the floor shows through.
 """
 import json
 import math
 import os
 import re
-import shutil
 import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
+import pngtools  # noqa: E402
 import sheet  # noqa: E402
 
 ROOT = "D:/SandPit/ShipParts/"
@@ -149,7 +149,11 @@ for ident, name, category, rel, *extra in PICKS:
     a, b = map(int, re.search(r"\[(\d+)x(\d+)\]", rel).groups())
     w, h = size(src)
     wide, high = (max(a, b), min(a, b)) if w >= h else (min(a, b), max(a, b))
-    shutil.copyfile(src, DST + ident + ".png")
+    # The drawing's white made clear, as the sheet's pieces are, so the floor's
+    # colour shows through and nothing draws as a black block when the screen
+    # inverts it.
+    _, _, px = pngtools.read(src)
+    pngtools.write(DST + ident + ".png", [[(r, g, b, 0) if min(r, g, b) >= sheet.WHITE else (r, g, b, a) for r, g, b, a in row] for row in px])
     catalogue.append({
         "id": ident,
         "name": name,
@@ -173,8 +177,6 @@ CUTS = [
     # feet, its 4 tons, to stand in the 5-ton docking space the book gives it.
     ("air-raft", "Air/raft", "craft", SYM + "Dock, Small Craft/Air-Raft 001 [20x20].png", (2, 4), (180, 62), (8, 9, 113, 232)),
 ]
-
-import pngtools  # noqa: E402
 
 for ident, name, category, rel, (sw, sh), (cx, cy), (kx0, ky0, kx1, ky1) in CUTS:
     _, _, px = pngtools.read(ROOT + rel)

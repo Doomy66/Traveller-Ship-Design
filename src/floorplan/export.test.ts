@@ -55,6 +55,12 @@ describe("exporting a deck", () => {
     expect(numbered).toContain("J-Drive");
   });
 
+  it("draws a wall put in to split a room, on paper as on screen", () => {
+    const plan = placeFixture(twoDecks(), { kind: "wall", deck: 0, x: 2, y: 0, edge: "w", length: 2 });
+    const svg = deckDocument(SHIP, plan, 0, SOURCES, { palette: PAPER, pixelsPerSquare: 60, grid: false, labels: "names" });
+    expect(svg).toContain('class="fp-wall" d="M2 0v2"');
+  });
+
   it("names the file after the ship and the deck, safely", () => {
     expect(exportName(SHIP, twoDecks(), 1, "png")).toBe("Beowulf2 Deck 2.png");
   });

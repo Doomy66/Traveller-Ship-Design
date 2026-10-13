@@ -34,8 +34,12 @@ export const cellOf = (v: number): number => Math.floor(v / CELL) * CELL;
 /** Which edge of a square a door or iris valve sits on. Only north and west are stored; FP 7.1. */
 export type Edge = "n" | "w";
 
-/** A door, an iris valve, or an opening: a stretch of wall left out, so two rooms run into one another. FP 7.1.4. */
-export type EdgeKind = "door" | "iris" | "open";
+/**
+ * A door, an iris valve, an opening (a stretch of wall left out, so two rooms
+ * run into one another, FP 7.1.4), or a wall drawn where there is none, to
+ * split a room up (FP 7.1.5).
+ */
+export type EdgeKind = "door" | "iris" | "open" | "wall";
 
 /** Fixtures that join decks. FP 6.1. */
 export const ACCESS_KINDS = ["lift", "hatch", "stairs"] as const;
@@ -497,7 +501,7 @@ export function readPlan(raw: unknown): FloorPlan | undefined {
     if (typeof it["deck"] !== "number" || typeof it["x"] !== "number" || typeof it["y"] !== "number") continue;
     if (it["deck"] < 0 || it["deck"] >= decks.length) continue;
     const half = { deck: it["deck"], x: toHalf(it["x"]), y: toHalf(it["y"]) };
-    if ((it["kind"] === "door" || it["kind"] === "iris" || it["kind"] === "open") && (it["edge"] === "n" || it["edge"] === "w")) {
+    if ((it["kind"] === "door" || it["kind"] === "iris" || it["kind"] === "open" || it["kind"] === "wall") && (it["edge"] === "n" || it["edge"] === "w")) {
       const length = typeof it["length"] === "number" && it["length"] !== 1 ? Math.max(CELL, toHalf(it["length"])) : undefined;
       fixtures.push({ kind: it["kind"], edge: it["edge"], ...half, ...(length === undefined ? {} : { length }) });
       continue;

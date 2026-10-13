@@ -328,6 +328,11 @@ function edgeMarkup(fixture: EdgeFixture, palette: Palette): string {
   const length = fixture.length ?? 1;
   // An opening is the wall left out, which wallsMarkup does. On screen a
   // faint dotted line shows where it is, so it can be found and moved.
+  // A wall put in, to split a room: drawn as the walls round rooms are. FP 7.1.5.
+  if (fixture.kind === "wall") {
+    const d = fixture.edge === "n" ? `M${n(fixture.x)} ${n(fixture.y)}h${n(length)}` : `M${n(fixture.x)} ${n(fixture.y)}v${n(length)}`;
+    return `<path class="fp-wall" d="${d}" stroke="${palette.wall}" stroke-width="0.1" stroke-linecap="square" fill="none"/>`;
+  }
   if (fixture.kind === "open") {
     if (!palette.hints) return "";
     const d = fixture.edge === "n" ? `M${n(fixture.x)} ${n(fixture.y)}h${n(length)}` : `M${n(fixture.x)} ${n(fixture.y)}v${n(length)}`;

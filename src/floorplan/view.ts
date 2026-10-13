@@ -439,6 +439,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
         toolButton("Door", { kind: "edge", edge: "door" }, "Click a wall for a door; drag along it for a wider one. Doors on neighbouring squares stay separate.", tool.kind === "edge" && tool.edge === "door"),
         toolButton("Iris valve", { kind: "edge", edge: "iris" }, "Click a wall for an iris valve in it", tool.kind === "edge" && tool.edge === "iris"),
         toolButton("Open", { kind: "edge", edge: "open" }, "Take the wall out between two rooms: click for a square of it, drag along it for more", tool.kind === "edge" && tool.edge === "open"),
+        toolButton("Wall", { kind: "edge", edge: "wall" }, "Put a wall in, to split a room: click for a square of it, drag along the line for more", tool.kind === "edge" && tool.edge === "wall"),
       ]),
       el("h3", { class: "fp-group" }, ["Between decks"]),
       el("div", { class: "fp-toolrow" }, [
@@ -955,7 +956,8 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     | { readonly owner: Owner | undefined; cells: Map<string, [number, number]>; last: [number, number]; anchor?: [number, number] }
     | undefined;
   /** A door being dragged along a wall: the wall, where along it the drag began and where it is now. */
-  let doorDrag: { edge: "n" | "w"; fixed: number; start: number; end: number } | undefined;
+  /** A door, valve, opening or wall being drawn: which way it runs, its line, its two ends along it, and where the drag began. */
+  let doorDrag: { edge: "n" | "w"; fixed: number; start: number; end: number; from: readonly [number, number] } | undefined;
   let drag: { from: [number, number]; dx: number; dy: number } | undefined;
   let pan: { x: number; y: number; vx: number; vy: number } | undefined;
   let spaceHeld = false;
@@ -1077,7 +1079,9 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
               ? "Click a wall for a door, drag along it for a wide one."
               : tool.edge === "open"
                 ? "Click a wall to take a square of it out, drag along it for more."
-                : "Click a wall for an iris valve."
+                : tool.edge === "wall"
+                  ? "Click a square's edge for a wall, drag along the line for a longer one."
+                  : "Click a wall for an iris valve."
             : tool.kind === "tile" || tool.kind === "symbol"
               ? "Click to place; R turns, F flips. Use Move to take one away."
               : "Click to place. Use Move to take one away.";
@@ -1116,7 +1120,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     if (tool.kind === "edge") {
       const edge = nearestWall(p);
       const along = edge.edge === "n" ? p.px : p.py;
-      doorDrag = { edge: edge.edge, fixed: edge.edge === "n" ? edge.y : edge.x, start: along, end: along };
+      doorDrag = { edge: edge.edge, fixed: edge.edge === "n" ? edge.y : edge.x, start: along, end: along, from: [p.px, p.py] };
       drawPreview();
       return;
     }
@@ -1178,6 +1182,17 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       return;
     }
     if (doorDrag !== undefined) {
+      // A drag runs the way it goes: along the grid line nearest where it
+      // began, across or down, whichever the pointer has gone further.
+      const [ox, oy] = doorDrag.from;
+      const dx = Math.abs(p.px - ox);
+      const dy = Math.abs(p.py - oy);
+      const runs: "n" | "w" = dx >= dy ? "n" : "w";
+      if (Math.max(dx, dy) >= 0.75 && runs !== doorDrag.edge) {
+        doorDrag = runs === "n"
+          ? { ...doorDrag, edge: "n", fixed: Math.round(oy), start: ox, end: ox }
+          : { ...doorDrag, edge: "w", fixed: Math.round(ox), start: oy, end: oy };
+      }
       const end = doorDrag.edge === "n" ? p.px : p.py;
       if (Math.floor(end) !== Math.floor(doorDrag.end)) {
         doorDrag = { ...doorDrag, end };

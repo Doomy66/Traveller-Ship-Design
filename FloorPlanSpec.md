@@ -117,6 +117,8 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 7.1.4 **An opening** is a stretch of wall left out, so two rooms run into one another: a lounge open to a galley, a bridge open to its sensor stations. It is placed like a door, a square for a click or as many as a drag, and moved like one. Nothing is drawn for it in use, on paper or in an export; on screen a faint dotted line shows where it is, so it can be found and moved.
 
+7.1.5 **A wall** can be put in where there is none, to split a room up: a store partitioned off a cargo hold, a cabin partitioned in two. It is clicked or dragged like a door, a square at a time along a grid line, and drawn as the walls round rooms are. It only draws; the squares either side still belong to the same component and count as before. A drag runs the way the pointer goes, across or down, along the grid line nearest where it began, which holds for doors and openings too.
+
 7.1.2 Every piece on squares, from the library or a geomorph tile, can be **turned** a quarter at a time and **flipped**, mirrored left to right, which is how a port-side layout becomes a starboard one. A flipped piece is mirrored about its own middle before it is turned, so it keeps its footprint. R turns and F flips the selected piece, or the next one to be placed. A painted room selected with Move turns and flips too, about the middle of the box around it, kept to the half square so that four turns or two flips put it back exactly; like a moved room, it replaces what it lands on, and its doors stay where they are.
 
 7.2 The kinds: door, iris valve and opening in walls; lift, iris valve in the floor, iris valve in the ceiling, and stairs between decks; and furniture and fitted rooms from the library. An iris valve can be a door in a wall or a way up or down, which is why it appears in both places.
@@ -165,7 +167,7 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 10.3 **The middle** is the deck, with the deck tabs above it. Dragging paints with the brush, a whole square at a time (FP 4.2.2). Dragging with the eraser clears. Dragging with the corridor brush makes corridors.
 
-10.4 **The right** holds everything else: the Move tool, Corridor and Erase, Undo and Redo; doors and iris valves for walls; lifts, iris valves, hatches and stairs between decks; Turn and Flip; the names-or-numbers switch; and below them the library (FP 7.7) and, at its foot, the geomorph folder (FP 12). A piece is placed with a click, and turned with R or flipped with F before or after.
+10.4 **The right** holds everything else: the Move tool, Corridor and Erase, Undo and Redo; doors, iris valves, openings and walls for walls; lifts, iris valves, hatches and stairs between decks; Turn and Flip; the names-or-numbers switch; and below them the library (FP 7.7) and, at its foot, the geomorph folder (FP 12). A piece is placed with a click, and turned with R or flipped with F before or after.
 
 10.5 Problems from `check` sit above the deck, as the sheet's do on the design screen.
 

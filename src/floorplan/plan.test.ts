@@ -376,6 +376,7 @@ describe("reading a saved plan", () => {
   it("brings a plan back as it went out", () => {
     let plan = block(addDeck(emptyPlan()), instanceOwner("staterooms", 1), 0, 0, 2, 1, 1);
     plan = placeFixture(plan, { kind: "door", deck: 1, x: 1, y: 0, edge: "n" });
+    plan = placeFixture(plan, { kind: "wall", deck: 1, x: 1, y: 0, edge: "w", length: 2 });
     plan = placeFixture(plan, { kind: "symbol", deck: 1, x: 0, y: 0, rotation: 90, symbol: "bed-1" });
     plan = remember(plan, SHIP.components);
     expect(readPlan(JSON.parse(JSON.stringify(plan)))).toEqual(plan);

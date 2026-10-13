@@ -67,6 +67,9 @@ user. Dates are the day the release was tagged.
 - **Suggest a layout.** One button lays every component down as a room of its
   size along a corridor, bridge forward and drives aft, with a door to each and
   a lift where the ship needs two decks. Fuel is left for you to draw or not.
+  Staterooms, workshops, medical bays, laboratories, briefing rooms, brigs and
+  lounges come furnished from the library, doors on the corridor, and low
+  berths get their pods.
 - **Rooms turn, flip and change deck.** Select a painted room with Move: R
   turns it, F flips it, and Room to deck (or Page Up and Page Down) sends it to
   another deck, into empty space there.

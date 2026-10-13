@@ -23,6 +23,7 @@ export type SymbolCategory =
   | "furniture"
   | "consoles"
   | "cargo"
+  | "craft"
   | "landscape";
 
 export interface ShipSymbol {
@@ -68,6 +69,7 @@ export const CATEGORY_LABELS: Readonly<Record<SymbolCategory, string>> = {
   furniture: "Furniture",
   consoles: "Consoles",
   cargo: "Cargo",
+  craft: "Craft and vehicles",
   landscape: "Arboretum",
 };
 

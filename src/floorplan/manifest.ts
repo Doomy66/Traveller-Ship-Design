@@ -37,6 +37,8 @@ export interface Component {
   readonly rooms: number;
   /** False only for fuel, which the book lets a plan leave off. FP 3.5. */
   readonly required: boolean;
+  /** For a docking space or hangar, the craft it holds, as the sheet names it. */
+  readonly carries?: string;
 }
 
 export interface Manifest {
@@ -114,9 +116,17 @@ function componentFrom(line: SheetLine): Component | undefined {
 /** The design's components that take up room, in the sheet's order. */
 export function manifest(design: Design): Manifest {
   const result = sheet(design);
+  const labels = new Map(result.lines.map((line) => [line.key, line.label]));
   return {
     shipName: design.name,
     usableTons: result.usableTons,
-    components: result.lines.map(componentFrom).filter((c): c is Component => c !== undefined),
+    components: result.lines
+      .map(componentFrom)
+      .filter((c): c is Component => c !== undefined)
+      .map((c) => {
+        // A berth's key is its craft's with ":berth" on the end.
+        const craft = c.key.endsWith(":berth") ? labels.get(c.key.slice(0, -":berth".length)) : undefined;
+        return craft === undefined ? c : { ...c, carries: craft };
+      }),
   };
 }

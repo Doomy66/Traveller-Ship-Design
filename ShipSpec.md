@@ -459,7 +459,7 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 7.1 Each fixture is a design in `src/fixtures/` and a test that its sheet matches the book line by line: every tons and cost figure, the totals, hull points, crew and power requirements.
 
-7.2 **Scout/Courier, Type S** (page 161). TL12, 100 tons streamlined, crystaliron 4, thrust 2, jump 2, 4 tons of TL12 fusion for power 60 and 12 weeks of fuel, 10-ton bridge, Computer/5bis, military sensors, empty double turret, air/raft in a 4-ton docking space, 2-ton fuel processor, scoops, ten probe drones, workshop, four staterooms, Jump Control/2; 11 tons of cargo. Total MCr41.045, standard design MCr36.9405, Cr3079 a month, hull 40. Crew pilot, astrogator, engineer.
+7.2 **Scout/Courier, Type S** (page 161). TL12, 100 tons streamlined, crystaliron 4, thrust 2, jump 2, 4 tons of TL12 fusion for power 60 and 12 weeks of fuel, 10-ton bridge, Computer/5bis, military sensors, empty double turret, a 4-ton air/raft in its 5-ton docking space (110% of the craft, rounded up), 2-ton fuel processor, scoops, ten probe drones, workshop, four staterooms, Jump Control/2; 11 tons of cargo. Total MCr41.045, standard design MCr36.9405, Cr3079 a month, hull 40. Crew pilot, astrogator, engineer.
 
 7.3 **Free Trader, Type A** (page 172). TL12, 200 tons streamlined, crystaliron 2, thrust 1, jump 1, 5 tons of TL12 fusion for power 75 and 4 weeks, 10-ton bridge, Computer/5, civilian sensors, 1-ton fuel processor, scoops, cargo crane, ten staterooms, twenty low berths, 10 tons of common area, Jump Control/1; 80 tons of cargo. Total MCr51.38, standard MCr46.242, Cr3854 a month, hull 80. Crew pilot, astrogator, engineer, steward, with six high and twenty low passengers declared.
 

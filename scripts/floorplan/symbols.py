@@ -162,6 +162,39 @@ for ident, name, category, rel in PICKS:
 # The pieces cut from the Symbols & Abbreviations sheet, in the same library.
 catalogue.extend(sheet.extract(DST))
 
+# Pieces cut from a larger drawing: id, name, category, source, footprint in
+# squares, the top left of the cut in the source's pixels (60 to the square),
+# and the part of the cut to keep, so a bay's walls are left behind.
+CUTS = [
+    # The air/raft alone, out of a 20 by 20 foot bay: the craft's own 10 by 20
+    # feet, its 4 tons, to stand in the 5-ton docking space the book gives it.
+    ("air-raft", "Air/raft", "craft", SYM + "Dock, Small Craft/Air-Raft 001 [20x20].png", (2, 4), (180, 62), (8, 9, 113, 232)),
+]
+
+import pngtools  # noqa: E402
+
+for ident, name, category, rel, (sw, sh), (cx, cy), (kx0, ky0, kx1, ky1) in CUTS:
+    _, _, px = pngtools.read(ROOT + rel)
+    out = []
+    for y in range(sh * 60):
+        line = []
+        for x in range(sw * 60):
+            r, g, b, a = px[cy + y][cx + x]
+            keep = kx0 <= x <= kx1 and ky0 <= y <= ky1 and min(r, g, b) < sheet.WHITE
+            line.append((r, g, b, a) if keep else (r, g, b, 0))
+        out.append(line)
+    pngtools.write(DST + ident + ".png", out)
+    catalogue.append({
+        "id": ident,
+        "name": name,
+        "category": category,
+        "file": f"floorplan/symbols/{ident}.png",
+        "feet": [sw * 5, sh * 5],
+        "squares": [sw, sh],
+        "pixels": [sw * 60, sh * 60],
+        "source": f"{rel} cut at {(cx, cy)}",
+    })
+
 with open(CAT, "w", encoding="utf-8", newline="\n") as f:
     json.dump(catalogue, f, indent=1)
     f.write("\n")

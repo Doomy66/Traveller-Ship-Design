@@ -84,7 +84,19 @@ interface Room {
   readonly fitted?: Fitted;
   /** A piece put on each of its squares. */
   readonly fill?: string;
+  /** A piece set against the far wall, centred across the room. */
+  readonly inset?: string;
 }
+
+/**
+ * Craft drawn in their docking spaces, by the start of the craft's name: the
+ * piece and the squares of docking space each takes. An air/raft is 4 tons,
+ * so 5 of docking space, a bay two squares wide and five deep with the
+ * craft at the back and a row for the door.
+ */
+const DOCKED: readonly (readonly [RegExp, { readonly symbol: string; readonly squares: number; readonly width: number }])[] = [
+  [/^Air\/Raft\b/i, { symbol: "air-raft", squares: 10, width: 2 }],
+];
 
 const squaresOf = (fitted: Fitted): readonly [number, number] => symbolById(fitted.symbol)?.squares ?? [1, 1];
 
@@ -170,6 +182,18 @@ function roomsOf(component: Component): Room[] {
     );
   }
   // Several fitted rooms are laid as rooms of their own, of the one component.
+  const docked = component.carries === undefined || !component.label.startsWith("Docking Space")
+    ? undefined
+    : DOCKED.find(([name]) => name.test(component.carries!))?.[1];
+  if (docked !== undefined && component.target === docked.squares * component.count) {
+    return Array.from({ length: component.count }, () => ({
+      owner: component.key,
+      squares: docked.squares,
+      width: docked.width,
+      depth: docked.squares / docked.width,
+      inset: docked.symbol,
+    }));
+  }
   const found = fittedFor(component);
   if (found !== undefined) return Array.from({ length: found.units }, () => fittedRoom(component.key, found.fitted));
   const depth = depthFor(component.target);
@@ -296,6 +320,14 @@ export function suggestLayout(manifest: Manifest, remembered: FloorPlan["remembe
       fixtures.push({ kind: "symbol", deck, x, y: top, rotation, symbol: room.fitted.symbol });
       fixtures.push({ kind: "door", deck, x: x + doorAt, y: wall, edge: "n" });
       continue;
+    }
+    if (room.inset !== undefined) {
+      const symbol = symbolById(room.inset);
+      if (symbol !== undefined) {
+        const [w, h] = symbol.squares;
+        const far = side === "north" ? corridor - room.depth : corridor + 1 + room.depth - h;
+        fixtures.push({ kind: "symbol", deck, x: x + (room.width - w) / 2, y: far, rotation: 0, symbol: room.inset });
+      }
     }
     if (room.fill !== undefined) {
       for (const [sx, sy] of squares) fixtures.push({ kind: "symbol", deck, x: sx, y: sy, rotation: 0, symbol: room.fill });

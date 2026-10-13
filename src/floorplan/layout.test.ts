@@ -108,3 +108,19 @@ describe("fitted rooms in the suggested layout", () => {
     expect(fittedOn(ship).pieces.filter((p) => p.symbol === "low-berth")).toHaveLength(berths.target);
   });
 });
+
+describe("craft in their docking spaces", () => {
+  it("draws the Scout's air/raft at the back of a two by five bay", () => {
+    const m = manifest(SCOUT_COURIER);
+    const berth = m.components.find((c) => c.carries?.startsWith("Air/Raft"))!;
+    expect(berth.target).toBe(10);
+    const plan = suggestLayout(m);
+    const raft = plan.fixtures.find((f): f is SquareFixture => f.kind === "symbol" && f.symbol === "air-raft")!;
+    expect(raft).toBeDefined();
+    // All eight of its squares are the bay's, and the bay has two more for the door.
+    const cells = plan.decks[raft.deck]!.cells;
+    for (let y = raft.y; y < raft.y + 4; y += 0.5) for (let x = raft.x; x < raft.x + 2; x += 0.5) expect(cells[`${x},${y}`]).toBe(berth.key);
+    const bay = Object.values(cells).filter((o) => o === berth.key);
+    expect(bay).toHaveLength(10 * 4);
+  });
+});

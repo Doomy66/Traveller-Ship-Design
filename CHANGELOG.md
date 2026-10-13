@@ -14,7 +14,7 @@ user. Dates are the day the release was tagged.
   staterooms come from Robert Pearce's Starship Symbols. Each deck exports as
   SVG or PNG, Print gives every deck a page, and the plan saves inside the
   `.ship`. `FloorPlanSpec.md` is its contract.
-- **A library of ship pieces.** 154 of them, in one list on the right: turrets,
+- **A library of ship pieces.** 155 of them, in one list on the right: turrets,
   launch tubes and barbettes, engineering sections of 4 to 63 tons, standard
   rooms (a 6-ton workshop, a 4-ton medical bay, laboratory, briefing room and
   brig, an armoury, offices and storage), plain empty rooms from 5 by 5 feet to
@@ -68,8 +68,8 @@ user. Dates are the day the release was tagged.
   size along a corridor, bridge forward and drives aft, with a door to each and
   a lift where the ship needs two decks. Fuel is left for you to draw or not.
   Staterooms, workshops, medical bays, laboratories, briefing rooms, brigs and
-  lounges come furnished from the library, doors on the corridor, and low
-  berths get their pods.
+  lounges come furnished from the library, doors on the corridor, low berths
+  get their pods, and an air/raft sits at the back of its 5-ton docking bay.
 - **Rooms turn, flip and change deck.** Select a painted room with Move: R
   turns it, F flips it, and Room to deck (or Page Up and Page Down) sends it to
   another deck, into empty space there.

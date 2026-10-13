@@ -2928,5 +2928,24 @@
    52
   ],
   "source": "Geomorphs/Symbols & Abbreviations.png (575, 323, 797, 370)"
+ },
+ {
+  "id": "air-raft",
+  "name": "Air/raft",
+  "category": "craft",
+  "file": "floorplan/symbols/air-raft.png",
+  "feet": [
+   10,
+   20
+  ],
+  "squares": [
+   2,
+   4
+  ],
+  "pixels": [
+   120,
+   240
+  ],
+  "source": "CustomTiles/Symbols/Dock, Small Craft/Air-Raft 001 [20x20].png cut at (180, 62)"
  }
 ]

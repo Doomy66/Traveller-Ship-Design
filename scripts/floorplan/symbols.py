@@ -28,7 +28,9 @@ DV = "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/"
 DST = "D:/GitHub/Traveller-Ship-Design/public/floorplan/symbols/"
 CAT = "D:/GitHub/Traveller-Ship-Design/src/floorplan/symbols.json"
 
-# id, name, category, source path under ROOT
+# id, name, category, source path under ROOT, and optionally what to say of it
+# beyond what is measured, such as "align" to set it against one edge of its
+# footprint: a bed's head against a wall.
 PICKS = [
     ("lift", "Lift", "access", SYM + "Misc/Elevator 002 [5x5].png"),
     ("lift-large", "Lift, large", "access", SYM + "Misc/Elevator 005 [10x10].png"),
@@ -110,8 +112,8 @@ PICKS = [
     ("luxury-lounge", "Luxury lounge", "common", DV + "DV-013 [30x30] [14-dTons] Luxury Lounge.png"),
 
     ("bed", "Bed", "furniture", SYM + "Furniture, Consoles, & Equipment/Bed 001 [5x10].png"),
-    ("bed-small", "Bed, small", "furniture", SYM + "Furniture, Consoles, & Equipment/Bed 006 [5x7].png"),
-    ("medical-bed", "Medical bed", "furniture", SYM + "Furniture, Consoles, & Equipment/Medical Bed 001 [4x6].png"),
+    ("bed-small", "Bed, small", "furniture", SYM + "Furniture, Consoles, & Equipment/Bed 006 [5x7].png", {"align": "left"}),
+    ("medical-bed", "Medical bed", "furniture", SYM + "Furniture, Consoles, & Equipment/Medical Bed 001 [4x6].png", {"align": "left"}),
     ("chair", "Chair", "furniture", SYM + "Furniture, Consoles, & Equipment/Couch & Chairs 003 [2x3].png"),
     ("armchair", "Armchair", "furniture", SYM + "Furniture, Consoles, & Equipment/Couch & Chairs 016 [6x6].png"),
     ("couch", "Couch", "furniture", SYM + "Furniture, Consoles, & Equipment/Couch & Chairs 017 [5x10].png"),
@@ -142,7 +144,7 @@ for old in os.listdir(DST):
         os.remove(DST + old)
 
 catalogue = []
-for ident, name, category, rel in PICKS:
+for ident, name, category, rel, *extra in PICKS:
     src = ROOT + rel
     a, b = map(int, re.search(r"\[(\d+)x(\d+)\]", rel).groups())
     w, h = size(src)
@@ -157,6 +159,7 @@ for ident, name, category, rel in PICKS:
         "squares": [max(1, math.ceil(wide / 5)), max(1, math.ceil(high / 5))],
         "pixels": [w, h],
         "source": rel,
+        **(extra[0] if extra else {}),
     })
 
 # The pieces cut from the Symbols & Abbreviations sheet, in the same library.

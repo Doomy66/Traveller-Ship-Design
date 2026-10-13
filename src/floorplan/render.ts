@@ -392,9 +392,10 @@ export function symbolMarkup(
     h *= k;
   }
   const top = symbol.align === "top" ? cy - sh / 2 : cy - h / 2;
+  const left = symbol.align === "left" ? cx - sw / 2 : cx - w / 2;
   const filter = palette.symbolFilter === "none" ? "" : ` style="filter:${palette.symbolFilter}"`;
   return (
-    `<image href="${esc(href(symbol.file))}" x="${n(cx - w / 2)}" y="${n(top)}" width="${n(w)}" height="${n(h)}"` +
+    `<image href="${esc(href(symbol.file))}" x="${n(left)}" y="${n(top)}" width="${n(w)}" height="${n(h)}"` +
     ` transform="${placement(fixture.rotation, fixture.flip, cx, cy)}" opacity="${opacity}" preserveAspectRatio="none"${filter}/>`
   );
 }

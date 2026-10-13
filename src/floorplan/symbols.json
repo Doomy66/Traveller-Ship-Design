@@ -1327,7 +1327,8 @@
    81,
    61
   ],
-  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Bed 006 [5x7].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Bed 006 [5x7].png",
+  "align": "left"
  },
  {
   "id": "medical-bed",
@@ -1346,7 +1347,8 @@
    76,
    44
   ],
-  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Medical Bed 001 [4x6].png"
+  "source": "CustomTiles/Symbols/Furniture, Consoles, & Equipment/Medical Bed 001 [4x6].png",
+  "align": "left"
  },
  {
   "id": "chair",

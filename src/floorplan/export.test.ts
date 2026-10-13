@@ -74,6 +74,14 @@ describe("library pieces drawn to their footprint", () => {
     expect(locker.y + locker.height).toBeLessThanOrEqual(5 + 1e-9);
   });
 
+  it("puts the head of a small bed and a medical bed against the left of their footprint", () => {
+    for (const bed of ["bed-small", "medical-bed"]) {
+      const drawn = image(bed);
+      expect(drawn.x).toBe(3);
+      expect(drawn.y + drawn.height / 2).toBeCloseTo(4.5);
+    }
+  });
+
   it("sets a small locker against the top of its square", () => {
     const small = image("sheet-locker-small");
     expect(small.width).toBeCloseTo(1);

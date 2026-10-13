@@ -40,8 +40,12 @@ export interface ShipSymbol {
   readonly pixels: readonly [number, number];
   /** Drawn scaled to fit its footprint, keeping its shape, rather than at its own size. */
   readonly fit?: boolean;
-  /** Drawn against the top of its footprint, as turned with it, rather than in the middle. */
-  readonly align?: "top";
+  /**
+   * Drawn against one edge of its footprint, as turned with it, rather than
+   * in the middle: a small locker against the wall behind it, a bed with its
+   * head to the wall.
+   */
+  readonly align?: "top" | "left";
 }
 
 /** The symbols are drawn at this scale, the same as the geomorph tiles. */

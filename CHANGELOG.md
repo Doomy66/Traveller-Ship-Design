@@ -14,8 +14,11 @@ user. Dates are the day the release was tagged.
   staterooms come from Robert Pearce's Starship Symbols. Each deck exports as
   SVG or PNG, Print gives every deck a page, and the plan saves inside the
   `.ship`. `FloorPlanSpec.md` is its contract.
-- **A library of ship pieces.** 132 of them, in one list on the right: turrets,
-  launch tubes and barbettes, engineering sections of 4 to 63 tons, machinery,
+- **A library of ship pieces.** 154 of them, in one list on the right: turrets,
+  launch tubes and barbettes, engineering sections of 4 to 63 tons, standard
+  rooms (a 6-ton workshop, a 4-ton medical bay, laboratory, briefing room and
+  brig, an armoury, offices and storage), plain empty rooms from 5 by 5 feet to
+  20 by 40, machinery,
   batteries and computers, staterooms, bunks and suites, freshers, medical beds
   and an autodoc, lounges, galleys and gaming tables, lockers, consoles, cargo,
   and an arboretum with trees and a fountain. Every piece turns (R) and
@@ -61,6 +64,20 @@ user. Dates are the day the release was tagged.
   fighters. They sit under *Example ships* beside
   the book's four, grouped, and `src/catalogue/SOURCES.md` says where each one
   came from and what was changed to make it legal.
+- **Suggest a layout.** One button lays every component down as a room of its
+  size along a corridor, bridge forward and drives aft, with a door to each and
+  a lift where the ship needs two decks. Fuel is left for you to draw or not.
+- **Rooms turn, flip and change deck.** Select a painted room with Move: R
+  turns it, F flips it, and Room to deck (or Page Up and Page Down) sends it to
+  another deck, into empty space there.
+- **0t items.** Fixed mounts, the computer and fuel scoops are listed on the
+  floor plan though they take no tonnage, to mark where they are if you like.
+- **Fuel is optional in the totals too.** Fuel not drawn comes off the plan's
+  target before the ten per cent either way is worked out.
+- **Elevators and hatches join decks.** The library's elevators, stairwells and
+  hatches, a new Hatch tool, and geomorph tiles with lifts, stairs or vertical
+  access all count as ways between decks wherever they overlap.
+- **The description prints beside the sheet**, to the right of the components.
 - **No stateroom wanted for a fighter pilot.** A small craft under 100 tons
   without a jump drive is not somewhere anyone lives, and is no longer warned
   about berths. A 100-ton yacht still is.

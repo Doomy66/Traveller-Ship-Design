@@ -74,6 +74,34 @@ PICKS = [
     ("low-berth", "Low berth", "rooms", SYM + "Low Berth/Low Berth 003 [5x5].png"),
     ("fresher", "Fresher", "rooms", SYM + "Fresher/Fresher 001 [5x5].png"),
 
+    # Rooms for the book's standard fittings, drawn complete, at the book's
+    # sizes where it gives one: a 6-ton workshop, a 4-ton medical bay,
+    # laboratory, briefing room and brig.
+    ("workshop", "Workshop, 6 tons", "modules", SYM + "Shop & Repair Area/Shop 013 [15x20].png"),
+    ("workshop-small", "Workshop, small", "modules", SYM + "Shop & Repair Area/Shop 004 [10x20].png"),
+    ("medical-bay", "Medical bay, 4 tons", "modules", SYM + "Medical/Medical 004 [10x20].png"),
+    ("laboratory", "Laboratory, 4 tons", "modules", SYM + "Lab/Lab 001 [10x20].png"),
+    ("briefing-room", "Briefing room, 4 tons", "modules", SYM + "Briefing Room/Briefing Room 003 [10x20].png"),
+    ("brig", "Brig, three cells", "modules", SYM + "Brig & Security/Brig 007 [10x20].png"),
+    ("security-office", "Security office", "modules", SYM + "Brig & Security/Security 005 [10x20].png"),
+    ("armoury", "Armoury", "modules", SYM + "Misc/Armory 001 [10x20].png"),
+    ("classroom", "Classroom", "modules", SYM + "Classroom/Classroom 001 [10x20].png"),
+    ("computer-room", "Computer room", "modules", SYM + "Computer/Computer 004 [10x10].png"),
+    ("office", "Office", "modules", SYM + "Offices/Office 002 [10x10].png"),
+    ("storage", "Storage", "modules", SYM + "Storage/Storage 007 [10x20].png"),
+
+    # Plain rooms, walls and a door, in the sizes a plan reaches for most.
+    ("empty-5x5", "Empty room, 5 by 5 feet", "empty", SYM + "Empty Room/Empty Room 001 [5x5].png"),
+    ("empty-5x10", "Empty room, 5 by 10 feet", "empty", SYM + "Empty Room/Empty Room 002 [5x10].png"),
+    ("empty-10x10", "Empty room, 10 by 10 feet", "empty", SYM + "Empty Room/Empty Room 007 [10x10].png"),
+    ("empty-10x15", "Empty room, 10 by 15 feet", "empty", SYM + "Empty Room/Empty Room 012 [10x15].png"),
+    ("empty-10x20", "Empty room, 10 by 20 feet", "empty", SYM + "Empty Room/Empty Room 019 [10x20].png"),
+    ("empty-15x15", "Empty room, 15 by 15 feet", "empty", SYM + "Empty Room/Empty Room 029 [15x15].png"),
+    ("empty-15x20", "Empty room, 15 by 20 feet", "empty", SYM + "Empty Room/Empty Room 035 [15x20].png"),
+    ("empty-20x20", "Empty room, 20 by 20 feet", "empty", SYM + "Empty Room/Empty Room 042 [20x20].png"),
+    ("empty-20x30", "Empty room, 20 by 30 feet", "empty", SYM + "Empty Room/Empty Room 070 [20x30].png"),
+    ("empty-20x40", "Empty room, 20 by 40 feet", "empty", SYM + "Empty Room/Empty Room 073 [20x40].png"),
+
     ("lounge-small", "Lounge, small", "common", SYM + "Lounge/Lounge 014 [10x20].png"),
     ("lounge", "Lounge", "common", SYM + "Lounge/Lounge 027 [15x20].png"),
     ("lounge-large", "Lounge, large", "common", SYM + "Lounge/Lounge 031 [20x20].png"),

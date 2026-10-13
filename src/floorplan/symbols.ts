@@ -14,6 +14,8 @@ export type SymbolCategory =
   | "access"
   | "turrets"
   | "engineering"
+  | "modules"
+  | "empty"
   | "rooms"
   | "freshers"
   | "common"
@@ -35,6 +37,10 @@ export interface ShipSymbol {
   readonly squares: readonly [number, number];
   /** The image's own size, at 60 pixels to the square. */
   readonly pixels: readonly [number, number];
+  /** Drawn scaled to fit its footprint, keeping its shape, rather than at its own size. */
+  readonly fit?: boolean;
+  /** Drawn against the top of its footprint, as turned with it, rather than in the middle. */
+  readonly align?: "top";
 }
 
 /** The symbols are drawn at this scale, the same as the geomorph tiles. */
@@ -53,6 +59,8 @@ export const CATEGORY_LABELS: Readonly<Record<SymbolCategory, string>> = {
   access: "Access",
   turrets: "Turrets, launchers and barbettes",
   engineering: "Engineering",
+  modules: "Standard rooms",
+  empty: "Empty rooms",
   rooms: "Staterooms and beds",
   freshers: "Freshers",
   common: "Common areas",

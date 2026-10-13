@@ -20,7 +20,10 @@ import pngtools  # noqa: E402
 SHEET = "D:/SandPit/ShipParts/Geomorphs/Symbols & Abbreviations.png"
 SCALE = 1320 / 1200
 
-# id, name, category, box (x0, y0, x1, y1) on the sheet shown 1200 wide
+# id, name, category, box (x0, y0, x1, y1) on the sheet shown 1200 wide, and
+# optionally what to say of it beyond what is measured: a footprint where the
+# drawing's stroke would round it up a square, "fit" to draw it to that
+# footprint, and "align" to set it against one edge rather than the middle.
 ITEMS = [
     ("sheet-bed", "Bed, labelled", "rooms", (50, 172, 124, 214)),
     ("sheet-bed-storage", "Bed with storage", "rooms", (153, 166, 248, 222)),
@@ -33,9 +36,9 @@ ITEMS = [
     ("sheet-desk-3", "Desk, small", "furniture", (186, 293, 220, 347)),
     ("sheet-chairs", "Chairs", "furniture", (48, 357, 130, 394)),
     ("sheet-couch", "Couch", "furniture", (136, 362, 247, 393)),
-    ("sheet-locker", "Locker", "furniture", (48, 792, 110, 860)),
-    ("sheet-locker-small", "Locker, small", "furniture", (123, 792, 188, 834)),
-    ("sheet-weapons-locker", "Weapons locker", "furniture", (200, 792, 264, 860)),
+    ("sheet-locker", "Locker", "furniture", (48, 792, 110, 860), {"squares": [1, 1], "fit": True}),
+    ("sheet-locker-small", "Locker, small", "furniture", (123, 792, 188, 834), {"squares": [1, 1], "fit": True, "align": "top"}),
+    ("sheet-weapons-locker", "Weapons locker", "furniture", (200, 792, 264, 860), {"squares": [1, 1], "fit": True}),
     ("sheet-holo-table", "Holo table with seats", "furniture", (46, 880, 160, 987)),
     ("sheet-window", "Window, security glass", "furniture", (50, 1008, 164, 1027)),
     ("sheet-repair-bench", "Repair bench", "furniture", (50, 1043, 274, 1104)),
@@ -136,7 +139,7 @@ def extract(dst):
     """Write every piece to dst as <id>.png and return their catalogue entries."""
     _, _, pixels = pngtools.read(SHEET)
     entries = []
-    for ident, name, category, box in ITEMS:
+    for ident, name, category, box, *extra in ITEMS:
         piece = cut(pixels, box)
         h, w = len(piece), len(piece[0])
         pngtools.write(os.path.join(dst, ident + ".png"), piece)
@@ -149,6 +152,7 @@ def extract(dst):
             "squares": [max(1, math.ceil(w / 60 - 0.15)), max(1, math.ceil(h / 60 - 0.15))],
             "pixels": [w, h],
             "source": f"Geomorphs/Symbols & Abbreviations.png {box}",
+            **(extra[0] if extra else {}),
         })
     return entries
 
@@ -156,7 +160,7 @@ def extract(dst):
 def contact(path):
     """Every cut on a grey grid, named by position, to check the boxes by eye."""
     _, _, pixels = pngtools.read(SHEET)
-    cells = [cut(pixels, box) for _, _, _, box in ITEMS]
+    cells = [cut(pixels, item[3]) for item in ITEMS]
     size, cols = 170, 8
     rows = math.ceil(len(cells) / cols)
     sheet = [[(200, 200, 200, 255)] * (cols * size) for _ in range(rows * size)]

@@ -382,11 +382,19 @@ export function symbolMarkup(
   const [fw, fh] = footprint(symbol, fixture.rotation);
   const cx = fixture.x + fw / 2;
   const cy = fixture.y + fh / 2;
-  const w = symbol.pixels[0] / PIXELS_PER_SQUARE;
-  const h = symbol.pixels[1] / PIXELS_PER_SQUARE;
+  // Sizes and the top edge are as drawn before turning; the turn is about the middle.
+  const [sw, sh] = symbol.squares;
+  let w = symbol.pixels[0] / PIXELS_PER_SQUARE;
+  let h = symbol.pixels[1] / PIXELS_PER_SQUARE;
+  if (symbol.fit === true) {
+    const k = Math.min(sw / w, sh / h);
+    w *= k;
+    h *= k;
+  }
+  const top = symbol.align === "top" ? cy - sh / 2 : cy - h / 2;
   const filter = palette.symbolFilter === "none" ? "" : ` style="filter:${palette.symbolFilter}"`;
   return (
-    `<image href="${esc(href(symbol.file))}" x="${n(cx - w / 2)}" y="${n(cy - h / 2)}" width="${n(w)}" height="${n(h)}"` +
+    `<image href="${esc(href(symbol.file))}" x="${n(cx - w / 2)}" y="${n(top)}" width="${n(w)}" height="${n(h)}"` +
     ` transform="${placement(fixture.rotation, fixture.flip, cx, cy)}" opacity="${opacity}" preserveAspectRatio="none"${filter}/>`
   );
 }

@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { deckDocument, exportName, frame } from "./export";
 import type { Manifest } from "./manifest";
 import { addDeck, area, emptyPlan, paint, placeFixture, placeTile } from "./plan";
+import { PAPER, symbolMarkup } from "./render";
 
 const SOURCES = { symbol: (file: string) => file, tile: () => undefined };
 
@@ -56,5 +57,27 @@ describe("exporting a deck", () => {
 
   it("names the file after the ship and the deck, safely", () => {
     expect(exportName(SHIP, twoDecks(), 1, "png")).toBe("Beowulf2 Deck 2.png");
+  });
+});
+
+describe("library pieces drawn to their footprint", () => {
+  const image = (symbol: string) => {
+    const markup = symbolMarkup({ x: 3, y: 4, rotation: 0, symbol }, PAPER, (f) => f);
+    const num = (attr: string) => Number(new RegExp(`${attr}="([^"]+)"`).exec(markup)![1]);
+    return { x: num("x"), y: num("y"), width: num("width"), height: num("height") };
+  };
+
+  it("fits a locker to its one square", () => {
+    const locker = image("sheet-locker");
+    expect(Math.max(locker.width, locker.height)).toBeCloseTo(1);
+    expect(locker.y).toBeGreaterThanOrEqual(4);
+    expect(locker.y + locker.height).toBeLessThanOrEqual(5 + 1e-9);
+  });
+
+  it("sets a small locker against the top of its square", () => {
+    const small = image("sheet-locker-small");
+    expect(small.width).toBeCloseTo(1);
+    expect(small.y).toBe(4);
+    expect(small.height).toBeLessThan(1);
   });
 });

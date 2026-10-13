@@ -760,6 +760,424 @@
   "source": "CustomTiles/Symbols/Fresher/Fresher 001 [5x5].png"
  },
  {
+  "id": "workshop",
+  "name": "Workshop, 6 tons",
+  "category": "modules",
+  "file": "floorplan/symbols/workshop.png",
+  "feet": [
+   15,
+   20
+  ],
+  "squares": [
+   3,
+   4
+  ],
+  "pixels": [
+   300,
+   360
+  ],
+  "source": "CustomTiles/Symbols/Shop & Repair Area/Shop 013 [15x20].png"
+ },
+ {
+  "id": "workshop-small",
+  "name": "Workshop, small",
+  "category": "modules",
+  "file": "floorplan/symbols/workshop-small.png",
+  "feet": [
+   20,
+   10
+  ],
+  "squares": [
+   4,
+   2
+  ],
+  "pixels": [
+   360,
+   240
+  ],
+  "source": "CustomTiles/Symbols/Shop & Repair Area/Shop 004 [10x20].png"
+ },
+ {
+  "id": "medical-bay",
+  "name": "Medical bay, 4 tons",
+  "category": "modules",
+  "file": "floorplan/symbols/medical-bay.png",
+  "feet": [
+   20,
+   10
+  ],
+  "squares": [
+   4,
+   2
+  ],
+  "pixels": [
+   360,
+   240
+  ],
+  "source": "CustomTiles/Symbols/Medical/Medical 004 [10x20].png"
+ },
+ {
+  "id": "laboratory",
+  "name": "Laboratory, 4 tons",
+  "category": "modules",
+  "file": "floorplan/symbols/laboratory.png",
+  "feet": [
+   20,
+   10
+  ],
+  "squares": [
+   4,
+   2
+  ],
+  "pixels": [
+   360,
+   240
+  ],
+  "source": "CustomTiles/Symbols/Lab/Lab 001 [10x20].png"
+ },
+ {
+  "id": "briefing-room",
+  "name": "Briefing room, 4 tons",
+  "category": "modules",
+  "file": "floorplan/symbols/briefing-room.png",
+  "feet": [
+   20,
+   10
+  ],
+  "squares": [
+   4,
+   2
+  ],
+  "pixels": [
+   360,
+   240
+  ],
+  "source": "CustomTiles/Symbols/Briefing Room/Briefing Room 003 [10x20].png"
+ },
+ {
+  "id": "brig",
+  "name": "Brig, three cells",
+  "category": "modules",
+  "file": "floorplan/symbols/brig.png",
+  "feet": [
+   10,
+   20
+  ],
+  "squares": [
+   2,
+   4
+  ],
+  "pixels": [
+   240,
+   360
+  ],
+  "source": "CustomTiles/Symbols/Brig & Security/Brig 007 [10x20].png"
+ },
+ {
+  "id": "security-office",
+  "name": "Security office",
+  "category": "modules",
+  "file": "floorplan/symbols/security-office.png",
+  "feet": [
+   20,
+   10
+  ],
+  "squares": [
+   4,
+   2
+  ],
+  "pixels": [
+   360,
+   240
+  ],
+  "source": "CustomTiles/Symbols/Brig & Security/Security 005 [10x20].png"
+ },
+ {
+  "id": "armoury",
+  "name": "Armoury",
+  "category": "modules",
+  "file": "floorplan/symbols/armoury.png",
+  "feet": [
+   20,
+   10
+  ],
+  "squares": [
+   4,
+   2
+  ],
+  "pixels": [
+   360,
+   240
+  ],
+  "source": "CustomTiles/Symbols/Misc/Armory 001 [10x20].png"
+ },
+ {
+  "id": "classroom",
+  "name": "Classroom",
+  "category": "modules",
+  "file": "floorplan/symbols/classroom.png",
+  "feet": [
+   20,
+   10
+  ],
+  "squares": [
+   4,
+   2
+  ],
+  "pixels": [
+   360,
+   240
+  ],
+  "source": "CustomTiles/Symbols/Classroom/Classroom 001 [10x20].png"
+ },
+ {
+  "id": "computer-room",
+  "name": "Computer room",
+  "category": "modules",
+  "file": "floorplan/symbols/computer-room.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   240,
+   240
+  ],
+  "source": "CustomTiles/Symbols/Computer/Computer 004 [10x10].png"
+ },
+ {
+  "id": "office",
+  "name": "Office",
+  "category": "modules",
+  "file": "floorplan/symbols/office.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   240,
+   240
+  ],
+  "source": "CustomTiles/Symbols/Offices/Office 002 [10x10].png"
+ },
+ {
+  "id": "storage",
+  "name": "Storage",
+  "category": "modules",
+  "file": "floorplan/symbols/storage.png",
+  "feet": [
+   20,
+   10
+  ],
+  "squares": [
+   4,
+   2
+  ],
+  "pixels": [
+   360,
+   240
+  ],
+  "source": "CustomTiles/Symbols/Storage/Storage 007 [10x20].png"
+ },
+ {
+  "id": "empty-5x5",
+  "name": "Empty room, 5 by 5 feet",
+  "category": "empty",
+  "file": "floorplan/symbols/empty-5x5.png",
+  "feet": [
+   5,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   180,
+   180
+  ],
+  "source": "CustomTiles/Symbols/Empty Room/Empty Room 001 [5x5].png"
+ },
+ {
+  "id": "empty-5x10",
+  "name": "Empty room, 5 by 10 feet",
+  "category": "empty",
+  "file": "floorplan/symbols/empty-5x10.png",
+  "feet": [
+   10,
+   5
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   240,
+   180
+  ],
+  "source": "CustomTiles/Symbols/Empty Room/Empty Room 002 [5x10].png"
+ },
+ {
+  "id": "empty-10x10",
+  "name": "Empty room, 10 by 10 feet",
+  "category": "empty",
+  "file": "floorplan/symbols/empty-10x10.png",
+  "feet": [
+   10,
+   10
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   240,
+   240
+  ],
+  "source": "CustomTiles/Symbols/Empty Room/Empty Room 007 [10x10].png"
+ },
+ {
+  "id": "empty-10x15",
+  "name": "Empty room, 10 by 15 feet",
+  "category": "empty",
+  "file": "floorplan/symbols/empty-10x15.png",
+  "feet": [
+   10,
+   15
+  ],
+  "squares": [
+   2,
+   3
+  ],
+  "pixels": [
+   240,
+   300
+  ],
+  "source": "CustomTiles/Symbols/Empty Room/Empty Room 012 [10x15].png"
+ },
+ {
+  "id": "empty-10x20",
+  "name": "Empty room, 10 by 20 feet",
+  "category": "empty",
+  "file": "floorplan/symbols/empty-10x20.png",
+  "feet": [
+   10,
+   20
+  ],
+  "squares": [
+   2,
+   4
+  ],
+  "pixels": [
+   240,
+   360
+  ],
+  "source": "CustomTiles/Symbols/Empty Room/Empty Room 019 [10x20].png"
+ },
+ {
+  "id": "empty-15x15",
+  "name": "Empty room, 15 by 15 feet",
+  "category": "empty",
+  "file": "floorplan/symbols/empty-15x15.png",
+  "feet": [
+   15,
+   15
+  ],
+  "squares": [
+   3,
+   3
+  ],
+  "pixels": [
+   300,
+   300
+  ],
+  "source": "CustomTiles/Symbols/Empty Room/Empty Room 029 [15x15].png"
+ },
+ {
+  "id": "empty-15x20",
+  "name": "Empty room, 15 by 20 feet",
+  "category": "empty",
+  "file": "floorplan/symbols/empty-15x20.png",
+  "feet": [
+   15,
+   20
+  ],
+  "squares": [
+   3,
+   4
+  ],
+  "pixels": [
+   300,
+   360
+  ],
+  "source": "CustomTiles/Symbols/Empty Room/Empty Room 035 [15x20].png"
+ },
+ {
+  "id": "empty-20x20",
+  "name": "Empty room, 20 by 20 feet",
+  "category": "empty",
+  "file": "floorplan/symbols/empty-20x20.png",
+  "feet": [
+   20,
+   20
+  ],
+  "squares": [
+   4,
+   4
+  ],
+  "pixels": [
+   360,
+   360
+  ],
+  "source": "CustomTiles/Symbols/Empty Room/Empty Room 042 [20x20].png"
+ },
+ {
+  "id": "empty-20x30",
+  "name": "Empty room, 20 by 30 feet",
+  "category": "empty",
+  "file": "floorplan/symbols/empty-20x30.png",
+  "feet": [
+   20,
+   30
+  ],
+  "squares": [
+   4,
+   6
+  ],
+  "pixels": [
+   360,
+   480
+  ],
+  "source": "CustomTiles/Symbols/Empty Room/Empty Room 070 [20x30].png"
+ },
+ {
+  "id": "empty-20x40",
+  "name": "Empty room, 20 by 40 feet",
+  "category": "empty",
+  "file": "floorplan/symbols/empty-20x40.png",
+  "feet": [
+   20,
+   40
+  ],
+  "squares": [
+   4,
+   8
+  ],
+  "pixels": [
+   360,
+   600
+  ],
+  "source": "CustomTiles/Symbols/Empty Room/Empty Room 073 [20x40].png"
+ },
+ {
   "id": "lounge-small",
   "name": "Lounge, small",
   "category": "common",
@@ -1397,13 +1815,14 @@
   ],
   "squares": [
    1,
-   2
+   1
   ],
   "pixels": [
    68,
    72
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (48, 792, 110, 860)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (48, 792, 110, 860)",
+  "fit": true
  },
  {
   "id": "sheet-locker-small",
@@ -1422,7 +1841,9 @@
    69,
    42
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (123, 792, 188, 834)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (123, 792, 188, 834)",
+  "fit": true,
+  "align": "top"
  },
  {
   "id": "sheet-weapons-locker",
@@ -1435,13 +1856,14 @@
   ],
   "squares": [
    1,
-   2
+   1
   ],
   "pixels": [
    69,
    72
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (200, 792, 264, 860)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (200, 792, 264, 860)",
+  "fit": true
  },
  {
   "id": "sheet-holo-table",

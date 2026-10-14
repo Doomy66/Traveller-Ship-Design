@@ -204,13 +204,27 @@ for ident, name, category, rel, (sw, sh), (cx, cy), (kx0, ky0, kx1, ky1) in CUTS
 # frame's lines, at the edges of the drawing, are taken off, this many pixels
 # deep, leaving the curves.
 UNFRAME = {"sheet-booth": 4, "couch": 4}
+# Of those, the ones whose seats ended on the frame's top line and need ends of their own.
+CLOSE_TOP = {"couch"}
 for ident, depth in UNFRAME.items():
     _, _, px = pngtools.read(DST + ident + ".png")
     dark = [(x, y) for y, row in enumerate(px) for x, (r, g, b, a) in enumerate(row) if a > 0]
     x0, x1 = min(x for x, _ in dark), max(x for x, _ in dark)
     y0, y1 = min(y for _, y in dark), max(y for _, y in dark)
     edge = lambda x, y: x < x0 + depth or x > x1 - depth or y < y0 + depth or y > y1 - depth  # noqa: E731
-    pngtools.write(DST + ident + ".png", [[(r, g, b, 0) if edge(x, y) else (r, g, b, a) for x, (r, g, b, a) in enumerate(row)] for y, row in enumerate(px)])
+    out = [[(r, g, b, 0) if edge(x, y) else (r, g, b, a) for x, (r, g, b, a) in enumerate(row)] for y, row in enumerate(px)]
+    if ident in CLOSE_TOP:
+        # The seats ran into the frame's top line; end each side of the
+        # curve with a line of its own across the seat, where the frame was.
+        top = y0 + depth
+        mid = (x0 + x1) // 2
+        for half in (range(x0, mid), range(mid, x1 + 1)):
+            xs = [x for x in half if out[top][x][3] > 0]
+            if xs:
+                for y in (top, top + 1):
+                    for x in range(min(xs), max(xs) + 1):
+                        out[y][x] = (0, 0, 0, 255)
+    pngtools.write(DST + ident + ".png", out)
 
 # Fittings that stand against a wall, drawn against that edge of their
 # footprint rather than in its middle, as they are turned: a toilet's cistern

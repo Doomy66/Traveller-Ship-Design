@@ -14,6 +14,7 @@ import {
   emptyPlan,
   instanceOwner,
   moveDeck,
+  moveGroup,
   moveSquaresToDeck,
   paint,
   parseCell,
@@ -21,6 +22,7 @@ import {
   readPlan,
   remember,
   removeDeck,
+  removeGroup,
   shiftDeck,
   turnSquares,
 } from "./plan";
@@ -393,5 +395,36 @@ describe("reading a saved plan", () => {
     // A plan with no version is an old one, whose cells were whole squares: each becomes four.
     expect(damaged?.decks[0]!.cells).toEqual({ "0,0": "jump", "0.5,0": "jump", "0,0.5": "jump", "0.5,0.5": "jump" });
     expect(damaged?.fixtures).toHaveLength(1);
+  });
+});
+
+describe("groups picked up together", () => {
+  const scene = () => {
+    let plan = block(emptyPlan(), "jump", 0, 0, 1, 1);
+    plan = block(plan, "cargo", 5, 0, 6, 1);
+    plan = placeFixture(plan, { kind: "symbol", deck: 0, x: 0, y: 0, rotation: 0, symbol: "sheet-toilet" });
+    plan = placeFixture(plan, { kind: "door", deck: 0, x: 0, y: 2, edge: "n" });
+    plan = placeFixture(plan, { kind: "symbol", deck: 0, x: 5, y: 0, rotation: 0, symbol: "sheet-toilet" });
+    return plan;
+  };
+  const jumpCells = (plan: FloorPlan) => Object.entries(plan.decks[0]!.cells).filter(([, o]) => o === "jump").map(([k]) => parseCell(k));
+
+  it("moves cells, fittings and doors together, leaving the rest", () => {
+    const start = scene();
+    const group = { squares: jumpCells(start), fixtures: [0, 1], tiles: [] };
+    const moved = moveGroup(start, 0, group, 1, 2);
+    expect(jumpCells(moved).map(([x, y]) => `${x},${y}`).sort()).toEqual(jumpCells(start).map(([x, y]) => `${x + 1},${y + 2}`).sort());
+    expect(moved.fixtures[0]).toMatchObject({ x: 1, y: 2 });
+    expect(moved.fixtures[1]).toMatchObject({ x: 1, y: 4 });
+    expect(moved.fixtures[2]).toEqual(start.fixtures[2]);
+    expect(moved.decks[0]!.cells["5,0"]).toBe("cargo");
+  });
+
+  it("takes them all away at once", () => {
+    const start = scene();
+    const gone = removeGroup(start, 0, { squares: jumpCells(start), fixtures: [0, 1], tiles: [] });
+    expect(jumpCells(gone)).toEqual([]);
+    expect(gone.fixtures).toEqual([start.fixtures[2]]);
+    expect(gone.decks[0]!.cells["5,0"]).toBe("cargo");
   });
 });

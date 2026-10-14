@@ -80,6 +80,7 @@ user. Dates are the day the release was tagged.
 - **Elevators and hatches join decks.** The library's elevators, stairwells and
   hatches, a new Hatch tool, and geomorph tiles with lifts, stairs or vertical
   access all count as ways between decks wherever they overlap.
+- **Many at once.** Shift and a drag with Move picks up everything in a box, rooms, furniture and doors together, to drag, nudge or delete; with Erase it clears the box, pieces and all.
 - **Walls.** A Wall tool in the walls section draws a wall where there is none, to split a room; drag across or down for a long one.
 - **The description prints beside the sheet**, to the right of the components.
 - **No stateroom wanted for a fighter pilot.** A small craft under 100 tons

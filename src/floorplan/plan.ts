@@ -282,6 +282,42 @@ export function removeFixture(plan: FloorPlan, fixture: Fixture): FloorPlan {
   return { ...plan, fixtures: plan.fixtures.filter((f) => f !== fixture) };
 }
 
+/**
+ * Several things on one deck taken together, as a box drawn round them picks
+ * them up: room cells, and fixtures and tiles by their place in the plan's
+ * lists. FP 10.9.1.
+ */
+export interface Group {
+  readonly squares: readonly (readonly [number, number])[];
+  readonly fixtures: readonly number[];
+  readonly tiles: readonly number[];
+}
+
+/** Move everything in a group by whole or half squares. Fixtures and tiles keep their places in the lists. */
+export function moveGroup(plan: FloorPlan, deck: number, group: Group, dx: number, dy: number): FloorPlan {
+  if (dx === 0 && dy === 0) return plan;
+  const fixtures = new Set(group.fixtures);
+  const tiles = new Set(group.tiles);
+  const moved = moveSquares(plan, deck, group.squares, dx, dy);
+  return {
+    ...moved,
+    fixtures: moved.fixtures.map((f, i) => (fixtures.has(i) ? { ...f, x: toHalf(f.x + dx), y: toHalf(f.y + dy) } : f)),
+    tiles: moved.tiles.map((t, i) => (tiles.has(i) ? { ...t, x: toHalf(t.x + dx), y: toHalf(t.y + dy) } : t)),
+  };
+}
+
+/** Take away everything in a group: its cells emptied, its fixtures and tiles removed. */
+export function removeGroup(plan: FloorPlan, deck: number, group: Group): FloorPlan {
+  const fixtures = new Set(group.fixtures);
+  const tiles = new Set(group.tiles);
+  const cleared = paint(plan, deck, group.squares, undefined);
+  return {
+    ...cleared,
+    fixtures: cleared.fixtures.filter((_, i) => !fixtures.has(i)),
+    tiles: cleared.tiles.filter((_, i) => !tiles.has(i)),
+  };
+}
+
 /** Replace the fixture at an index, as moving or turning it does. */
 export function replaceFixture(plan: FloorPlan, at: number, fixture: Fixture): FloorPlan {
   return { ...plan, fixtures: plan.fixtures.map((f, i) => (i === at ? fixture : f)) };

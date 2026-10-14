@@ -181,6 +181,8 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 10.9 **Move.** The Move tool picks up whatever is under the pointer, in this order: a fitting, a door or valve in a wall, a painted room, a tile. Dragging moves it by half squares, and it stays selected. R turns and F flips a selected tile, fitting or room in place (FP 7.1.2), Page Up and Page Down send a selected room to the deck above or below (FP 4.3.3), Delete removes the selection, and the arrow keys nudge it half a square, or a whole one with Shift. A room moved onto other squares replaces what was there. Move is the tool the screen opens with.
 
+10.9.1 **Many at once.** With Move, Shift and a drag draws a box, and everything on the deck whose middle is in it is picked up together: rooms whole, corridor square by square, and fittings, doors, walls and tiles. Dragging any of them moves them all, the arrow keys nudge them, and Delete takes them all away; a group does not turn or flip. With Erase, Shift and a drag clears a box of floor square by square, and every fitting, door, wall and tile whose middle is in it with the floor.
+
 ## 11. Open questions
 
 These were settled by default when the first version was built, and any of them can be revisited.

@@ -19,7 +19,7 @@ import { bounds, regions, storedEdge } from "./geometry";
 import { suggestLayout } from "./layout";
 import type { Component, ComponentGroup, Manifest } from "./manifest";
 import { SQUARES_PER_STATEROOM } from "./manifest";
-import type { AccessKind, EdgeFixture, EdgeKind, Fixture, FloorPlan, Owner, PlacedTile, Rotation, SquareFixture } from "./plan";
+import type { AccessKind, EdgeFixture, EdgeKind, Fixture, FloorPlan, Group, Owner, PlacedTile, Rotation, SquareFixture } from "./plan";
 import {
   addDeck,
   CORRIDOR,
@@ -27,8 +27,11 @@ import {
   edgesOf,
   instanceOwner,
   moveDeck,
+  moveGroup,
+  parseCell,
   moveSquares,
   moveSquaresToDeck,
+  removeGroup,
   turnSquares,
   openings,
   paint,
@@ -116,7 +119,8 @@ type Tool =
 type Selection =
   | { readonly type: "fixture"; readonly index: number }
   | { readonly type: "tile"; readonly index: number }
-  | { readonly type: "region"; readonly squares: readonly (readonly [number, number])[] };
+  | { readonly type: "region"; readonly squares: readonly (readonly [number, number])[] }
+  | ({ readonly type: "group" } & Group);
 
 const GROUP_NAMES: Readonly<Record<ComponentGroup, string>> = {
   engineering: "Engineering",
@@ -426,9 +430,9 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       tool.kind === "access" && tool.access === access && (tool.symbol ?? ACCESS_SYMBOLS[access]) === (symbol ?? ACCESS_SYMBOLS[access]);
     const tools = el("div", { class: "fp-tools" }, [
       el("div", { class: "fp-toolrow" }, [
-        toolButton("Move", { kind: "move" }, "Select and drag tiles, fittings, doors and rooms. R turns, Delete removes, the arrow keys nudge.", tool.kind === "move"),
+        toolButton("Move", { kind: "move" }, "Select and drag tiles, fittings, doors and rooms; Shift+drag picks up everything in a box. R turns, Delete removes, the arrow keys nudge.", tool.kind === "move"),
         toolButton("Corridor", { kind: "corridor" }, "Paint corridor and access space, which belongs to no component", tool.kind === "corridor"),
-        toolButton("Erase", { kind: "erase" }, "Clear squares", tool.kind === "erase"),
+        toolButton("Erase", { kind: "erase" }, "Clear squares; Shift+drag clears a box, pieces and all", tool.kind === "erase"),
       ]),
       el("div", { class: "fp-toolrow" }, [
         button("Undo", undoOnce, { class: "fp-tool", title: "Undo (Ctrl+Z)", ...(undo.length === 0 ? { disabled: "" } : {}) }),
@@ -896,6 +900,60 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     return undefined;
   }
 
+  /**
+   * Everything on this deck within a box, by where its middle is: rooms,
+   * fittings, doors and walls, and tiles. What Shift and a drag pick up with
+   * Move, which takes a room whole when its middle is in the box and corridor
+   * square by square; and what Shift and a drag clear with Erase, square by
+   * square. FP 10.9.1.
+   */
+  function gather(x0: number, y0: number, x1: number, y1: number, wholeRooms: boolean): Group {
+    const inside = (x: number, y: number) => x >= x0 && x <= x1 && y >= y0 && y <= y1;
+    const d = plan().decks[deck];
+    const cellInside = ([x, y]: readonly [number, number]) => inside(x + CELL / 2, y + CELL / 2);
+    let squares: (readonly [number, number])[];
+    if (!wholeRooms || d === undefined) {
+      squares = Object.keys(d?.cells ?? {}).map(parseCell).filter(cellInside);
+    } else {
+      squares = [];
+      for (const region of regions(d)) {
+        if (region.owner === CORRIDOR) {
+          squares.push(...region.squares.filter(cellInside));
+          continue;
+        }
+        const mx = region.squares.reduce((sum, [x]) => sum + x, 0) / region.squares.length + CELL / 2;
+        const my = region.squares.reduce((sum, [, y]) => sum + y, 0) / region.squares.length + CELL / 2;
+        if (inside(mx, my)) squares.push(...region.squares);
+      }
+    }
+    const fixtures: number[] = [];
+    for (const [i, f] of plan().fixtures.entries()) {
+      if (f.deck !== deck) continue;
+      if ("edge" in f) {
+        const len = f.length ?? 1;
+        if (f.edge === "n" ? inside(f.x + len / 2, f.y) : inside(f.x, f.y + len / 2)) fixtures.push(i);
+      } else {
+        const [w, h] = fixtureSize(f);
+        if (inside(f.x + w / 2, f.y + h / 2)) fixtures.push(i);
+      }
+    }
+    const tiles: number[] = [];
+    for (const [i, t] of plan().tiles.entries()) {
+      const [w, h] = tileFootprint(t);
+      if (t.deck === deck && inside(t.x + w / 2, t.y + h / 2)) tiles.push(i);
+    }
+    return { squares, fixtures, tiles };
+  }
+
+  /** Whether a point is on something in a group, so a drag there moves the group. */
+  function inGroup(group: Group, p: Point): boolean {
+    if (group.squares.some(([x, y]) => x === p.x && y === p.y)) return true;
+    const fixture = fixtureAt(p.px, p.py) ?? edgeFixtureAt(p);
+    if (fixture !== undefined && group.fixtures.includes(fixture)) return true;
+    const tile = tileAt(p.px, p.py);
+    return tile !== undefined && group.tiles.includes(tile);
+  }
+
   // ------------------------------------------------------- selection and preview
 
   /** The outline of a selection, moved by an offset while it is being dragged. */
@@ -922,6 +980,14 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
           ? ""
           : symbolMarkup({ ...f, x: f.x + dx, y: f.y + dy, symbol: f.symbol ?? (f.kind === "symbol" ? undefined : ACCESS_SYMBOLS[f.kind]) }, SCREEN, symbolHref, 0.6);
       return ghost + outline(f.x, f.y, w, h);
+    }
+    if (sel.type === "group") {
+      const parts = [
+        ...sel.fixtures.map((index) => selectionMarkup({ type: "fixture", index }, dx, dy, colour)),
+        ...sel.tiles.map((index) => selectionMarkup({ type: "tile", index }, dx, dy, colour)),
+      ];
+      if (sel.squares.length > 0) parts.unshift(selectionMarkup({ type: "region", squares: sel.squares }, dx, dy, colour));
+      return parts.join("");
     }
     const moved = sel.squares.map(([x, y]) => [x + dx, y + dy] as const);
     return `<path d="${cellsPath(moved)}" fill="${SCREEN.fixture}" fill-opacity="${dx === 0 && dy === 0 ? 0.18 : 0.4}"/>`;
@@ -959,6 +1025,8 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   /** A door, valve, opening or wall being drawn: which way it runs, its line, its two ends along it, and where the drag began. */
   let doorDrag: { edge: "n" | "w"; fixed: number; start: number; end: number; from: readonly [number, number] } | undefined;
   let drag: { from: [number, number]; dx: number; dy: number } | undefined;
+  /** A box being drawn with Shift and a drag, to pick up or clear everything in it. FP 10.9.1. */
+  let marquee: { from: [number, number]; to: [number, number] } | undefined;
   let pan: { x: number; y: number; vx: number; vy: number } | undefined;
   let spaceHeld = false;
 
@@ -1008,7 +1076,13 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
 
   function drawPreview(): void {
     const parts: string[] = [];
-    if (stroke !== undefined) {
+    if (marquee !== undefined) {
+      const x = Math.min(marquee.from[0], marquee.to[0]);
+      const y = Math.min(marquee.from[1], marquee.to[1]);
+      const w = Math.abs(marquee.to[0] - marquee.from[0]);
+      const h = Math.abs(marquee.to[1] - marquee.from[1]);
+      parts.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${SCREEN.fixture}" fill-opacity="0.08" stroke="${SCREEN.fixture}" stroke-width="0.05" stroke-dasharray="0.2 0.12"/>`);
+    } else if (stroke !== undefined) {
       const colour = floorColour(stroke.owner);
       // One shape, so the preview has no seams either; erasing shows as a faint red wash.
       parts.push(`<path d="${cellsPath(strokeCells(stroke))}" fill="${colour}" opacity="${stroke.owner === undefined ? 0.35 : 0.85}"/>`);
@@ -1071,9 +1145,9 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     const what = owner === undefined ? "empty" : owner === CORRIDOR ? "corridor" : looksFor(components(), plan())(owner).label;
     const hint =
       tool.kind === "move"
-        ? "Drag a tile, fitting, door or room to move it by half squares; R turns and F flips a tile, fitting or room, Delete removes, the arrows nudge."
+        ? "Drag a tile, fitting, door or room to move it by half squares; R turns and F flips a tile, fitting or room, Delete removes, the arrows nudge. Shift+drag picks up everything in a box."
         : tool.kind === "paint" || tool.kind === "corridor" || tool.kind === "erase"
-          ? "Drag to paint, Shift+drag for a rectangle."
+          ? tool.kind === "erase" ? "Drag to clear, Shift+drag to clear a box of floor and pieces alike." : "Drag to paint, Shift+drag for a rectangle."
           : tool.kind === "edge"
             ? tool.edge === "door"
               ? "Click a wall for a door, drag along it for a wide one."
@@ -1104,7 +1178,13 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     svg.setPointerCapture(event.pointerId);
 
     if (tool.kind === "move") {
-      selection = pickAt(p);
+      if (event.shiftKey) {
+        marquee = { from: [p.px, p.py], to: [p.px, p.py] };
+        drawPreview();
+        return;
+      }
+      // A drag on anything in a group picked up moves the whole group.
+      if (selection?.type !== "group" || !inGroup(selection, p)) selection = pickAt(p);
       drag = selection === undefined ? undefined : { from: [p.px, p.py], dx: 0, dy: 0 };
       drawSelection();
       return;
@@ -1163,6 +1243,11 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       return;
     }
     const p = at(event);
+    if (marquee !== undefined) {
+      marquee = { ...marquee, to: [p.px, p.py] };
+      drawPreview();
+      return;
+    }
     if (drag !== undefined) {
       const dx = toHalf(p.px - drag.from[0]);
       const dy = toHalf(p.py - drag.from[1]);
@@ -1211,8 +1296,33 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     if (stroke === undefined) return;
     const done = stroke;
     stroke = undefined;
+    // Erasing a box with Shift clears the pieces in it as well as the floor. FP 10.9.1.
+    if (done.owner === undefined && done.anchor !== undefined) {
+      const [x0, x1] = [Math.min(done.anchor[0], done.last[0]), Math.max(done.anchor[0], done.last[0]) + 1];
+      const [y0, y1] = [Math.min(done.anchor[1], done.last[1]), Math.max(done.anchor[1], done.last[1]) + 1];
+      commit(removeGroup(plan(), deck, gather(x0, y0, x1, y1, false)));
+      return;
+    }
     commit(paint(plan(), deck, strokeCells(done), done.owner));
     advanceStateroom();
+  }
+
+  /** Pick up everything in the box drawn with Shift, as one selection. */
+  function endMarquee(): void {
+    const done = marquee;
+    marquee = undefined;
+    if (done === undefined) return;
+    const group = gather(
+      Math.min(done.from[0], done.to[0]),
+      Math.min(done.from[1], done.to[1]),
+      Math.max(done.from[0], done.to[0]),
+      Math.max(done.from[1], done.to[1]),
+      true,
+    );
+    const empty = group.squares.length === 0 && group.fixtures.length === 0 && group.tiles.length === 0;
+    selection = empty ? undefined : { type: "group", ...group };
+    drawPreview();
+    drawSelection();
   }
 
   function endDoor(): void {
@@ -1246,6 +1356,11 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     } else if (sel.type === "tile") {
       const t = plan().tiles[sel.index];
       if (t !== undefined) commit(replaceTile(plan(), sel.index, { ...t, x: toHalf(t.x + dx), y: toHalf(t.y + dy) }), sel);
+    } else if (sel.type === "group") {
+      commit(moveGroup(plan(), deck, sel, dx, dy), {
+        ...sel,
+        squares: sel.squares.map(([x, y]) => [toHalf(x + dx), toHalf(y + dy)] as const),
+      });
     } else {
       commit(moveSquares(plan(), deck, sel.squares, dx, dy), {
         type: "region",
@@ -1271,12 +1386,14 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       canvas.classList.remove("fp-panning");
       return;
     }
-    if (drag !== undefined) endDrag();
+    if (marquee !== undefined) endMarquee();
+    else if (drag !== undefined) endDrag();
     else if (doorDrag !== undefined) endDoor();
     else endStroke();
   });
   svg.addEventListener("pointercancel", () => {
     pan = undefined;
+    marquee = undefined;
     stroke = undefined;
     doorDrag = undefined;
     drag = undefined;
@@ -1284,7 +1401,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     drawPreview();
   });
   svg.addEventListener("pointerleave", () => {
-    if (stroke === undefined && drag === undefined && doorDrag === undefined) {
+    if (stroke === undefined && drag === undefined && doorDrag === undefined && marquee === undefined) {
       hover = undefined;
       drawPreview();
     }
@@ -1349,6 +1466,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       const f = plan().fixtures[sel.index];
       if (f !== undefined) commit(removeFixture(plan(), f));
     } else if (sel.type === "tile") commit(removeTile(plan(), sel.index));
+    else if (sel.type === "group") commit(removeGroup(plan(), deck, sel));
     else commit(paint(plan(), deck, sel.squares, undefined));
   }
 
@@ -1362,6 +1480,8 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   function turnSelection(): boolean {
     const sel = selection;
     if (sel === undefined) return false;
+    // A group does not turn; R does nothing rather than turn the next piece unseen.
+    if (sel.type === "group") return true;
     if (sel.type === "region") return turnRegion(sel, "turn");
     const next = (r: Rotation) => ((r + 90) % 360) as Rotation;
     if (sel.type === "tile") {
@@ -1379,6 +1499,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   function flipSelection(): boolean {
     const sel = selection;
     if (sel === undefined) return false;
+    if (sel.type === "group") return true;
     if (sel.type === "region") return turnRegion(sel, "flip");
     if (sel.type === "tile") {
       const t = plan().tiles[sel.index];

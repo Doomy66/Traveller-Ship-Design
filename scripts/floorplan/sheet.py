@@ -31,7 +31,7 @@ ITEMS = [
     ("sheet-triple-bunks", "Steerage triple bunks", "rooms", (278, 220, 398, 289)),
     ("sheet-mini-stateroom", "Mini-stateroom, bed over desk", "rooms", (58, 406, 182, 475)),
 
-    ("sheet-desk-1", "Desk with chairs", "furniture", (51, 291, 115, 349)),
+    ("sheet-desk-1", "Desk with chairs", "furniture", (51, 280, 108, 349), {"squares": [1, 1]}),
     ("sheet-desk-2", "Desk and chair", "furniture", (116, 291, 182, 355)),
     ("sheet-desk-3", "Desk, small", "furniture", (185, 291, 222, 349)),
     ("sheet-chairs", "Chairs", "furniture", (46, 355, 132, 395)),
@@ -43,7 +43,7 @@ ITEMS = [
     ("sheet-window", "Window, security glass", "furniture", (48, 1006, 165, 1029)),
     ("sheet-repair-bench", "Repair bench", "furniture", (48, 1041, 275, 1105)),
 
-    ("sheet-panel-1", "Control panel", "consoles", (166, 878, 235, 944)),
+    ("sheet-panel-1", "Control panel", "consoles", (166, 878, 235, 942)),
     ("sheet-panel-2", "Work station", "consoles", (238, 878, 302, 939)),
     ("sheet-panel-3", "Work station, seated", "consoles", (308, 878, 374, 939)),
 
@@ -61,7 +61,7 @@ ITEMS = [
     ("sheet-autodoc", "Autodoc", "medical", (301, 1151, 382, 1199)),
     ("sheet-privacy-screen", "Privacy screen", "medical", (41, 1199, 132, 1222)),
     ("sheet-restraint-bed", "Restraint bed, gurney", "medical", (46, 1226, 125, 1272)),
-    ("sheet-low-berth", "Low berth", "medical", (51, 1271, 123, 1335)),
+    ("sheet-low-berth", "Low berth", "medical", (51, 1271, 123, 1335), {"squares": [1, 1]}),
 
     ("sheet-booth", "Corner booth", "common", (45, 1408, 130, 1494)),
     ("sheet-table-4", "Table for four", "common", (129, 1411, 199, 1484)),

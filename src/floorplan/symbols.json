@@ -1729,18 +1729,19 @@
   "category": "furniture",
   "file": "floorplan/symbols/sheet-desk-1.png",
   "feet": [
-   6,
-   5
+   5,
+   6
   ],
   "squares": [
    1,
    1
   ],
   "pixels": [
-   66,
-   62
+   59,
+   74
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (51, 291, 115, 349)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (51, 280, 108, 349)",
+  "fit": "inside"
  },
  {
   "id": "sheet-desk-2",
@@ -1952,14 +1953,14 @@
    6
   ],
   "squares": [
-   2,
+   1,
    1
   ],
   "pixels": [
-   72,
-   69
+   66,
+   67
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (166, 878, 235, 944)",
+  "source": "Geomorphs/Symbols & Abbreviations.png (166, 878, 235, 942)",
   "fit": "inside"
  },
  {
@@ -2273,7 +2274,7 @@
    6
   ],
   "squares": [
-   2,
+   1,
    1
   ],
   "pixels": [

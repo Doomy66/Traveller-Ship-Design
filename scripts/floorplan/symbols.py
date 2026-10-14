@@ -245,7 +245,7 @@ ALIGN = {
 INSIDE = [
     "sheet-cargo-10x10", "sheet-cargo-10x20", "sheet-cargo-5x5", "sheet-cargo-small",
     "sheet-fresher", "sheet-shower", "sheet-shower-round", "sheet-panel-1", "sheet-panel-2", "sheet-panel-3",
-    "sheet-desk-2", "sheet-gaming-round", "sheet-elevator-double", "sheet-stairs-down", "sheet-triple-bunks",
+    "sheet-desk-1", "sheet-desk-2", "sheet-gaming-round", "sheet-elevator-double", "sheet-stairs-down", "sheet-triple-bunks",
     "sheet-mini-stateroom", "sheet-manned-turret", "sheet-probe-tube", "sheet-repair-bench", "sheet-low-berth",
 ]
 assert set(ALIGN) <= {e["id"] for e in catalogue}, set(ALIGN) - {e["id"] for e in catalogue}

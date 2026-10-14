@@ -266,6 +266,8 @@ function clashes(a: Fixture, b: Fixture): boolean {
   if (a.deck !== b.deck) return false;
   if ("edge" in a) {
     if (!("edge" in b)) return false;
+    // A wall put in shares its edge with a door, valve or opening, which cuts through it. FP 7.1.5.
+    if ((a.kind === "wall") !== (b.kind === "wall")) return false;
     const taken = new Set(edgesOf(a));
     return edgesOf(b).some((e) => taken.has(e));
   }

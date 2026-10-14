@@ -65,7 +65,16 @@ describe("exporting a deck", () => {
   it("draws a wall put in to split a room, on paper as on screen", () => {
     const plan = placeFixture(twoDecks(), { kind: "wall", deck: 0, x: 2, y: 0, edge: "w", length: 2 });
     const svg = deckDocument(SHIP, plan, 0, SOURCES, { palette: PAPER, pixelsPerSquare: 60, grid: false, labels: "names" });
-    expect(svg).toContain('class="fp-wall" d="M2 0v2"');
+    expect(svg).toContain('class="fp-wall" d="M2 0v0.5M2 0.5v0.5M2 1v0.5M2 1.5v0.5"');
+  });
+
+  it("lets a door or iris valve cut through a wall put in, whichever came first, and an opening take it out", () => {
+    let plan = placeFixture(twoDecks(), { kind: "iris", deck: 0, x: 2, y: 0, edge: "w" });
+    plan = placeFixture(plan, { kind: "wall", deck: 0, x: 2, y: 0, edge: "w", length: 2 });
+    plan = placeFixture(plan, { kind: "open", deck: 0, x: 2, y: 1.5, edge: "w", length: 0.5 });
+    const svg = deckDocument(SHIP, plan, 0, SOURCES, { palette: PAPER, pixelsPerSquare: 60, grid: false, labels: "names" });
+    expect(svg.indexOf("fp-wall")).toBeLessThan(svg.indexOf("fp-iris"));
+    expect(svg).toContain('class="fp-wall" d="M2 0v0.5M2 0.5v0.5M2 1v0.5"');
   });
 
   it("names the file after the ship and the deck, safely", () => {

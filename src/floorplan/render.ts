@@ -11,7 +11,7 @@ import type { Bounds } from "./geometry";
 import { labelPoint, regions, storedEdge, walls } from "./geometry";
 import type { Component, ComponentGroup } from "./manifest";
 import type { Deck, EdgeFixture, FloorPlan, Owner, PlacedTile, SquareFixture } from "./plan";
-import { baseKey, CELL, CORRIDOR, instanceOf, parseCell, tileFootprint } from "./plan";
+import { baseKey, CELL, CORRIDOR, edgesOf, instanceOf, openings, parseCell, tileFootprint } from "./plan";
 import { accessCells, joinsDecks } from "./check";
 import { ACCESS_SYMBOLS, PIXELS_PER_SQUARE, footprint, symbolById } from "./symbols";
 
@@ -330,11 +330,8 @@ function edgeMarkup(fixture: EdgeFixture, palette: Palette): string {
   const length = fixture.length ?? 1;
   // An opening is the wall left out, which wallsMarkup does. On screen a
   // faint dotted line shows where it is, so it can be found and moved.
-  // A wall put in, to split a room: drawn as the walls round rooms are. FP 7.1.5.
-  if (fixture.kind === "wall") {
-    const d = fixture.edge === "n" ? `M${n(fixture.x)} ${n(fixture.y)}h${n(length)}` : `M${n(fixture.x)} ${n(fixture.y)}v${n(length)}`;
-    return `<path class="fp-wall" d="${d}" stroke="${palette.wall}" stroke-width="0.1" stroke-linecap="square" fill="none"/>`;
-  }
+  // A wall put in is drawn by fixturesMarkup, before everything else. FP 7.1.5.
+  if (fixture.kind === "wall") return "";
   if (fixture.kind === "open") {
     if (!palette.hints) return "";
     const d = fixture.edge === "n" ? `M${n(fixture.x)} ${n(fixture.y)}h${n(length)}` : `M${n(fixture.x)} ${n(fixture.y)}v${n(length)}`;
@@ -409,11 +406,25 @@ export function symbolMarkup(
 
 /** Every fixture on a deck. */
 export function fixturesMarkup(plan: FloorPlan, deck: number, palette: Palette, href: (file: string) => string): string {
+  // Walls put in come first, so a door or iris valve in one cuts its gap
+  // through it whichever was placed first, and an opening takes it out. FP 7.1.5.
+  const open = openings(plan, deck);
   const out: string[] = [];
+  for (const fixture of plan.fixtures) {
+    if (fixture.deck !== deck || !("edge" in fixture) || fixture.kind !== "wall") continue;
+    const d = edgesOf(fixture)
+      .filter((key) => !open.has(key))
+      .map((key) => {
+        const [x, y, edge] = key.split(",");
+        return edge === "n" ? `M${x} ${y}h${CELL}` : `M${x} ${y}v${CELL}`;
+      })
+      .join("");
+    if (d !== "") out.push(`<path class="fp-wall" d="${d}" stroke="${palette.wall}" stroke-width="0.1" stroke-linecap="square" fill="none"/>`);
+  }
   for (const fixture of plan.fixtures) {
     if (fixture.deck !== deck) continue;
     if ("edge" in fixture) {
-      out.push(edgeMarkup(fixture, palette));
+      if (fixture.kind !== "wall") out.push(edgeMarkup(fixture, palette));
     } else {
       const symbol = fixture.symbol ?? (fixture.kind === "symbol" ? undefined : ACCESS_SYMBOLS[fixture.kind]);
       out.push(symbolMarkup({ ...fixture, symbol }, palette, href));

@@ -200,6 +200,18 @@ for ident, name, category, rel, (sw, sh), (cx, cy), (kx0, ky0, kx1, ky1) in CUTS
         "source": f"{rel} cut at {(cx, cy)}",
     })
 
+# Curved seating drawn inside a square frame, which a plan does not want: the
+# frame's lines, at the edges of the drawing, are taken off, this many pixels
+# deep, leaving the curves.
+UNFRAME = {"sheet-booth": 4, "couch": 4}
+for ident, depth in UNFRAME.items():
+    _, _, px = pngtools.read(DST + ident + ".png")
+    dark = [(x, y) for y, row in enumerate(px) for x, (r, g, b, a) in enumerate(row) if a > 0]
+    x0, x1 = min(x for x, _ in dark), max(x for x, _ in dark)
+    y0, y1 = min(y for _, y in dark), max(y for _, y in dark)
+    edge = lambda x, y: x < x0 + depth or x > x1 - depth or y < y0 + depth or y > y1 - depth  # noqa: E731
+    pngtools.write(DST + ident + ".png", [[(r, g, b, 0) if edge(x, y) else (r, g, b, a) for x, (r, g, b, a) in enumerate(row)] for y, row in enumerate(px)])
+
 # Fittings that stand against a wall, drawn against that edge of their
 # footprint rather than in its middle, as they are turned: a toilet's cistern
 # and a sink's tap to the wall behind, a bed's head, a desk's or console's

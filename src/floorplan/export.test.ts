@@ -55,6 +55,13 @@ describe("exporting a deck", () => {
     expect(numbered).toContain("J-Drive");
   });
 
+  it("leaves the rooms unlabelled, with no key, when labels are off", () => {
+    const bare = deckDocument(SHIP, twoDecks(), 0, SOURCES, { labels: "off" });
+    expect(bare).not.toContain("fp-label");
+    expect(bare).not.toContain(">Key<");
+    expect(bare).not.toContain("J-Drive");
+  });
+
   it("draws a wall put in to split a room, on paper as on screen", () => {
     const plan = placeFixture(twoDecks(), { kind: "wall", deck: 0, x: 2, y: 0, edge: "w", length: 2 });
     const svg = deckDocument(SHIP, plan, 0, SOURCES, { palette: PAPER, pixelsPerSquare: 60, grid: false, labels: "names" });

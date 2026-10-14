@@ -462,6 +462,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       el("div", { class: "fp-toolrow fp-seg" }, [
         button("Names", () => setLabels("names"), { class: `fp-tool${labels === "names" ? " on" : ""}`, title: "Label rooms by name while designing" }),
         button("Numbers", () => setLabels("numbers"), { class: `fp-tool${labels === "numbers" ? " on" : ""}`, title: "Number rooms, as a finished plan is, with a key on export" }),
+        button("Off", () => setLabels("off"), { class: `fp-tool${labels === "off" ? " on" : ""}`, title: "No room labels, on screen, in exports or in print" }),
       ]),
     ]);
     const browse = el("div", { class: "fp-browse" });

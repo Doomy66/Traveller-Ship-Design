@@ -94,7 +94,8 @@ export interface OwnerLook {
  * Rooms are labelled by name while a plan is designed and by number when it
  * is used, with a key beside the plan saying which number is what. FP 8.4.
  */
-export type LabelMode = "names" | "numbers";
+/** Rooms labelled by name, by number with a key, or not at all. FP 8.4. */
+export type LabelMode = "names" | "numbers" | "off";
 
 /** A short name for a room, since a sheet line's label is usually too long to fit inside one. */
 export function shortLabel(component: Pick<Component, "key" | "label">): string {
@@ -157,6 +158,7 @@ export function looksFor(
     if (owner === CORRIDOR) return { floor: "corridor", label: "" };
     const key = baseKey(owner);
     const known = numbers.get(key);
+    if (mode === "off") return { floor: known?.component.group ?? "orphan", label: "" };
     if (known === undefined) {
       return { floor: "orphan", label: mode === "numbers" ? "?" : (plan.remembered[key]?.label ?? key) };
     }

@@ -145,7 +145,7 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 8.3 Each region carries its component's label, as the book recommends labelling each part. The label is centred on the middle of the room, on the half square, or in a cell of the room where its middle falls outside it, as in an L. A component with several regions labels each one. Labels are drawn over everything in the room, geomorph pieces and fitted rooms included, with a halo of the background colour so they read over the pieces' lines.
 
-8.4 **Numbers or names.** Every component has a number, and the panel shows it beside the name. Components are numbered by group, in the panel's order, then by the sheet's order within the group, so the numbers read straight down the list. Rooms are labelled by name while a plan is being designed, or by number, as a finished plan is used. A switch on the right chooses which. A numbered plan exports and prints with a key beside it, listing the number and name of every component it shows. Every stateroom carries the stateroom number.
+8.4 **Numbers or names.** Every component has a number, and the panel shows it beside the name. Components are numbered by group, in the panel's order, then by the sheet's order within the group, so the numbers read straight down the list. Rooms are labelled by name while a plan is being designed, or by number, as a finished plan is used. A switch on the right chooses which. A numbered plan exports and prints with a key beside it, listing the number and name of every component it shows. Every stateroom carries the stateroom number. A third setting, Off, leaves the rooms unlabelled on screen, in exports and in print, with no key, for a plan that is to be read as a picture.
 
 8.5 Plans are drawn in SVG, so they stay sharp at any zoom and print cleanly.
 
@@ -167,7 +167,7 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 10.3 **The middle** is the deck, with the deck tabs above it. Dragging paints with the brush, a whole square at a time (FP 4.2.2). Dragging with the eraser clears. Dragging with the corridor brush makes corridors.
 
-10.4 **The right** holds everything else: the Move tool, Corridor and Erase, Undo and Redo; doors, iris valves, openings and walls for walls; lifts, iris valves, hatches and stairs between decks; Turn and Flip; the names-or-numbers switch; and below them the library (FP 7.7) and, at its foot, the geomorph folder (FP 12). A piece is placed with a click, and turned with R or flipped with F before or after.
+10.4 **The right** holds everything else: the Move tool, Corridor and Erase, Undo and Redo; doors, iris valves, openings and walls for walls; lifts, iris valves, hatches and stairs between decks; Turn and Flip; the room labels switch, names, numbers or off; and below them the library (FP 7.7) and, at its foot, the geomorph folder (FP 12). A piece is placed with a click, and turned with R or flipped with F before or after.
 
 10.5 Problems from `check` sit above the deck, as the sheet's do on the design screen.
 

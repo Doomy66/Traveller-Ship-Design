@@ -112,6 +112,16 @@ describe("library pieces drawn to their footprint", () => {
     expect([booth.x, booth.y]).toEqual([3, 4]);
   });
 
+  it("keeps cargo inside its squares, clear of the walls", () => {
+    for (const [crate, squares] of [["sheet-cargo-10x10", 2], ["sheet-cargo-5x5", 1]] as const) {
+      const drawn = image(crate);
+      expect(drawn.x).toBeGreaterThan(3);
+      expect(drawn.y).toBeGreaterThan(4);
+      expect(drawn.x + drawn.width).toBeLessThan(3 + squares);
+      expect(drawn.y + drawn.height).toBeLessThan(4 + squares);
+    }
+  });
+
   it("sets a small locker against the top of its square", () => {
     const small = image("sheet-locker-small");
     expect(small.width).toBeCloseTo(1);

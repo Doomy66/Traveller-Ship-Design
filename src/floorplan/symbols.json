@@ -1700,7 +1700,8 @@
    127,
    68
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (280, 222, 396, 287)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (280, 222, 396, 287)",
+  "fit": "inside"
  },
  {
   "id": "sheet-mini-stateroom",
@@ -1719,7 +1720,8 @@
    129,
    70
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (60, 408, 180, 474)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (60, 408, 180, 474)",
+  "fit": "inside"
  },
  {
   "id": "sheet-desk-1",
@@ -1757,7 +1759,8 @@
    66,
    65
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (118, 293, 180, 354)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (118, 293, 180, 354)",
+  "fit": "inside"
  },
  {
   "id": "sheet-desk-3",
@@ -1936,7 +1939,8 @@
    65
   ],
   "source": "Geomorphs/Symbols & Abbreviations.png (50, 1043, 274, 1104)",
-  "align": "top"
+  "align": "top",
+  "fit": "inside"
  },
  {
   "id": "sheet-panel-1",
@@ -1955,7 +1959,8 @@
    66,
    67
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (168, 880, 234, 942)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (168, 880, 234, 942)",
+  "fit": "inside"
  },
  {
   "id": "sheet-panel-2",
@@ -1974,7 +1979,8 @@
    65,
    60
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (240, 880, 300, 937)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (240, 880, 300, 937)",
+  "fit": "inside"
  },
  {
   "id": "sheet-panel-3",
@@ -1994,7 +2000,8 @@
    54
   ],
   "source": "Geomorphs/Symbols & Abbreviations.png (310, 880, 372, 937)",
-  "align": "top"
+  "align": "top",
+  "fit": "inside"
  },
  {
   "id": "sheet-fresher",
@@ -2013,7 +2020,8 @@
    67,
    66
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (45, 538, 107, 602)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (45, 538, 107, 602)",
+  "fit": "inside"
  },
  {
   "id": "sheet-toilet-sink",
@@ -2152,7 +2160,8 @@
    66,
    42
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (48, 698, 110, 737)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (48, 698, 110, 737)",
+  "fit": "inside"
  },
  {
   "id": "sheet-shower-round",
@@ -2172,7 +2181,8 @@
    59
   ],
   "source": "Geomorphs/Symbols & Abbreviations.png (120, 688, 182, 744)",
-  "align": "top"
+  "align": "top",
+  "fit": "inside"
  },
  {
   "id": "sheet-medical-bed",
@@ -2270,7 +2280,8 @@
    66,
    65
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (53, 1273, 114, 1334)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (53, 1273, 114, 1334)",
+  "fit": "inside"
  },
  {
   "id": "sheet-booth",
@@ -2423,7 +2434,8 @@
    66,
    68
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (370, 1498, 434, 1562)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (370, 1498, 434, 1562)",
+  "fit": "inside"
  },
  {
   "id": "sheet-galley",
@@ -2596,7 +2608,8 @@
    129,
    68
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (681, 695, 799, 757)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (681, 695, 799, 757)",
+  "fit": "inside"
  },
  {
   "id": "sheet-stairs-down",
@@ -2615,7 +2628,8 @@
    124,
    88
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (803, 653, 917, 744)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (803, 653, 917, 744)",
+  "fit": "inside"
  },
  {
   "id": "sheet-stairwell",
@@ -2748,7 +2762,8 @@
    69,
    138
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (753, 1066, 817, 1194)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (753, 1066, 817, 1194)",
+  "fit": "inside"
  },
  {
   "id": "sheet-manned-turret",
@@ -2767,7 +2782,8 @@
    146,
    125
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (958, 1060, 1092, 1177)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (958, 1060, 1092, 1177)",
+  "fit": "inside"
  },
  {
   "id": "sheet-cargo-10x20",
@@ -2786,7 +2802,8 @@
    247,
    124
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (583, 1238, 807, 1352)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (583, 1238, 807, 1352)",
+  "fit": "inside"
  },
  {
   "id": "sheet-cargo-10x10",
@@ -2805,7 +2822,8 @@
    125,
    124
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (813, 1238, 927, 1352)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (813, 1238, 927, 1352)",
+  "fit": "inside"
  },
  {
   "id": "sheet-cargo-5x5",
@@ -2824,7 +2842,8 @@
    64,
    66
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (936, 1293, 995, 1354)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (936, 1293, 995, 1354)",
+  "fit": "inside"
  },
  {
   "id": "sheet-cargo-small",
@@ -2843,7 +2862,8 @@
    139,
    147
   ],
-  "source": "Geomorphs/Symbols & Abbreviations.png (1001, 1220, 1127, 1354)"
+  "source": "Geomorphs/Symbols & Abbreviations.png (1001, 1220, 1127, 1354)",
+  "fit": "inside"
  },
  {
   "id": "sheet-bushes",

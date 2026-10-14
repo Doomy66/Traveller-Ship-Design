@@ -38,8 +38,12 @@ export interface ShipSymbol {
   readonly squares: readonly [number, number];
   /** The image's own size, at 60 pixels to the square. */
   readonly pixels: readonly [number, number];
-  /** Drawn scaled to fit its footprint, keeping its shape, rather than at its own size. */
-  readonly fit?: boolean;
+  /**
+   * Drawn scaled to fit its footprint, keeping its shape, rather than at its
+   * own size; or, "inside", shrunk where it is larger so it sits just within
+   * its footprint, clear of the walls round it.
+   */
+  readonly fit?: boolean | "inside";
   /**
    * Drawn against one edge of its footprint, as turned with it, rather than
    * in the middle: a small locker against the wall behind it, a bed with its

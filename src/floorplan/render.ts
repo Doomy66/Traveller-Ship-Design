@@ -373,6 +373,9 @@ function placement(rotation: number, flip: boolean | undefined, cx: number, cy: 
   return flip === true ? `${turn} translate(${n(cx)} ${n(cy)}) scale(-1 1) translate(${n(-cx)} ${n(-cy)})` : turn;
 }
 
+/** How far inside its footprint a piece drawn "inside" keeps: half a wall's width, and a little. */
+const WALL_CLEARANCE = 0.07;
+
 export function symbolMarkup(
   fixture: Pick<SquareFixture, "x" | "y" | "rotation" | "symbol" | "flip">,
   palette: Palette,
@@ -394,9 +397,16 @@ export function symbolMarkup(
     const k = Math.min(sw / w, sh / h);
     w *= k;
     h *= k;
+  } else if (symbol.fit === "inside") {
+    // Clear of a wall's half width all round, and never made larger.
+    const k = Math.min(1, (sw - 2 * WALL_CLEARANCE) / w, (sh - 2 * WALL_CLEARANCE) / h);
+    w *= k;
+    h *= k;
   }
-  const top = symbol.align === "top" || symbol.align === "top-left" ? cy - sh / 2 : cy - h / 2;
-  const left = symbol.align === "left" || symbol.align === "top-left" ? cx - sw / 2 : cx - w / 2;
+  // Against an edge it stands flush, or just clear of the wall if it is drawn inside.
+  const clear = symbol.fit === "inside" ? WALL_CLEARANCE : 0;
+  const top = symbol.align === "top" || symbol.align === "top-left" ? cy - sh / 2 + clear : cy - h / 2;
+  const left = symbol.align === "left" || symbol.align === "top-left" ? cx - sw / 2 + clear : cx - w / 2;
   const filter = palette.symbolFilter === "none" ? "" : ` style="filter:${palette.symbolFilter}"`;
   return (
     `<image href="${esc(href(symbol.file))}" x="${n(left)}" y="${n(top)}" width="${n(w)}" height="${n(h)}"` +

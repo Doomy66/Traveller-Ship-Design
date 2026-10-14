@@ -21,7 +21,6 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 import pngtools  # noqa: E402
 import sheet  # noqa: E402
-import unwall  # noqa: E402
 
 ROOT = "D:/SandPit/ShipParts/"
 SYM = "CustomTiles/Symbols/"
@@ -154,10 +153,6 @@ for ident, name, category, rel, *extra in PICKS:
     # colour shows through and nothing draws as a black block when the screen
     # inverts it.
     _, _, px = pngtools.read(src)
-    # Engineering sections lose their own outer walls: the plan draws the
-    # room's walls itself, round whatever shape the room is painted.
-    if category == "engineering":
-        px, _ = unwall.unwall(px, (max(1, math.ceil(wide / 5)), max(1, math.ceil(high / 5))))
     pngtools.write(DST + ident + ".png", [[(r, g, b, 0) if min(r, g, b) >= sheet.WHITE else (r, g, b, a) for r, g, b, a in row] for row in px])
     catalogue.append({
         "id": ident,

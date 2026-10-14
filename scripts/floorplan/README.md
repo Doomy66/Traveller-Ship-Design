@@ -12,9 +12,6 @@ top of each script; change them to suit, then run `symbols.py` with Python 3.
   box is in the coordinates of the sheet shown 1200 pixels wide, and is
   tightened to the drawing. `python sheet.py contact.png` draws every cut on
   one page to check by eye.
-- `unwall.py` takes the outer walls off the engineering sections as they are
-  copied in, since the plan draws its own. `python unwall.py in.png out.png W H`
-  tries it on one drawing of W by H squares.
 - `pngtools.py` reads and writes PNG with nothing but the standard library.
 
 The art is Robert Pearce's Starship Symbols, Adventure Class Geomorphs and

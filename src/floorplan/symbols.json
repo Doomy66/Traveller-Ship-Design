@@ -437,8 +437,8 @@
    60
   ],
   "source": "CustomTiles/Symbols/Weaponry/Weaponry 014 [5x10].png",
-  "align": "bottom",
-  "fit": "inside"
+  "fit": true,
+  "align": "bottom"
  },
  {
   "id": "fixed-gun-heavy",
@@ -478,8 +478,8 @@
    63
   ],
   "source": "CustomTiles/Symbols/Weaponry/Weaponry 017 [5x10].png",
-  "align": "right",
-  "fit": "inside"
+  "fit": true,
+  "align": "right"
  },
  {
   "id": "engineering-4",

@@ -58,9 +58,9 @@ PICKS = [
     # to the drawing; the mining laser's label is left behind.
     ("fixed-gun", "Fixed mount, gun", "turrets", SYM + "Weaponry/Weaponry 007 [5x10].png", {"trim": None, "tall": True}),
     ("fixed-gun-2", "Fixed mount, gun, other hand", "turrets", SYM + "Weaponry/Weaponry 008 [5x10].png", {"trim": None, "tall": True}),
-    ("fixed-gun-dome", "Fixed mount, gun on a dome", "turrets", SYM + "Weaponry/Weaponry 014 [5x10].png", {"trim": None}),
+    ("fixed-gun-dome", "Fixed mount, gun on a dome", "turrets", SYM + "Weaponry/Weaponry 014 [5x10].png", {"trim": None, "fit": True}),
     ("fixed-gun-heavy", "Fixed mount, heavy gun", "turrets", SYM + "Weaponry/Weaponry 013 [5x10].png", {"trim": None, "feet": [15, 10], "squares": [3, 2]}),
-    ("mining-laser", "Mining laser", "turrets", SYM + "Weaponry/Weaponry 017 [5x10].png", {"trim": (0, 0, 165, 120)}),
+    ("mining-laser", "Mining laser", "turrets", SYM + "Weaponry/Weaponry 017 [5x10].png", {"trim": (0, 0, 165, 120), "fit": True}),
 
     ("engineering-4", "Engineering, 4 tons", "engineering", SYM + "Engineering/Engineering 010 [10x20].png"),
     ("engineering-8", "Engineering, 8 tons", "engineering", SYM + "Engineering/Engineering 028 [20x20].png"),
@@ -267,7 +267,6 @@ INSIDE = [
     "sheet-fresher", "sheet-shower", "sheet-shower-round", "sheet-panel-1", "sheet-panel-2", "sheet-panel-3",
     "sheet-desk-1", "sheet-desk-2", "sheet-gaming-round", "sheet-elevator-double", "sheet-stairs-down", "sheet-triple-bunks",
     "sheet-mini-stateroom", "sheet-manned-turret", "sheet-probe-tube", "sheet-repair-bench", "sheet-low-berth",
-    "fixed-gun-dome", "mining-laser",
 ]
 assert set(ALIGN) <= {e["id"] for e in catalogue}, set(ALIGN) - {e["id"] for e in catalogue}
 assert set(INSIDE) <= {e["id"] for e in catalogue}, set(INSIDE) - {e["id"] for e in catalogue}

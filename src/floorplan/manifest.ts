@@ -45,6 +45,11 @@ export interface Manifest {
   readonly shipName: string;
   /** The tons a plan has to fit, which is all of the hull but the unusable part of a planetoid. FP 5.3. */
   readonly usableTons: number;
+  /**
+   * Tons of the hull that are not drawn: armour, and hull options and
+   * stealth that take tonnage. The plan's total leaves them out. FP 5.3.
+   */
+  readonly offPlanTons: number;
   readonly components: readonly Component[];
 }
 
@@ -117,9 +122,13 @@ function componentFrom(line: SheetLine): Component | undefined {
 export function manifest(design: Design): Manifest {
   const result = sheet(design);
   const labels = new Map(result.lines.map((line) => [line.key, line.label]));
+  const offPlanTons = result.lines
+    .filter((line) => LEFT_OFF.has(line.section) && line.key !== "hull")
+    .reduce((sum, line) => sum + (line.tons ?? 0), 0);
   return {
     shipName: design.name,
     usableTons: result.usableTons,
+    offPlanTons,
     components: result.lines
       .map(componentFrom)
       .filter((c): c is Component => c !== undefined)

@@ -55,7 +55,7 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 3.4 **Left off the plan.** The hull, armour, and hull options take no squares here, as the book says. Stealth is a hull option, so a stealth coating that takes tonnage is left off with the rest of the hull. Software has nothing to place. Neither do most lines with no tonnage, such as carried craft, whose room is their docking space or hangar.
 
-3.4.1 **0t items.** Fixed mounts, the computer and fuel scoops take no tonnage, but a plan may want to show where they are, so they are listed in their groups as 0t items. They need no squares, are never short or over, and are left out of the suggested layout (FP 7.9). Squares painted for one mark where it is and count towards the whole ship like any other.
+3.4.1 **0t items.** Fixed mounts, the computer and fuel scoops take no tonnage, but a plan may want to show where they are, so they are listed in their groups as 0t items. They need no squares, are never short or over, and are left out of the suggested layout (FP 7.9). Squares painted for one only mark where it is, and do not count towards the whole ship (FP 5.3).
 
 3.5 **Optional.** Fuel is listed with everything else but may be placed or left off, because the book allows a deck of nothing but fuel to be left off. Unplaced fuel is not a shortfall. Fuel that is placed is counted like anything else.
 
@@ -93,7 +93,7 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 5.2.1 Required components not yet started are one warning that names them all, not a warning each. A new plan then opens on a single line of what is left to place.
 
-5.3 **The whole ship.** Every non-empty square on every deck, corridors included, is counted against two squares per hull ton. The book allows ten per cent either way. Fuel the plan leaves off comes off the target first, since fuel is optional (FP 3.5): the squares of fuel not drawn, all of them or what is left after some is drawn. Outside that band is a warning, once every required component has been started; before then the plan is short because it is unfinished, which FP 5.2.1 already says. The panel shows the total against the band throughout.
+5.3 **The whole ship.** Every non-empty square on every deck, corridors included, is counted against two squares per hull ton. The book allows ten per cent either way. Tonnage the plan never shows, armour and hull options that take tons (FP 3.4), comes off the target, and so does fuel the plan leaves off, since fuel is optional (FP 3.5): the squares of fuel not drawn, all of them or what is left after some is drawn. Outside that band is a warning, once every required component has been started; before then the plan is short because it is unfinished, which FP 5.2.1 already says. The panel shows the total against the band throughout.
 
 5.4 **Rooms.** Staterooms should be drawn as that many separate regions. Ten staterooms painted as one block of sixty squares is a warning that says so. A region counts as a room once walls enclose it, which FP 8.2 draws. No other component is counted room by room.
 

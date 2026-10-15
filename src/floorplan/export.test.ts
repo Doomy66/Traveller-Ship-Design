@@ -13,6 +13,7 @@ const SOURCES = { symbol: (file: string) => file, tile: () => undefined };
 const SHIP: Manifest = {
   shipName: "Beowulf/2",
   usableTons: 20,
+  offPlanTons: 0,
   components: [{ key: "jump", label: "Jump 1", group: "engineering", tons: 5, target: 10, count: 1, rooms: 1, required: true }],
 };
 

@@ -31,6 +31,7 @@ import {
 const SHIP: Manifest = {
   shipName: "Test",
   usableTons: 20,
+  offPlanTons: 0,
   components: [
     { key: "jump", label: "Jump 1", group: "engineering", tons: 5, target: 10, count: 1, rooms: 1, required: true },
     { key: "fuel", label: "J-1, 4 weeks", group: "fuel", tons: 3, target: 6, count: 1, rooms: 1, required: false },
@@ -426,5 +427,19 @@ describe("groups picked up together", () => {
     expect(jumpCells(gone)).toEqual([]);
     expect(gone.fixtures).toEqual([start.fixtures[2]]);
     expect(gone.decks[0]!.cells["5,0"]).toBe("cargo");
+  });
+});
+
+describe("what the whole ship's total leaves out", () => {
+  it("leaves armour and other off-plan tonnage out of the target", () => {
+    const armoured = { ...SHIP, offPlanTons: 4 };
+    // Forty squares less eight for four tons of armour, less the six of fuel not drawn.
+    expect(check(armoured, emptyPlan()).ship).toMatchObject({ target: 26, low: 24, high: 28 });
+  });
+
+  it("does not count squares painted to mark a 0t item", () => {
+    const marked = { ...SHIP, components: [...SHIP.components, { key: "weapon:0", label: "Fixed Mount (Pulse Laser)", group: "weapons" as const, tons: 0, target: 0, count: 1, rooms: 1, required: false }] };
+    const plan = block(block(emptyPlan(), "jump", 0, 0, 4, 1), "weapon:0", 5, 0, 5, 1);
+    expect(check(marked, plan).total).toBe(10);
   });
 });

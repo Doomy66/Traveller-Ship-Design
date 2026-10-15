@@ -82,13 +82,15 @@ export function check(manifest: Manifest, plan: FloorPlan): Report {
   const warn = (message: string, clause: string) => problems.push({ severity: "warning", message, clause });
   const note = (message: string, clause: string) => problems.push({ severity: "note", message, clause });
 
-  // Count every square by the component it belongs to.
+  // Count every square by the component it belongs to. A 0t item's squares
+  // only mark where it is, so they do not count towards the whole ship. FP 3.4.1.
+  const markers = new Set(manifest.components.filter((c) => c.target === 0).map((c) => c.key));
   const placed = new Map<string, number>();
   const instances = new Map<string, Record<number, number>>();
   let corridor = 0;
   let total = 0;
   for (const square of allSquares(plan)) {
-    total += PER_CELL;
+    if (!markers.has(baseKey(square.owner))) total += PER_CELL;
     if (square.owner === CORRIDOR) {
       corridor += PER_CELL;
       continue;
@@ -185,14 +187,16 @@ export function check(manifest: Manifest, plan: FloorPlan): Report {
   const undrawn = manifest.components
     .filter((c) => !c.required)
     .reduce((sum, c) => sum + Math.max(0, c.target - (placed.get(c.key) ?? 0)), 0);
-  const target = manifest.usableTons * SQUARES_PER_TON - undrawn;
+  // Armour and the like are part of the hull but not of the plan. FP 3.4.
+  const target = (manifest.usableTons - manifest.offPlanTons) * SQUARES_PER_TON - undrawn;
   const low = Math.ceil(target * (1 - SHIP_TOLERANCE));
   const high = Math.floor(target * (1 + SHIP_TOLERANCE));
   // Only once every required component is started: until then the total is
   // short because the plan is unfinished, which the list above already says.
   if (total > 0 && untouched.length === 0 && (total < low || total > high)) {
     const without = undrawn > 0 ? ` with ${squares(undrawn)} of fuel not drawn` : "";
-    warn(`The plan covers ${squares(total)}, outside the ${low} to ${high} a ${manifest.usableTons}-ton ship allows${without}.`, "5.3");
+    const off = manifest.offPlanTons > 0 ? `, less ${Math.round(manifest.offPlanTons * 100) / 100} tons of armour and hull options,` : "";
+    warn(`The plan covers ${squares(total)}, outside the ${low} to ${high} a ${manifest.usableTons}-ton ship${off} allows${without}.`, "5.3");
   }
 
   // Every deck joined to the first, through lifts, hatches and stairs that line up. FP 6.1, 6.2.

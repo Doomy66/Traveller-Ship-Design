@@ -90,7 +90,7 @@ ITEMS = [
     ("sheet-hatch-updown", "Hatch, up and down", "access", (884, 978, 935, 1025)),
 
     ("sheet-missile-tube", "Missile launch tube", "turrets", (571, 1061, 639, 1195), {"despeck": True}),
-    ("sheet-probe-tube", "Probe launch tube", "turrets", (751, 1065, 819, 1195)),
+    ("sheet-probe-tube", "Probe launch tube", "turrets", (751, 1065, 819, 1195), {"squares": [1, 2]}),
     ("sheet-manned-turret", "Manned turret", "turrets", (956, 1058, 1094, 1179)),
 
     ("sheet-cargo-10x20", "Cargo, 10 by 20 feet", "cargo", (581, 1236, 809, 1354)),

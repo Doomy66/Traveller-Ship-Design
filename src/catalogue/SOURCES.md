@@ -13,14 +13,24 @@ The descriptions in each design's notes are summaries written for the catalogue,
 Two things were changed when the files were copied from Mainline. Neither moves a ton.
 
 - **Repeated craft became one line.** The Arakoine's hundred fighters were a hundred craft lines, and the Azhanti's sixty were sixty. Identical craft are now one line with a number (ShipSpec 4.11.3.1). Tonnage, price and crew are exactly what they were.
-- **Craft priced from another design's sheet now use its full price.** Mainline priced a carried Kia, Rampart, modular cutter, pinnace or ship's boat at that design's standard design price. The carrying ship's own discount then took 10% off again (ShipSpec 4.11.3.2). Those craft now cost the design's total: Kia Heavy Fighter MCr36.285, Rampart Light Fighter MCr14.108, Modular Cutter MCr18.19, Pinnace MCr15.66, Ship's Boat MCr11.59, Snub MCr7.66. Craft at a printed or assumed price are unchanged.
+- **Craft priced from another design's sheet now use its full price.** Mainline priced a carried Kia, Rampart, modular cutter, pinnace or ship's boat at that design's standard design price. The carrying ship's own discount then took 10% off again (ShipSpec 4.11.3.2). Those craft now cost the design's total: Kia Heavy Fighter MCr36.185, Rampart Light Fighter MCr14.108, Modular Cutter MCr18.19, Pinnace MCr15.66, Ship's Boat MCr11.59, Snub MCr6.66. Craft at a printed or assumed price are unchanged.
+
+## Firmpoints corrected
+
+A firmpoint holds one weapon, and only one firmpoint on a ship may be upgraded to a single turret (High Guard page 18). The designer did not check either until 2026-10-15, and four small craft broke the rule:
+
+- **Snub** and **Snub 2**, 20 tons and one firmpoint, carried two and three weapons in one fixed mount. Each keeps the missile rack, since a firmpoint cuts a beam weapon to Close range and leaves a missile its reach. Snub MCr6.66, Snub 2 MCr14.16.
+- **Wasp Heavy Fighter**, 40 tons and two firmpoints, carried three pulse lasers and three missile racks. It keeps one of each, one to a firmpoint. MCr24.3.
+- **Kia Heavy Fighter** had two single turrets. Its missile rack is now in a fixed mount. MCr36.185.
+
+The carriers that buy them are repriced to match: the Hyperion's snubs, the Tern's Wasps and the Arakoine's heavy fighters.
 
 ## Sources
 
 | Ship | File | Source | Original edition | Liberties taken |
 |---|---|---|---|---|
 | Rampart Light Fighter | Rampart-Light-Fighter.ship | https://wiki.travellerrpg.com/Rampart_class_Light_Fighter | Classic (High Guard) | The source lists no weapons; one fixed pulse laser added. |
-| Kia Heavy Fighter | Kia-Heavy-Fighter.ship | https://wiki.travellerrpg.com/Kia_class_Heavy_Fighter | Classic (FASA ACS vol. 1) | The source mentions a fusion gun and missiles; set as one single turret of each on its two firmpoints. Armour 12 stands in for "heavily armoured". |
+| Kia Heavy Fighter | Kia-Heavy-Fighter.ship | https://wiki.travellerrpg.com/Kia_class_Heavy_Fighter | Classic (FASA ACS vol. 1) | The source mentions a fusion gun and missiles; set as the fusion gun in a single turret and the missile rack in a fixed mount on its two firmpoints, since only one firmpoint may be upgraded to a turret. Armour 12 stands in for "heavily armoured". |
 | Ship's Boat | Ships-Boat.ship | https://wiki.travellerrpg.com/Ship%27s_Boat | Classic | TL raised from 9 to 12 because Thrust 6 needs TL12 under HG2022. Acceleration seats added for passengers. |
 | Pinnace | Pinnace.ship | https://wiki.travellerrpg.com/Pinnace | Classic | TL raised from 9 to 11 because Thrust 5 needs TL11. One pulse laser turret, as the source typically fits. |
 | Modular Cutter | Modular-Cutter.ship | https://wiki.travellerrpg.com/Modular_Cutter | Classic | The 30-ton module is modelled as a 60% modular hull, with the module bay counted in cargo. |
@@ -58,4 +68,4 @@ Two things were changed when the files were copied from Mainline. Neither moves 
 
 ## Assumed craft prices
 
-The 20-ton launch (MCr3.6), 20-ton gig (MCr5.5), 95-ton shuttle (MCr25) and 400-ton fuel shuttle (MCr90) have no design here, and their prices are assumed. The Hyperion's snub fighters were assumed at MCr8 until the Snub was designed; they now cost its MCr7.66.
+The 20-ton launch (MCr3.6), 20-ton gig (MCr5.5), 95-ton shuttle (MCr25) and 400-ton fuel shuttle (MCr90) have no design here, and their prices are assumed. The Hyperion's snub fighters were assumed at MCr8 until the Snub was designed; they now cost its MCr6.66.

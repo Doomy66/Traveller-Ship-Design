@@ -84,6 +84,8 @@ user. Dates are the day the release was tagged.
 - **Room labels off.** Beside Names and Numbers, Off draws the plan without room labels, on screen, in exports and in print.
 - **Walls.** A Wall tool in the walls section draws a wall where there is none, to split a room; drag across or down for a long one.
 - **The description prints beside the sheet**, to the right of the components.
+- **One weapon to a firmpoint.** A small craft's firmpoint now holds one weapon, and only one may be a single turret, as High Guard says. Four catalogue fighters broke the rule and are cut back: the Snub and Snub 2 keep a missile rack, the Wasp a pulse laser and a missile rack, the Kia its fusion gun turret with the missile rack in a fixed mount. Their carriers are repriced.
+- **The floor plan's total leaves armour out.** Armour and hull options that take tons are never drawn, so they no longer count against the plan; nor do squares painted to mark a 0t item.
 - **No stateroom wanted for a fighter pilot.** A small craft under 100 tons
   without a jump drive is not somewhere anyone lives, and is no longer warned
   about berths. A 100-ton yacht still is.

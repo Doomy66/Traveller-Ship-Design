@@ -656,6 +656,7 @@ export function sheet(design: Design): Sheet {
   // Step 8: weapons. ShipSpec 4.9.
   const onFirmpoints = hullTons < TONS_PER_HARDPOINT;
   let mountsUsed = 0;
+  let singleTurretsOnFirmpoints = 0;
   let weaponPower = 0;
   const armed = { ...NO_WEAPONS } as {
     armedTurrets: number;
@@ -696,6 +697,9 @@ export function sheet(design: Design): Sheet {
       if (onFirmpoints && choice.mount !== "fixed" && choice.mount !== "single") {
         fail("A firmpoint takes a fixed mount or a single turret, nothing larger.", "4.9.1");
       }
+      // Page 18: a firmpoint holds one weapon, and only one may be a single turret.
+      if (onFirmpoints && carried.length > 1) fail(`A firmpoint holds one weapon, not ${carried.length}.`, "4.9.1");
+      if (onFirmpoints && choice.mount === "single") singleTurretsOnFirmpoints += quantity;
       let mountTons = rule.tons;
       let mountCost = rule.cost;
       // An empty mount draws no power: the Scout carries an empty double turret
@@ -849,6 +853,9 @@ export function sheet(design: Design): Sheet {
     });
   }
 
+  if (singleTurretsOnFirmpoints > 1) {
+    fail(`Only one firmpoint may be upgraded to a single turret, not ${singleTurretsOnFirmpoints}.`, "4.9.1");
+  }
   const pointsAvailable = onFirmpoints ? firmpoints(hullTons) : hardpoints(hullTons);
   if (mountsUsed > pointsAvailable) {
     fail(`${mountsUsed} mounts against ${pointsAvailable} ${onFirmpoints ? "firmpoints" : "hardpoints"}.`, "4.9.1");

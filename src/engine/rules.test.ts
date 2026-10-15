@@ -322,6 +322,30 @@ describe("the heavier weapons", () => {
     expect(armed.hardpoints.used).toBe(1);
   });
 
+  it("puts one weapon on a firmpoint, and lets only one firmpoint be a single turret", () => {
+    const fighter = { ...BASE, hull: { tons: 40, configuration: "streamlined" as const }, bridge: { kind: "cockpit" as const } };
+    const crowded = sheet({ ...fighter, weapons: [{ kind: "turret", mount: "fixed", weapons: ["pulseLaser", "missileRack"] }] });
+    expect(errors(crowded)).toContain("A firmpoint holds one weapon, not 2.");
+    const turrets = sheet({
+      ...fighter,
+      weapons: [
+        { kind: "turret", mount: "single", weapons: ["pulseLaser"] },
+        { kind: "turret", mount: "single", weapons: ["missileRack"] },
+      ],
+    });
+    expect(errors(turrets)).toContain("Only one firmpoint may be upgraded to a single turret, not 2.");
+    const legal = sheet({
+      ...fighter,
+      weapons: [
+        { kind: "turret", mount: "single", weapons: ["pulseLaser"] },
+        { kind: "turret", mount: "fixed", weapons: ["missileRack"] },
+      ],
+    });
+    expect(errors(legal).filter((e) => /firmpoint/i.test(e))).toEqual([]);
+    // A turret on a hardpoint still carries all it can.
+    expect(errors(sheet({ ...BASE, weapons: [{ kind: "turret", mount: "triple", weapons: ["pulseLaser", "pulseLaser"] }] }))).toEqual([]);
+  });
+
   it("takes three firmpoints for a barbette on a small hull, and two more tons for a missile one", () => {
     const boat = sheet({
       ...BASE,

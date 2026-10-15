@@ -25,6 +25,7 @@ import sheet  # noqa: E402
 ROOT = "D:/SandPit/ShipParts/"
 SYM = "CustomTiles/Symbols/"
 DV = "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/"
+AO = "AdventureClass/08.3 AO Add-on Geomorphs/"
 DST = "D:/GitHub/Traveller-Ship-Design/public/floorplan/symbols/"
 CAT = "D:/GitHub/Traveller-Ship-Design/src/floorplan/symbols.json"
 
@@ -70,6 +71,19 @@ PICKS = [
     ("engineering-36", "Engineering, 36 tons", "engineering", SYM + "Engineering/Engineering 109 [40x45].png"),
     ("engineering-42", "Engineering, 42 tons", "engineering", SYM + "Engineering/Engineering 101 [35x60].png"),
     ("engineering-63", "Engineering, 63 tons", "engineering", SYM + "Engineering/Engineering 111 [45x70].png"),
+    # External drive pods that bolt to the hull's side, each with its thruster
+    # bell: the port-side drawings, flipped for starboard. They sit in a 50 by
+    # 50 foot tile, so they are trimmed and measured from the drawing.
+    ("drive-pod-8", "Drive pod, 8 tons", "engineering", AO + "AO-001 [Port] [50x50] [8-dTons] Engineering.png", {"trim": None, "measure": True}),
+    ("drive-pod-6", "Drive pod, 6 tons", "engineering", AO + "AO-002 [Port] [50x50] [6-dTons] Engineering.png", {"trim": None, "measure": True}),
+    ("drive-pod-4", "Drive pod, 4 tons", "engineering", AO + "AO-003 [Port] [50x50] [4-dTons] Engineering.png", {"trim": None, "measure": True}),
+    # Thruster nozzles, to stand out past the hull behind a manoeuvre drive,
+    # set against the edge they join the drive by.
+    ("nozzle-ribbed", "Thruster nozzle, ribbed", "engineering", SYM + "Machinery/Machinery 046 [4x6].png", {"trim": None, "squares": [1, 1], "fit": True}),
+    ("nozzle", "Thruster nozzle", "engineering", SYM + "Machinery/Machinery 052 [4x6].png", {"trim": None, "squares": [1, 1], "fit": True}),
+    ("nozzle-short", "Thruster nozzle, short", "engineering", SYM + "Machinery/Machinery 059 [4x6].png", {"trim": None, "squares": [1, 1], "fit": True}),
+    ("nozzle-wide", "Thruster nozzle, wide", "engineering", SYM + "Machinery/Machinery 062 [4x10].png", {"trim": None, "measure": True}),
+    ("nozzle-large", "Thruster bell, large", "engineering", SYM + "Machinery/Machinery 238 [13x17].png", {"trim": None, "measure": True}),
 
     ("stateroom-1", "Stateroom", "rooms", SYM + "Staterooms/Stateroom 015 [10x15].png"),
     ("stateroom-2", "Stateroom, alternative", "rooms", SYM + "Staterooms/Stateroom 016 [10x15].png"),
@@ -172,6 +186,10 @@ for ident, name, category, rel, *extra in PICKS:
         y0, y1 = max(0, min(y for _, y in drawn) - sheet.PAD), min(h, max(y for _, y in drawn) + sheet.PAD + 1)
         px = [row[x0:x1] for row in px[y0:y1]]
         w, h = x1 - x0, y1 - y0
+    if options.pop("measure", False):
+        # The footprint is the drawing's own size, not the tile it came in.
+        options["squares"] = [max(1, math.ceil(w / 60 - 0.15)), max(1, math.ceil(h / 60 - 0.15))]
+        options["feet"] = [round(w / 12), round(h / 12)]
     pngtools.write(DST + ident + ".png", px)
     catalogue.append({
         "id": ident,
@@ -259,6 +277,8 @@ ALIGN = {
     "console-wide": "left",
     "sheet-bunks": "top-left", "sheet-booth": "top-left",
     "fixed-gun": "left", "fixed-gun-2": "left", "fixed-gun-dome": "bottom", "fixed-gun-heavy": "bottom", "mining-laser": "right",
+    "drive-pod-8": "right", "drive-pod-6": "right", "drive-pod-4": "right",
+    "nozzle-ribbed": "top", "nozzle": "top", "nozzle-short": "top", "nozzle-wide": "top", "nozzle-large": "bottom",
 }
 # Pieces drawn a little larger than their footprint, whose heavy outline
 # would otherwise lie over the room's walls: shrunk to sit just inside.

@@ -634,6 +634,169 @@
   "source": "CustomTiles/Symbols/Engineering/Engineering 111 [45x70].png"
  },
  {
+  "id": "drive-pod-8",
+  "name": "Drive pod, 8 tons",
+  "category": "engineering",
+  "file": "floorplan/symbols/drive-pod-8.png",
+  "feet": [
+   21,
+   36
+  ],
+  "squares": [
+   5,
+   7
+  ],
+  "pixels": [
+   254,
+   426
+  ],
+  "source": "AdventureClass/08.3 AO Add-on Geomorphs/AO-001 [Port] [50x50] [8-dTons] Engineering.png",
+  "align": "right"
+ },
+ {
+  "id": "drive-pod-6",
+  "name": "Drive pod, 6 tons",
+  "category": "engineering",
+  "file": "floorplan/symbols/drive-pod-6.png",
+  "feet": [
+   26,
+   21
+  ],
+  "squares": [
+   5,
+   5
+  ],
+  "pixels": [
+   306,
+   252
+  ],
+  "source": "AdventureClass/08.3 AO Add-on Geomorphs/AO-002 [Port] [50x50] [6-dTons] Engineering.png",
+  "align": "right"
+ },
+ {
+  "id": "drive-pod-4",
+  "name": "Drive pod, 4 tons",
+  "category": "engineering",
+  "file": "floorplan/symbols/drive-pod-4.png",
+  "feet": [
+   16,
+   19
+  ],
+  "squares": [
+   3,
+   4
+  ],
+  "pixels": [
+   186,
+   223
+  ],
+  "source": "AdventureClass/08.3 AO Add-on Geomorphs/AO-003 [Port] [50x50] [4-dTons] Engineering.png",
+  "align": "right"
+ },
+ {
+  "id": "nozzle-ribbed",
+  "name": "Thruster nozzle, ribbed",
+  "category": "engineering",
+  "file": "floorplan/symbols/nozzle-ribbed.png",
+  "feet": [
+   6,
+   4
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   76,
+   52
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 046 [4x6].png",
+  "fit": true,
+  "align": "top"
+ },
+ {
+  "id": "nozzle",
+  "name": "Thruster nozzle",
+  "category": "engineering",
+  "file": "floorplan/symbols/nozzle.png",
+  "feet": [
+   6,
+   4
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   76,
+   52
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 052 [4x6].png",
+  "fit": true,
+  "align": "top"
+ },
+ {
+  "id": "nozzle-short",
+  "name": "Thruster nozzle, short",
+  "category": "engineering",
+  "file": "floorplan/symbols/nozzle-short.png",
+  "feet": [
+   6,
+   4
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   76,
+   52
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 059 [4x6].png",
+  "fit": true,
+  "align": "top"
+ },
+ {
+  "id": "nozzle-wide",
+  "name": "Thruster nozzle, wide",
+  "category": "engineering",
+  "file": "floorplan/symbols/nozzle-wide.png",
+  "feet": [
+   10,
+   4
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   118,
+   46
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 062 [4x10].png",
+  "align": "top"
+ },
+ {
+  "id": "nozzle-large",
+  "name": "Thruster bell, large",
+  "category": "engineering",
+  "file": "floorplan/symbols/nozzle-large.png",
+  "feet": [
+   17,
+   13
+  ],
+  "squares": [
+   4,
+   3
+  ],
+  "pixels": [
+   200,
+   161
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 238 [13x17].png",
+  "align": "bottom"
+ },
+ {
   "id": "stateroom-1",
   "name": "Stateroom",
   "category": "rooms",

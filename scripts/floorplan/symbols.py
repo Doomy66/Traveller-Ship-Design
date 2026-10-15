@@ -83,7 +83,6 @@ PICKS = [
     ("nozzle", "Thruster nozzle", "engineering", SYM + "Machinery/Machinery 052 [4x6].png", {"trim": None, "squares": [1, 1], "fit": True}),
     ("nozzle-short", "Thruster nozzle, short", "engineering", SYM + "Machinery/Machinery 059 [4x6].png", {"trim": None, "squares": [1, 1], "fit": True}),
     ("nozzle-wide", "Thruster nozzle, wide", "engineering", SYM + "Machinery/Machinery 062 [4x10].png", {"trim": None, "measure": True}),
-    ("nozzle-large", "Thruster bell, large", "engineering", SYM + "Machinery/Machinery 238 [13x17].png", {"trim": None, "measure": True}),
 
     ("stateroom-1", "Stateroom", "rooms", SYM + "Staterooms/Stateroom 015 [10x15].png"),
     ("stateroom-2", "Stateroom, alternative", "rooms", SYM + "Staterooms/Stateroom 016 [10x15].png"),
@@ -278,7 +277,7 @@ ALIGN = {
     "sheet-bunks": "top-left", "sheet-booth": "top-left",
     "fixed-gun": "left", "fixed-gun-2": "left", "fixed-gun-dome": "bottom", "fixed-gun-heavy": "bottom", "mining-laser": "right",
     "drive-pod-8": "right", "drive-pod-6": "right", "drive-pod-4": "right",
-    "nozzle-ribbed": "top", "nozzle": "top", "nozzle-short": "top", "nozzle-wide": "top", "nozzle-large": "bottom",
+    "nozzle-ribbed": "top", "nozzle": "top", "nozzle-short": "top", "nozzle-wide": "top",
 }
 # Pieces drawn a little larger than their footprint, whose heavy outline
 # would otherwise lie over the room's walls: shrunk to sit just inside.

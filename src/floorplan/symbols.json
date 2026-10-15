@@ -777,26 +777,6 @@
   "align": "top"
  },
  {
-  "id": "nozzle-large",
-  "name": "Thruster bell, large",
-  "category": "engineering",
-  "file": "floorplan/symbols/nozzle-large.png",
-  "feet": [
-   17,
-   13
-  ],
-  "squares": [
-   4,
-   3
-  ],
-  "pixels": [
-   200,
-   161
-  ],
-  "source": "CustomTiles/Symbols/Machinery/Machinery 238 [13x17].png",
-  "align": "bottom"
- },
- {
   "id": "stateroom-1",
   "name": "Stateroom",
   "category": "rooms",

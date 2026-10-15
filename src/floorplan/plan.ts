@@ -320,6 +320,15 @@ export function removeGroup(plan: FloorPlan, deck: number, group: Group): FloorP
   };
 }
 
+/**
+ * The plan without its pieces, as drawn when they are hidden: no library
+ * pieces and no geomorph tiles, while doors, walls, openings and the lifts,
+ * hatches and stairs between decks stay. FP 10.4.1.
+ */
+export function withoutPieces(plan: FloorPlan): FloorPlan {
+  return { ...plan, fixtures: plan.fixtures.filter((f) => "edge" in f || f.kind !== "symbol"), tiles: [] };
+}
+
 /** Replace the fixture at an index, as moving or turning it does. */
 export function replaceFixture(plan: FloorPlan, at: number, fixture: Fixture): FloorPlan {
   return { ...plan, fixtures: plan.fixtures.map((f, i) => (i === at ? fixture : f)) };

@@ -25,6 +25,7 @@ import { emptyPlan, readPlan, remember } from "./floorplan/plan";
 import type { FloorPlanHost, FloorPlanView } from "./floorplan/view";
 import { renderFloorPlan } from "./floorplan/view";
 import { printPages } from "./floorplan/export";
+import { withoutPieces } from "./floorplan/plan";
 import { APP_VERSION, HELP, RELEASE_NOTES, suggestionLink } from "./version";
 
 /** A bare hull to start from: the smallest thing the rules will price. */
@@ -320,7 +321,7 @@ function wire(): void {
   // floor plan's Names or Numbers switch.
   find("#print").addEventListener("click", async () => {
     drawSheet();
-    const pages = design.floorPlan === undefined ? undefined : await printPages(currentManifest(), currentPlan(), planView?.labels() ?? "names");
+    const pages = design.floorPlan === undefined ? undefined : await printPages(currentManifest(), planView?.piecesShown() === false ? withoutPieces(currentPlan()) : currentPlan(), planView?.labels() ?? "names");
     if (pages !== undefined) {
       document.body.append(pages);
       document.body.classList.add("print-with-plan");

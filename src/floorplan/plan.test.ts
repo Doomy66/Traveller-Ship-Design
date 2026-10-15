@@ -25,6 +25,7 @@ import {
   removeGroup,
   shiftDeck,
   turnSquares,
+  withoutPieces,
 } from "./plan";
 
 /** A small ship to plan: 20 tons, so a 40-square plan, two staterooms. */
@@ -441,5 +442,20 @@ describe("what the whole ship's total leaves out", () => {
     const marked = { ...SHIP, components: [...SHIP.components, { key: "weapon:0", label: "Fixed Mount (Pulse Laser)", group: "weapons" as const, tons: 0, target: 0, count: 1, rooms: 1, required: false }] };
     const plan = block(block(emptyPlan(), "jump", 0, 0, 4, 1), "weapon:0", 5, 0, 5, 1);
     expect(check(marked, plan).total).toBe(10);
+  });
+});
+
+describe("hiding pieces", () => {
+  it("leaves out library pieces and tiles, and keeps doors, walls and lifts", () => {
+    let plan = block(emptyPlan(), "jump", 0, 0, 2, 1);
+    plan = placeFixture(plan, { kind: "symbol", deck: 0, x: 0, y: 0, rotation: 0, symbol: "sheet-toilet" });
+    plan = placeFixture(plan, { kind: "lift", deck: 0, x: 2, y: 0, rotation: 0 });
+    plan = placeFixture(plan, { kind: "door", deck: 0, x: 0, y: 2, edge: "n" });
+    plan = placeFixture(plan, { kind: "wall", deck: 0, x: 1, y: 0, edge: "w", length: 2 });
+    plan = { ...plan, tiles: [{ deck: 0, x: 0, y: 0, rotation: 0, tile: "sc-001", squares: [6, 20], pixels: [600, 1440], code: "SC-001" }] };
+    const bare = withoutPieces(plan);
+    expect(bare.fixtures.map((f) => f.kind)).toEqual(["lift", "door", "wall"]);
+    expect(bare.tiles).toEqual([]);
+    expect(bare.decks).toBe(plan.decks);
   });
 });

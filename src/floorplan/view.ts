@@ -46,6 +46,7 @@ import {
   shiftDeck,
   tiledSquares,
   tileFootprint,
+  withoutPieces,
   area,
   CELL,
   cellOf,
@@ -104,6 +105,8 @@ export interface FloorPlanView {
   key(event: KeyboardEvent): boolean;
   /** How rooms are labelled just now, which printing follows. */
   labels(): LabelMode;
+  /** Whether pieces are shown just now, which printing follows too. FP 10.4.1. */
+  piecesShown(): boolean;
 }
 
 type Tool =
@@ -192,6 +195,8 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   let tool: Tool = { kind: "move" };
   let rotation: Rotation = 0;
   let labels: LabelMode = "names";
+  /** Whether library pieces and tiles are drawn. Hidden, they can be neither seen nor picked up. FP 10.4.1. */
+  let piecesShown = true;
   /** Whether the next piece placed is mirrored. FP 7.1.2. */
   let flipped = false;
   let tileCategory = "";
@@ -245,6 +250,8 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   // ----------------------------------------------------------------- helpers
 
   const plan = () => host.plan;
+  /** The plan as drawn: with its pieces, or without them when they are hidden. */
+  const drawn = () => (piecesShown ? host.plan : withoutPieces(host.plan));
   const components = () => host.manifest.components;
   const look = () => looksFor(components(), plan(), labels);
 
@@ -464,12 +471,26 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
         button("Numbers", () => setLabels("numbers"), { class: `fp-tool${labels === "numbers" ? " on" : ""}`, title: "Number rooms, as a finished plan is, with a key on export" }),
         button("Off", () => setLabels("off"), { class: `fp-tool${labels === "off" ? " on" : ""}`, title: "No room labels, on screen, in exports or in print" }),
       ]),
+      el("h3", { class: "fp-group" }, ["Pieces"]),
+      el("div", { class: "fp-toolrow fp-seg" }, [
+        button("Show", () => setPieces(true), { class: `fp-tool${piecesShown ? " on" : ""}`, title: "Draw the furniture, fittings and tiles" }),
+        button("Hide", () => setPieces(false), { class: `fp-tool${piecesShown ? "" : " on"}`, title: "Leave out the furniture, fittings and tiles, on screen, in exports and in print; doors, walls and lifts stay" }),
+      ]),
     ]);
     const browse = el("div", { class: "fp-browse" });
     fillLibrary(browse);
     fillTiles(browse);
     right.replaceChildren(tools, browse);
     browse.scrollTop = scroll;
+  }
+
+  function setPieces(show: boolean): void {
+    piecesShown = show;
+    if (!show && (selection?.type === "tile" || selection?.type === "group" || (selection?.type === "fixture" && plan().fixtures[selection.index]?.kind === "symbol"))) {
+      selection = undefined;
+    }
+    drawRight();
+    drawCanvas();
   }
 
   function setLabels(mode: LabelMode): void {
@@ -723,8 +744,8 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
         button("−", () => zoom(1 / 1.25), { class: "fp-small", title: "Zoom out" }),
         button("+", () => zoom(1.25), { class: "fp-small", title: "Zoom in" }),
         button("Fit", fit, { class: "fp-small", title: "Fit the plan to the window" }),
-        button("SVG", () => void exportSvg(host.manifest, plan(), deck, labels), { class: "fp-small", title: "Save this deck as an SVG drawing" }),
-        button("PNG", () => void exportPng(host.manifest, plan(), deck, labels), { class: "fp-small", title: "Save this deck as a PNG image" }),
+        button("SVG", () => void exportSvg(host.manifest, drawn(), deck, labels), { class: "fp-small", title: "Save this deck as an SVG drawing" }),
+        button("PNG", () => void exportPng(host.manifest, drawn(), deck, labels), { class: "fp-small", title: "Save this deck as a PNG image" }),
       ]),
     );
   }
@@ -769,12 +790,12 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     placeViewBox();
     const under = overlayDeck();
     const below = under === undefined ? undefined : plan().decks[under];
-    const tiled = tiledSquares(plan(), deck);
+    const tiled = tiledSquares(drawn(), deck);
     layers.overlay.innerHTML = below === undefined ? "" : overlayMarkup(below, SCREEN);
     layers.floors.innerHTML = floorsMarkup(d, looks, SCREEN) + roomGridMarkup(d, SCREEN);
-    layers.tiles.innerHTML = tilesMarkup(plan(), deck, SCREEN, tileHref);
+    layers.tiles.innerHTML = tilesMarkup(drawn(), deck, SCREEN, tileHref);
     layers.walls.innerHTML = wallsMarkup(d, SCREEN, 0.1, "", tiled, openings(plan(), deck));
-    layers.fixtures.innerHTML = fixturesMarkup(plan(), deck, SCREEN, symbolHref);
+    layers.fixtures.innerHTML = fixturesMarkup(drawn(), deck, SCREEN, symbolHref);
     layers.labels.innerHTML = labelsMarkup(d, looks, SCREEN);
     layers.marks.innerHTML = under === undefined ? "" : unmatchedAccessMarkup(plan(), deck, under, SCREEN);
     readMissingTiles();
@@ -853,7 +874,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     const fixtures = plan().fixtures;
     for (let i = fixtures.length - 1; i >= 0; i--) {
       const f = fixtures[i]!;
-      if (f.deck !== deck || "edge" in f) continue;
+      if (f.deck !== deck || "edge" in f || (!piecesShown && f.kind === "symbol")) continue;
       const [w, h] = fixtureSize(f);
       if (x >= f.x && x < f.x + w && y >= f.y && y < f.y + h) return i;
     }
@@ -875,6 +896,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
 
   /** The topmost tile on this deck under a point, if any. */
   function tileAt(x: number, y: number): number | undefined {
+    if (!piecesShown) return undefined;
     const tiles = plan().tiles;
     for (let i = tiles.length - 1; i >= 0; i--) {
       const t = tiles[i]!;
@@ -929,7 +951,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     }
     const fixtures: number[] = [];
     for (const [i, f] of plan().fixtures.entries()) {
-      if (f.deck !== deck) continue;
+      if (f.deck !== deck || (!piecesShown && !("edge" in f) && f.kind === "symbol")) continue;
       if ("edge" in f) {
         const len = f.length ?? 1;
         if (f.edge === "n" ? inside(f.x + len / 2, f.y) : inside(f.x, f.y + len / 2)) fixtures.push(i);
@@ -941,7 +963,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     const tiles: number[] = [];
     for (const [i, t] of plan().tiles.entries()) {
       const [w, h] = tileFootprint(t);
-      if (t.deck === deck && inside(t.x + w / 2, t.y + h / 2)) tiles.push(i);
+      if (piecesShown && t.deck === deck && inside(t.x + w / 2, t.y + h / 2)) tiles.push(i);
     }
     return { squares, fixtures, tiles };
   }
@@ -1561,6 +1583,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     refresh: draw,
     fit,
     labels: () => labels,
+    piecesShown: () => piecesShown,
     key(event) {
       const target = event.target as HTMLElement | null;
       if (target !== null && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT")) return false;

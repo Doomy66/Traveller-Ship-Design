@@ -169,6 +169,8 @@ Built through FP6 on 2026-10-11. Section 11 lists what was settled by default an
 
 10.4 **The right** holds everything else: the Move tool, Corridor and Erase, Undo and Redo; doors, iris valves, openings and walls for walls; lifts, iris valves, hatches and stairs between decks; Turn and Flip; the room labels switch, names, numbers or off; and below them the library (FP 7.7) and, at its foot, the geomorph folder (FP 12). A piece is placed with a click, and turned with R or flipped with F before or after.
 
+10.4.1 **Pieces shown or hidden.** Beside the room labels, Show and Hide put the library pieces and geomorph tiles on the plan or leave them off, on screen, in exports and in print. Doors, walls put in, openings, and the lifts, hatches and stairs between decks stay, since they are the layout rather than its furniture. Hidden pieces cannot be picked up, by a click or a box, so nothing unseen is moved or deleted.
+
 10.5 Problems from `check` sit above the deck, as the sheet's do on the design screen.
 
 10.6 **Getting it out.** Each deck exports as SVG, with the symbols it uses embedded so the file stands alone, or as PNG at the symbols' own 60 pixels to the square, smaller for a ship that would pass 8,000 pixels a side. Exports use paper colours. Every deck of a ship is framed by the bounds of all of them, so exported decks line up laid over each other. Print, from either screen, gives the design's sheet the first page and every deck that has anything on it a page after, labelled by name or number as the switch is set.

@@ -739,18 +739,18 @@
   "category": "engineering",
   "file": "floorplan/symbols/machinery-3.png",
   "feet": [
-   4,
-   3
+   8,
+   4
   ],
   "squares": [
-   1,
+   2,
    1
   ],
   "pixels": [
-   50,
-   39
+   91,
+   52
   ],
-  "source": "CustomTiles/Symbols/Machinery/Machinery 017 [3x4].png",
+  "source": "CustomTiles/Symbols/Machinery/Machinery 014 [4x8].png",
   "fit": "inside"
  },
  {
@@ -759,18 +759,18 @@
   "category": "engineering",
   "file": "floorplan/symbols/machinery-4.png",
   "feet": [
-   5,
-   4
+   7,
+   5
   ],
   "squares": [
-   1,
+   2,
    1
   ],
   "pixels": [
-   57,
-   51
+   82,
+   57
   ],
-  "source": "CustomTiles/Symbols/Machinery/Machinery 018 [4x5].png",
+  "source": "CustomTiles/Symbols/Machinery/Machinery 015 [5x7].png",
   "fit": "inside"
  },
  {
@@ -779,18 +779,18 @@
   "category": "engineering",
   "file": "floorplan/symbols/machinery-5.png",
   "feet": [
-   5,
-   5
+   8,
+   8
   ],
   "squares": [
-   1,
-   1
+   2,
+   2
   ],
   "pixels": [
-   64,
-   57
+   100,
+   100
   ],
-  "source": "CustomTiles/Symbols/Machinery/Machinery 021 [5x5].png",
+  "source": "CustomTiles/Symbols/Machinery/Machinery 075 [8x8].png",
   "fit": "inside"
  },
  {
@@ -799,18 +799,258 @@
   "category": "engineering",
   "file": "floorplan/symbols/machinery-6.png",
   "feet": [
-   5,
-   6
+   8,
+   8
   ],
   "squares": [
-   1,
+   2,
+   2
+  ],
+  "pixels": [
+   100,
+   100
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 086 [8x8].png",
+  "fit": "inside"
+ },
+ {
+  "id": "machinery-7",
+  "name": "Machinery 7",
+  "category": "engineering",
+  "file": "floorplan/symbols/machinery-7.png",
+  "feet": [
+   8,
+   8
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   100,
+   100
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 097 [8x8].png",
+  "fit": "inside"
+ },
+ {
+  "id": "machinery-8",
+  "name": "Machinery 8",
+  "category": "engineering",
+  "file": "floorplan/symbols/machinery-8.png",
+  "feet": [
+   10,
+   4
+  ],
+  "squares": [
+   2,
    1
   ],
   "pixels": [
-   64,
-   74
+   116,
+   51
   ],
-  "source": "CustomTiles/Symbols/Machinery/Machinery 352 [5x6].png",
+  "source": "CustomTiles/Symbols/Machinery/Machinery 008 [4x10].png",
+  "fit": "inside"
+ },
+ {
+  "id": "machinery-9",
+  "name": "Machinery 9",
+  "category": "engineering",
+  "file": "floorplan/symbols/machinery-9.png",
+  "feet": [
+   9,
+   4
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   104,
+   50
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 022 [4x9].png",
+  "fit": "inside"
+ },
+ {
+  "id": "machinery-10",
+  "name": "Machinery 10",
+  "category": "engineering",
+  "file": "floorplan/symbols/machinery-10.png",
+  "feet": [
+   9,
+   4
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   106,
+   51
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 023 [4x9].png",
+  "fit": "inside"
+ },
+ {
+  "id": "machinery-11",
+  "name": "Machinery 11",
+  "category": "engineering",
+  "file": "floorplan/symbols/machinery-11.png",
+  "feet": [
+   9,
+   4
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   106,
+   51
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 024 [4x9].png",
+  "fit": "inside"
+ },
+ {
+  "id": "machinery-12",
+  "name": "Machinery 12",
+  "category": "engineering",
+  "file": "floorplan/symbols/machinery-12.png",
+  "feet": [
+   9,
+   4
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   110,
+   52
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 025 [4x9].png",
+  "fit": "inside"
+ },
+ {
+  "id": "machinery-13",
+  "name": "Machinery 13",
+  "category": "engineering",
+  "file": "floorplan/symbols/machinery-13.png",
+  "feet": [
+   9,
+   5
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   112,
+   64
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 026 [5x9].png",
+  "fit": "inside"
+ },
+ {
+  "id": "machinery-14",
+  "name": "Machinery 14",
+  "category": "engineering",
+  "file": "floorplan/symbols/machinery-14.png",
+  "feet": [
+   9,
+   4
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   111,
+   52
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 027 [4x9].png",
+  "fit": "inside"
+ },
+ {
+  "id": "machinery-15",
+  "name": "Machinery 15",
+  "category": "engineering",
+  "file": "floorplan/symbols/machinery-15.png",
+  "feet": [
+   10,
+   5
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   123,
+   57
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 028 [5x10].png",
+  "fit": "inside"
+ },
+ {
+  "id": "machinery-16",
+  "name": "Machinery 16",
+  "category": "engineering",
+  "file": "floorplan/symbols/machinery-16.png",
+  "feet": [
+   9,
+   6
+  ],
+  "squares": [
+   2,
+   2
+  ],
+  "pixels": [
+   106,
+   76
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 040 [6x9].png",
+  "fit": "inside"
+ },
+ {
+  "id": "battery-tall",
+  "name": "Batteries, tall",
+  "category": "engineering",
+  "file": "floorplan/symbols/battery-tall.png",
+  "feet": [
+   4,
+   8
+  ],
+  "squares": [
+   1,
+   2
+  ],
+  "pixels": [
+   54,
+   101
+  ],
+  "source": "CustomTiles/Symbols/Battery/Battery 007 [5x8].png",
+  "fit": "inside"
+ },
+ {
+  "id": "battery-slim",
+  "name": "Batteries, slim",
+  "category": "engineering",
+  "file": "floorplan/symbols/battery-slim.png",
+  "feet": [
+   9,
+   3
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   103,
+   37
+  ],
+  "source": "CustomTiles/Symbols/Battery/Battery 005 [3x9].png",
   "fit": "inside"
  },
  {

@@ -694,6 +694,126 @@
   "align": "right"
  },
  {
+  "id": "machinery-1",
+  "name": "Machinery 1",
+  "category": "engineering",
+  "file": "floorplan/symbols/machinery-1.png",
+  "feet": [
+   6,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   66,
+   55
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 012 [5x6].png",
+  "fit": "inside"
+ },
+ {
+  "id": "machinery-2",
+  "name": "Machinery 2",
+  "category": "engineering",
+  "file": "floorplan/symbols/machinery-2.png",
+  "feet": [
+   4,
+   4
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   52,
+   52
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 016 [4x4].png",
+  "fit": "inside"
+ },
+ {
+  "id": "machinery-3",
+  "name": "Machinery 3",
+  "category": "engineering",
+  "file": "floorplan/symbols/machinery-3.png",
+  "feet": [
+   4,
+   3
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   50,
+   39
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 017 [3x4].png",
+  "fit": "inside"
+ },
+ {
+  "id": "machinery-4",
+  "name": "Machinery 4",
+  "category": "engineering",
+  "file": "floorplan/symbols/machinery-4.png",
+  "feet": [
+   5,
+   4
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   57,
+   51
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 018 [4x5].png",
+  "fit": "inside"
+ },
+ {
+  "id": "machinery-5",
+  "name": "Machinery 5",
+  "category": "engineering",
+  "file": "floorplan/symbols/machinery-5.png",
+  "feet": [
+   5,
+   5
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   64,
+   57
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 021 [5x5].png",
+  "fit": "inside"
+ },
+ {
+  "id": "machinery-6",
+  "name": "Machinery 6",
+  "category": "engineering",
+  "file": "floorplan/symbols/machinery-6.png",
+  "feet": [
+   5,
+   6
+  ],
+  "squares": [
+   1,
+   1
+  ],
+  "pixels": [
+   64,
+   74
+  ],
+  "source": "CustomTiles/Symbols/Machinery/Machinery 352 [5x6].png",
+  "fit": "inside"
+ },
+ {
   "id": "nozzle-ribbed",
   "name": "Thruster nozzle, ribbed",
   "category": "engineering",

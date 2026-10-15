@@ -77,6 +77,13 @@ PICKS = [
     ("drive-pod-8", "Drive pod, 8 tons", "engineering", AO + "AO-001 [Port] [50x50] [8-dTons] Engineering.png", {"trim": None, "measure": True}),
     ("drive-pod-6", "Drive pod, 6 tons", "engineering", AO + "AO-002 [Port] [50x50] [6-dTons] Engineering.png", {"trim": None, "measure": True}),
     ("drive-pod-4", "Drive pod, 4 tons", "engineering", AO + "AO-003 [Port] [50x50] [4-dTons] Engineering.png", {"trim": None, "measure": True}),
+    # Machinery a square in size, to fill out an engineering space.
+    ("machinery-1", "Machinery 1", "engineering", SYM + "Machinery/Machinery 012 [5x6].png", {"trim": None, "squares": [1, 1], "fit": "inside"}),
+    ("machinery-2", "Machinery 2", "engineering", SYM + "Machinery/Machinery 016 [4x4].png", {"trim": None, "squares": [1, 1], "fit": "inside"}),
+    ("machinery-3", "Machinery 3", "engineering", SYM + "Machinery/Machinery 017 [3x4].png", {"trim": None, "squares": [1, 1], "fit": "inside"}),
+    ("machinery-4", "Machinery 4", "engineering", SYM + "Machinery/Machinery 018 [4x5].png", {"trim": None, "squares": [1, 1], "fit": "inside"}),
+    ("machinery-5", "Machinery 5", "engineering", SYM + "Machinery/Machinery 021 [5x5].png", {"trim": None, "squares": [1, 1], "fit": "inside"}),
+    ("machinery-6", "Machinery 6", "engineering", SYM + "Machinery/Machinery 352 [5x6].png", {"trim": None, "squares": [1, 1], "fit": "inside"}),
     # Thruster nozzles, to stand out past the hull behind a manoeuvre drive,
     # set against the edge they join the drive by.
     ("nozzle-ribbed", "Thruster nozzle, ribbed", "engineering", SYM + "Machinery/Machinery 046 [4x6].png", {"trim": None, "squares": [1, 1], "fit": True}),

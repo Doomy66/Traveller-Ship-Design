@@ -49,7 +49,7 @@ export interface ShipSymbol {
    * in the middle: a small locker against the wall behind it, a bed with its
    * head to the wall.
    */
-  readonly align?: "top" | "left" | "top-left";
+  readonly align?: "top" | "bottom" | "left" | "right" | "top-left";
 }
 
 /** The symbols are drawn at this scale, the same as the geomorph tiles. */

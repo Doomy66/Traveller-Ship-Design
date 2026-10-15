@@ -380,6 +380,108 @@
   "source": "AdventureClass/09.3 DV Dorsal-Ventral Add-Ons/DV-009 [10x10] [2-dTons] Observation Dome.png"
  },
  {
+  "id": "fixed-gun",
+  "name": "Fixed mount, gun",
+  "category": "turrets",
+  "file": "floorplan/symbols/fixed-gun.png",
+  "feet": [
+   5,
+   10
+  ],
+  "squares": [
+   1,
+   2
+  ],
+  "pixels": [
+   56,
+   97
+  ],
+  "source": "CustomTiles/Symbols/Weaponry/Weaponry 007 [5x10].png",
+  "align": "left"
+ },
+ {
+  "id": "fixed-gun-2",
+  "name": "Fixed mount, gun, other hand",
+  "category": "turrets",
+  "file": "floorplan/symbols/fixed-gun-2.png",
+  "feet": [
+   5,
+   10
+  ],
+  "squares": [
+   1,
+   2
+  ],
+  "pixels": [
+   50,
+   103
+  ],
+  "source": "CustomTiles/Symbols/Weaponry/Weaponry 008 [5x10].png",
+  "align": "left"
+ },
+ {
+  "id": "fixed-gun-dome",
+  "name": "Fixed mount, gun on a dome",
+  "category": "turrets",
+  "file": "floorplan/symbols/fixed-gun-dome.png",
+  "feet": [
+   10,
+   5
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   142,
+   60
+  ],
+  "source": "CustomTiles/Symbols/Weaponry/Weaponry 014 [5x10].png",
+  "align": "bottom",
+  "fit": "inside"
+ },
+ {
+  "id": "fixed-gun-heavy",
+  "name": "Fixed mount, heavy gun",
+  "category": "turrets",
+  "file": "floorplan/symbols/fixed-gun-heavy.png",
+  "feet": [
+   15,
+   10
+  ],
+  "squares": [
+   3,
+   2
+  ],
+  "pixels": [
+   176,
+   88
+  ],
+  "source": "CustomTiles/Symbols/Weaponry/Weaponry 013 [5x10].png",
+  "align": "bottom"
+ },
+ {
+  "id": "mining-laser",
+  "name": "Mining laser",
+  "category": "turrets",
+  "file": "floorplan/symbols/mining-laser.png",
+  "feet": [
+   10,
+   5
+  ],
+  "squares": [
+   2,
+   1
+  ],
+  "pixels": [
+   131,
+   63
+  ],
+  "source": "CustomTiles/Symbols/Weaponry/Weaponry 017 [5x10].png",
+  "align": "right",
+  "fit": "inside"
+ },
+ {
   "id": "engineering-4",
   "name": "Engineering, 4 tons",
   "category": "engineering",

@@ -405,8 +405,18 @@ export function symbolMarkup(
   }
   // Against an edge it stands flush, or just clear of the wall if it is drawn inside.
   const clear = symbol.fit === "inside" ? WALL_CLEARANCE : 0;
-  const top = symbol.align === "top" || symbol.align === "top-left" ? cy - sh / 2 + clear : cy - h / 2;
-  const left = symbol.align === "left" || symbol.align === "top-left" ? cx - sw / 2 + clear : cx - w / 2;
+  const top =
+    symbol.align === "top" || symbol.align === "top-left"
+      ? cy - sh / 2 + clear
+      : symbol.align === "bottom"
+        ? cy + sh / 2 - h - clear
+        : cy - h / 2;
+  const left =
+    symbol.align === "left" || symbol.align === "top-left"
+      ? cx - sw / 2 + clear
+      : symbol.align === "right"
+        ? cx + sw / 2 - w - clear
+        : cx - w / 2;
   const filter = palette.symbolFilter === "none" ? "" : ` style="filter:${palette.symbolFilter}"`;
   return (
     `<image href="${esc(href(symbol.file))}" x="${n(left)}" y="${n(top)}" width="${n(w)}" height="${n(h)}"` +

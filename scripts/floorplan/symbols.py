@@ -53,6 +53,14 @@ PICKS = [
     ("barbette-torpedo", "Torpedo barbette", "turrets", DV + "DV-007 [20x15] [5-dTons] Torpedo Barbette.png"),
     ("barbette-railgun", "Railgun barbette", "turrets", DV + "DV-008 [30x15] [5-dTons] Railgun Barbette.png"),
     ("observation-dome", "Observation dome", "turrets", DV + "DV-009 [10x10] [2-dTons] Observation Dome.png"),
+    # Fixed mounts, which take no tonnage: drawn on the hull's edge to show where the guns are.
+    # Their drawings sit in one corner of a larger frame, so they are trimmed
+    # to the drawing; the mining laser's label is left behind.
+    ("fixed-gun", "Fixed mount, gun", "turrets", SYM + "Weaponry/Weaponry 007 [5x10].png", {"trim": None, "tall": True}),
+    ("fixed-gun-2", "Fixed mount, gun, other hand", "turrets", SYM + "Weaponry/Weaponry 008 [5x10].png", {"trim": None, "tall": True}),
+    ("fixed-gun-dome", "Fixed mount, gun on a dome", "turrets", SYM + "Weaponry/Weaponry 014 [5x10].png", {"trim": None}),
+    ("fixed-gun-heavy", "Fixed mount, heavy gun", "turrets", SYM + "Weaponry/Weaponry 013 [5x10].png", {"trim": None, "feet": [15, 10], "squares": [3, 2]}),
+    ("mining-laser", "Mining laser", "turrets", SYM + "Weaponry/Weaponry 017 [5x10].png", {"trim": (0, 0, 165, 120)}),
 
     ("engineering-4", "Engineering, 4 tons", "engineering", SYM + "Engineering/Engineering 010 [10x20].png"),
     ("engineering-8", "Engineering, 8 tons", "engineering", SYM + "Engineering/Engineering 028 [20x20].png"),
@@ -146,14 +154,25 @@ for old in os.listdir(DST):
 catalogue = []
 for ident, name, category, rel, *extra in PICKS:
     src = ROOT + rel
+    options = dict(extra[0]) if extra else {}
     a, b = map(int, re.search(r"\[(\d+)x(\d+)\]", rel).groups())
     w, h = size(src)
-    wide, high = (max(a, b), min(a, b)) if w >= h else (min(a, b), max(a, b))
+    tall = options.pop("tall", False)
+    wide, high = (max(a, b), min(a, b)) if w >= h and not tall else (min(a, b), max(a, b))
     # The drawing's white made clear, as the sheet's pieces are, so the floor's
     # colour shows through and nothing draws as a black block when the screen
     # inverts it.
     _, _, px = pngtools.read(src)
-    pngtools.write(DST + ident + ".png", [[(r, g, b, 0) if min(r, g, b) >= sheet.WHITE else (r, g, b, a) for r, g, b, a in row] for row in px])
+    px = [[(r, g, b, 0) if min(r, g, b) >= sheet.WHITE else (r, g, b, a) for r, g, b, a in row] for row in px]
+    if "trim" in options:
+        # To the drawing, within the part kept, a little clear all round.
+        keep = options.pop("trim") or (0, 0, w, h)
+        drawn = [(x, y) for y in range(keep[1], min(keep[3], h)) for x in range(keep[0], min(keep[2], w)) if px[y][x][3] > 20]
+        x0, x1 = max(0, min(x for x, _ in drawn) - sheet.PAD), min(w, max(x for x, _ in drawn) + sheet.PAD + 1)
+        y0, y1 = max(0, min(y for _, y in drawn) - sheet.PAD), min(h, max(y for _, y in drawn) + sheet.PAD + 1)
+        px = [row[x0:x1] for row in px[y0:y1]]
+        w, h = x1 - x0, y1 - y0
+    pngtools.write(DST + ident + ".png", px)
     catalogue.append({
         "id": ident,
         "name": name,
@@ -163,7 +182,7 @@ for ident, name, category, rel, *extra in PICKS:
         "squares": [max(1, math.ceil(wide / 5)), max(1, math.ceil(high / 5))],
         "pixels": [w, h],
         "source": rel,
-        **(extra[0] if extra else {}),
+        **options,
     })
 
 # The pieces cut from the Symbols & Abbreviations sheet, in the same library.
@@ -239,6 +258,7 @@ ALIGN = {
     "sheet-restraint-bed": "left", "bed": "left", "desk": "left", "desk-large": "left", "console": "left",
     "console-wide": "left",
     "sheet-bunks": "top-left", "sheet-booth": "top-left",
+    "fixed-gun": "left", "fixed-gun-2": "left", "fixed-gun-dome": "bottom", "fixed-gun-heavy": "bottom", "mining-laser": "right",
 }
 # Pieces drawn a little larger than their footprint, whose heavy outline
 # would otherwise lie over the room's walls: shrunk to sit just inside.
@@ -247,6 +267,7 @@ INSIDE = [
     "sheet-fresher", "sheet-shower", "sheet-shower-round", "sheet-panel-1", "sheet-panel-2", "sheet-panel-3",
     "sheet-desk-1", "sheet-desk-2", "sheet-gaming-round", "sheet-elevator-double", "sheet-stairs-down", "sheet-triple-bunks",
     "sheet-mini-stateroom", "sheet-manned-turret", "sheet-probe-tube", "sheet-repair-bench", "sheet-low-berth",
+    "fixed-gun-dome", "mining-laser",
 ]
 assert set(ALIGN) <= {e["id"] for e in catalogue}, set(ALIGN) - {e["id"] for e in catalogue}
 assert set(INSIDE) <= {e["id"] for e in catalogue}, set(INSIDE) - {e["id"] for e in catalogue}

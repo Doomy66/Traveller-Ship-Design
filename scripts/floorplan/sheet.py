@@ -89,7 +89,7 @@ ITEMS = [
     ("sheet-hatch-up", "Hatch, up", "access", (884, 935, 934, 982)),
     ("sheet-hatch-updown", "Hatch, up and down", "access", (884, 978, 935, 1025)),
 
-    ("sheet-missile-tube", "Missile launch tube", "turrets", (571, 1061, 639, 1195)),
+    ("sheet-missile-tube", "Missile launch tube", "turrets", (571, 1061, 639, 1195), {"despeck": True}),
     ("sheet-probe-tube", "Probe launch tube", "turrets", (751, 1065, 819, 1195)),
     ("sheet-manned-turret", "Manned turret", "turrets", (956, 1058, 1094, 1179)),
 
@@ -135,12 +135,46 @@ def cut(pixels, box):
     return out
 
 
+def despeck(piece, largest=200):
+    """Drop scraps of a neighbour caught at the cut's edge: drawn pieces of no
+    more than this many pixels that touch the border. The drawing itself is
+    one large piece, or a few."""
+    h, w = len(piece), len(piece[0])
+    seen = [[False] * w for _ in range(h)]
+    for sy in range(h):
+        for sx in range(w):
+            if seen[sy][sx] or piece[sy][sx][3] == 0:
+                continue
+            part, stack = [], [(sx, sy)]
+            seen[sy][sx] = True
+            while stack:
+                x, y = stack.pop()
+                part.append((x, y))
+                for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1), (x + 1, y + 1), (x - 1, y - 1), (x + 1, y - 1), (x - 1, y + 1)):
+                    if 0 <= nx < w and 0 <= ny < h and not seen[ny][nx] and piece[ny][nx][3] > 0:
+                        seen[ny][nx] = True
+                        stack.append((nx, ny))
+            edge = any(x in (0, 1, w - 2, w - 1) or y in (0, 1, h - 2, h - 1) for x, y in part)
+            if edge and len(part) <= largest:
+                for x, y in part:
+                    r, g, b, _ = piece[y][x]
+                    piece[y][x] = (r, g, b, 0)
+    # Tighten again round what is left.
+    drawn = [(x, y) for y in range(h) for x in range(w) if piece[y][x][3] > 0]
+    left, right = max(0, min(x for x, _ in drawn) - PAD), min(w, max(x for x, _ in drawn) + PAD + 1)
+    top, bottom = max(0, min(y for _, y in drawn) - PAD), min(h, max(y for _, y in drawn) + PAD + 1)
+    return [row[left:right] for row in piece[top:bottom]]
+
+
 def extract(dst):
     """Write every piece to dst as <id>.png and return their catalogue entries."""
     _, _, pixels = pngtools.read(SHEET)
     entries = []
     for ident, name, category, box, *extra in ITEMS:
+        options = dict(extra[0]) if extra else {}
         piece = cut(pixels, box)
+        if options.pop("despeck", False):
+            piece = despeck(piece)
         h, w = len(piece), len(piece[0])
         pngtools.write(os.path.join(dst, ident + ".png"), piece)
         entries.append({
@@ -152,7 +186,7 @@ def extract(dst):
             "squares": [max(1, math.ceil(w / 60 - 0.15)), max(1, math.ceil(h / 60 - 0.15))],
             "pixels": [w, h],
             "source": f"Geomorphs/Symbols & Abbreviations.png {box}",
-            **(extra[0] if extra else {}),
+            **options,
         })
     return entries
 

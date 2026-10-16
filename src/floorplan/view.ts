@@ -33,6 +33,7 @@ import {
   parseCell,
   moveSquares,
   moveSquaresToDeck,
+  moveGroupToDeck,
   removeGroup,
   turnSquares,
   openings,
@@ -467,7 +468,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       tool.kind === "access" && tool.access === access && (tool.symbol ?? ACCESS_SYMBOLS[access]) === (symbol ?? ACCESS_SYMBOLS[access]);
     const tools = el("div", { class: "fp-tools" }, [
       el("div", { class: "fp-toolrow" }, [
-        toolButton("Move", { kind: "move" }, "Select and drag tiles, fittings, doors and rooms; Shift+drag picks up everything in a box. R turns, Delete removes, the arrow keys nudge.", tool.kind === "move"),
+        toolButton("Move", { kind: "move" }, "Select and drag tiles, fittings, doors and rooms; Shift+drag picks up everything in a box, Ctrl+click adds to the selection or takes out. R turns, Delete removes, the arrow keys nudge.", tool.kind === "move"),
         toolButton("Corridor", { kind: "corridor" }, "Paint corridor and access space, which belongs to no component", tool.kind === "corridor"),
         toolButton("Erase", { kind: "erase" }, "Clear squares; Shift+drag clears a box, pieces and all", tool.kind === "erase"),
       ]),
@@ -732,7 +733,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     for (const [at, d] of plan().decks.entries()) if (at !== deck) sendPick.append(new Option(`To ${d.name}`, String(at)));
     sendPick.append(new Option("To a new deck", "new"));
     sendPick.value = "";
-    sendPick.disabled = selection?.type !== "region";
+    sendPick.disabled = selection?.type !== "region" && selection?.type !== "group";
 
     const shift = (dx: number, dy: number, label: string, title: string) =>
       button(label, () => commit(shiftDeck(plan(), deck, dx, dy)), { class: "fp-small", title });
@@ -998,6 +999,43 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     return { squares, fixtures, tiles };
   }
 
+  /** A selection as a group, whatever it was. */
+  function asGroup(sel: Selection | undefined): Group {
+    if (sel === undefined) return { squares: [], fixtures: [], tiles: [] };
+    if (sel.type === "group") return sel;
+    if (sel.type === "region") return { squares: sel.squares, fixtures: [], tiles: [] };
+    if (sel.type === "fixture") return { squares: [], fixtures: [sel.index], tiles: [] };
+    return { squares: [], fixtures: [], tiles: [sel.index] };
+  }
+
+  /** A selection with one thing added, or taken out if it was in it. */
+  function toggled(sel: Selection | undefined, item: Selection | undefined): Selection | undefined {
+    if (item === undefined) return sel;
+    const group = asGroup(sel);
+    const add = asGroup(item);
+    const has = (list: readonly number[], i: number) => list.includes(i);
+    const key = ([x, y]: readonly [number, number]) => `${x},${y}`;
+    const inside = new Set(group.squares.map(key));
+    const already =
+      (add.squares.length > 0 && add.squares.every((c) => inside.has(key(c)))) ||
+      add.fixtures.some((i) => has(group.fixtures, i)) ||
+      add.tiles.some((i) => has(group.tiles, i));
+    const out = new Set(add.squares.map(key));
+    const next: Group = already
+      ? {
+          squares: group.squares.filter((c) => !out.has(key(c))),
+          fixtures: group.fixtures.filter((i) => !has(add.fixtures, i)),
+          tiles: group.tiles.filter((i) => !has(add.tiles, i)),
+        }
+      : {
+          squares: [...group.squares, ...add.squares.filter((c) => !inside.has(key(c)))],
+          fixtures: [...group.fixtures, ...add.fixtures.filter((i) => !has(group.fixtures, i))],
+          tiles: [...group.tiles, ...add.tiles.filter((i) => !has(group.tiles, i))],
+        };
+    const count = next.squares.length + next.fixtures.length + next.tiles.length;
+    return count === 0 ? undefined : { type: "group", ...next };
+  }
+
   /** Whether a point is on something in a group, so a drag there moves the group. */
   function inGroup(group: Group, p: Point): boolean {
     if (group.squares.some(([x, y]) => x === p.x && y === p.y)) return true;
@@ -1048,7 +1086,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
 
   function drawSelection(): void {
     layers.selection.innerHTML = selection === undefined ? "" : selectionMarkup(selection, drag?.dx ?? 0, drag?.dy ?? 0, SCREEN.fixture);
-    sendPick.disabled = selection?.type !== "region";
+    sendPick.disabled = selection?.type !== "region" && selection?.type !== "group";
   }
 
   /**
@@ -1057,10 +1095,17 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
    */
   function sendRoom(to: number | "new"): void {
     const sel = selection;
-    if (sel?.type !== "region") return;
+    if (sel?.type !== "region" && sel?.type !== "group") return;
     let next = plan();
     const target = to === "new" ? next.decks.length : to;
     if (to === "new") next = addDeck(next);
+    if (sel.type === "group") {
+      const moved = moveGroupToDeck(next, deck, sel, target);
+      if (moved === undefined) return;
+      deck = target;
+      commit(moved.plan, { type: "group", ...moved.group });
+      return;
+    }
     const done = moveSquaresToDeck(next, deck, sel.squares, target);
     if (done === undefined) return;
     deck = target;
@@ -1198,7 +1243,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     const what = owner === undefined ? "empty" : owner === CORRIDOR ? "corridor" : looksFor(components(), plan())(owner).label;
     const hint =
       tool.kind === "move"
-        ? "Drag a tile, fitting, door or room to move it by half squares; R turns and F flips a tile, fitting or room, Delete removes, the arrows nudge. Shift+drag picks up everything in a box."
+        ? "Drag a tile, fitting, door or room to move it by half squares; R turns and F flips a tile, fitting or room, Delete removes, the arrows nudge. Shift+drag picks up everything in a box, Ctrl+click adds or takes out."
         : tool.kind === "paint" || tool.kind === "corridor" || tool.kind === "erase"
           ? tool.kind === "erase" ? "Drag to clear, Shift+drag to clear a box of floor and pieces alike." : "Drag to paint, Shift+drag for a rectangle."
           : tool.kind === "edge"
@@ -1234,6 +1279,14 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       if (event.shiftKey) {
         marquee = { from: [p.px, p.py], to: [p.px, p.py] };
         drawPreview();
+        return;
+      }
+      // Ctrl and a click adds what is under the pointer to the selection, or
+      // takes it out if it is in already. FP 10.9.1.
+      if (event.ctrlKey || event.metaKey) {
+        selection = toggled(selection, pickAt(p));
+        drag = undefined;
+        drawSelection();
         return;
       }
       // A drag on anything in a group picked up moves the whole group.
@@ -1643,7 +1696,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
           removeSelection();
           return true;
         }
-        if ((event.key === "PageUp" || event.key === "PageDown") && selection.type === "region") {
+        if ((event.key === "PageUp" || event.key === "PageDown") && (selection.type === "region" || selection.type === "group")) {
           const to = deck + (event.key === "PageUp" ? -1 : 1);
           if (to >= 0 && to < plan().decks.length) sendRoom(to);
           return true;

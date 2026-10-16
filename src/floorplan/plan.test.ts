@@ -15,6 +15,7 @@ import {
   instanceOwner,
   moveDeck,
   moveGroup,
+  moveGroupToDeck,
   moveSquaresToDeck,
   paint,
   parseCell,
@@ -457,5 +458,31 @@ describe("hiding pieces", () => {
     expect(bare.fixtures.map((f) => f.kind)).toEqual(["lift", "door", "wall"]);
     expect(bare.tiles).toEqual([]);
     expect(bare.decks).toBe(plan.decks);
+  });
+});
+
+describe("moving a group to another deck", () => {
+  it("takes rooms, fittings and doors over together, keeping their places to one another, into clear space", () => {
+    let plan = addDeck(block(block(emptyPlan(), "jump", 0, 0, 1, 1), "cargo", 3, 0, 4, 1));
+    plan = placeFixture(plan, { kind: "symbol", deck: 0, x: 0, y: 0, rotation: 0, symbol: "sheet-toilet" });
+    plan = placeFixture(plan, { kind: "door", deck: 0, x: 3, y: 2, edge: "n" });
+    // Something already on deck 2 where the jump drive is.
+    plan = block(plan, "fuel", 0, 0, 1, 1, 1);
+    const cellsOf = (p: FloorPlan, d: number, owner: string) => Object.entries(p.decks[d]!.cells).filter(([, o]) => o === owner).map(([k]) => parseCell(k));
+    const group = { squares: [...cellsOf(plan, 0, "jump"), ...cellsOf(plan, 0, "cargo")], fixtures: [0, 1], tiles: [] };
+    const moved = moveGroupToDeck(plan, 0, group, 1)!;
+    expect(cellsOf(moved.plan, 0, "jump")).toEqual([]);
+    expect(cellsOf(moved.plan, 1, "fuel")).toHaveLength(16);
+    const jump = cellsOf(moved.plan, 1, "jump");
+    const cargo = cellsOf(moved.plan, 1, "cargo");
+    expect(jump).toHaveLength(16);
+    // Still three squares apart, and clear of the fuel.
+    expect(Math.min(...cargo.map(([x]) => x)) - Math.min(...jump.map(([x]) => x))).toBe(3);
+    for (const [x, y] of jump) expect(moved.plan.decks[1]!.cells[`${x},${y}`]).toBe("jump");
+    const [toilet, door] = moved.plan.fixtures;
+    expect(toilet!.deck).toBe(1);
+    expect(door!.deck).toBe(1);
+    expect(toilet!.x - Math.min(...jump.map(([x]) => x))).toBe(0);
+    expect(moved.group.squares).toHaveLength(32);
   });
 });

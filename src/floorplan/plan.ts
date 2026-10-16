@@ -416,7 +416,61 @@ export function moveSquaresToDeck(
   if (source === undefined || target === undefined || from === to) return undefined;
   const moving = squares.filter(([x, y]) => source.cells[cellKey(x, y)] !== undefined);
   if (moving.length === 0) return undefined;
+  const [dx, dy] = clearOffset(plan, to, moving);
+  const left: Record<string, Owner> = { ...source.cells };
+  const arrived: Record<string, Owner> = { ...target.cells };
+  for (const [x, y] of moving) {
+    const key = cellKey(x, y);
+    arrived[cellKey(toHalf(x + dx), toHalf(y + dy))] = left[key]!;
+    delete left[key];
+  }
+  const decks = plan.decks.map((d, i) => (i === from ? { ...d, cells: left } : i === to ? { ...d, cells: arrived } : d));
+  return { plan: { ...plan, decks }, squares: moving.map(([x, y]) => [toHalf(x + dx), toHalf(y + dy)]) };
+}
 
+/**
+ * Move a group to another deck, rooms, fittings, doors and tiles together,
+ * keeping their places to one another, into empty space there as one room
+ * goes (moveSquaresToDeck). Returns the plan and the group as it now is, or
+ * undefined if there is nothing to move. FP 4.3.3.
+ */
+export function moveGroupToDeck(plan: FloorPlan, from: number, group: Group, to: number): { plan: FloorPlan; group: Group } | undefined {
+  const source = plan.decks[from];
+  const target = plan.decks[to];
+  if (source === undefined || target === undefined || from === to) return undefined;
+  const moving = group.squares.filter(([x, y]) => source.cells[cellKey(x, y)] !== undefined);
+  if (moving.length === 0 && group.fixtures.length === 0 && group.tiles.length === 0) return undefined;
+  // Pieces without a room under them find their space by where they stand.
+  const anchors = moving.length > 0 ? moving : [...group.fixtures.map((i) => plan.fixtures[i]!), ...group.tiles.map((i) => plan.tiles[i]!)].map((f) => [f.x, f.y] as const);
+  const [dx, dy] = clearOffset(plan, to, anchors);
+  const left: Record<string, Owner> = { ...source.cells };
+  const arrived: Record<string, Owner> = { ...target.cells };
+  for (const [x, y] of moving) {
+    const key = cellKey(x, y);
+    arrived[cellKey(toHalf(x + dx), toHalf(y + dy))] = left[key]!;
+    delete left[key];
+  }
+  const fixtures = new Set(group.fixtures);
+  const tiles = new Set(group.tiles);
+  return {
+    plan: {
+      ...plan,
+      decks: plan.decks.map((d, i) => (i === from ? { ...d, cells: left } : i === to ? { ...d, cells: arrived } : d)),
+      fixtures: plan.fixtures.map((f, i) => (fixtures.has(i) ? { ...f, deck: to, x: toHalf(f.x + dx), y: toHalf(f.y + dy) } : f)),
+      tiles: plan.tiles.map((t, i) => (tiles.has(i) ? { ...t, deck: to, x: toHalf(t.x + dx), y: toHalf(t.y + dy) } : t)),
+    },
+    group: { ...group, squares: moving.map(([x, y]) => [toHalf(x + dx), toHalf(y + dy)] as const) },
+  };
+}
+
+/**
+ * Where cells can go on a deck without landing on a painted cell or a tile:
+ * where they are, or the nearest offset by whole squares, in rings outward as
+ * far as a deck of an ordinary ship runs, and failing that just past the
+ * deck's right-hand edge, where there is always room.
+ */
+function clearOffset(plan: FloorPlan, to: number, moving: readonly (readonly [number, number])[]): [number, number] {
+  const target = plan.decks[to]!;
   const taken = tiledSquares(plan, to);
   for (const key of Object.keys(target.cells)) taken.add(key);
   const fits = (dx: number, dy: number) => moving.every(([x, y]) => !taken.has(cellKey(toHalf(x + dx), toHalf(y + dy))));
@@ -438,19 +492,9 @@ export function moveSquaresToDeck(
     for (const key of taken) deckRight = Math.max(deckRight, parseCell(key)[0]);
     let roomLeft = Infinity;
     for (const [x] of moving) roomLeft = Math.min(roomLeft, x);
-    offset = [Math.ceil(deckRight + CELL - roomLeft), 0];
+    offset = [Number.isFinite(deckRight) ? Math.ceil(deckRight + CELL - roomLeft) : 0, 0];
   }
-  const [dx, dy] = offset;
-
-  const left: Record<string, Owner> = { ...source.cells };
-  const arrived: Record<string, Owner> = { ...target.cells };
-  for (const [x, y] of moving) {
-    const key = cellKey(x, y);
-    arrived[cellKey(toHalf(x + dx), toHalf(y + dy))] = left[key]!;
-    delete left[key];
-  }
-  const decks = plan.decks.map((d, i) => (i === from ? { ...d, cells: left } : i === to ? { ...d, cells: arrived } : d));
-  return { plan: { ...plan, decks }, squares: moving.map(([x, y]) => [toHalf(x + dx), toHalf(y + dy)]) };
+  return offset;
 }
 
 /**

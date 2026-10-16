@@ -79,6 +79,7 @@ user. Dates are the day the release was tagged.
 - **Elevators and hatches join decks.** The library's elevators, stairwells and
   hatches, a new Hatch tool, and geomorph tiles with lifts, stairs or vertical
   access all count as ways between decks wherever they overlap.
+- **Ctrl and a click** adds a room, fitting, door or tile to the selection, or takes it out; a selection of several goes to another deck together.
 - **Many at once.** Shift and a drag with Move picks up everything in a box, rooms, furniture and doors together, to drag, nudge or delete; with Erase it clears the box, pieces and all.
 - **Decks for the suggested layout.** A box beside Suggest a layout sets how many decks it spreads the ship over, starting at the number that suits the ship.
 - **Rooms of their own.** A weapon mounted several times, each carried craft's berth, and fitted rooms bought more than once are each a room, painted and checked one by one as staterooms are, and Suggest a layout lays them so. Its other rooms are rectangles where their size allows, never longer than six to one.

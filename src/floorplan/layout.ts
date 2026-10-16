@@ -10,11 +10,11 @@
  * for one deck goes on to the next, with a lift at the bow end of every
  * corridor joining them.
  *
- * Where a component is plainly one of the library's fitted rooms, at the
- * library room's size, the room is drawn that shape and the fitted room laid
- * over it, turned so its own door opens onto the corridor: staterooms,
- * workshops, medical bays, laboratories, briefing rooms, brigs, and common
- * areas as lounges. Low berths get a berth on every square.
+ * It lays floors, doors and the lifts between decks, and no library pieces.
+ * Where a component is plainly one of the library's fitted rooms at its size,
+ * the room takes that room's shape, so the piece can be laid on it after:
+ * staterooms, workshops, medical bays, laboratories, briefing rooms, brigs,
+ * and common areas as lounges, and an air/raft's bay.
  *
  * It is a starting point to move about, not a design: the rooms are the right
  * size and reachable, and the rest is the designer's.
@@ -22,7 +22,7 @@
 
 import type { Component, ComponentGroup, Manifest } from "./manifest";
 import { SQUARES_PER_STATEROOM } from "./manifest";
-import type { Deck, EdgeFixture, Fixture, FloorPlan, Owner, Rotation } from "./plan";
+import type { Deck, EdgeFixture, Fixture, FloorPlan, Owner } from "./plan";
 import { CORRIDOR, PLAN_VERSION, area, cellKey, instanceOwner } from "./plan";
 import { symbolById } from "./symbols";
 
@@ -70,8 +70,6 @@ const LOUNGES: readonly Fitted[] = [
   { symbol: "lounge-small", door: { edge: "n", at: 1.5 } },
 ];
 
-/** What fills a room a square at a time: a low berth to each square. */
-const FILLED: Readonly<Record<string, string>> = { lowBerths: "low-berth" };
 
 interface Room {
   readonly owner: Owner;
@@ -80,12 +78,6 @@ interface Room {
   readonly depth: number;
   /** Squares along the corridor. */
   readonly width: number;
-  /** A fitted room laid over it, the room being exactly its shape. */
-  readonly fitted?: Fitted;
-  /** A piece put on each of its squares. */
-  readonly fill?: string;
-  /** A piece set against the far wall, centred across the room. */
-  readonly inset?: string;
 }
 
 /**
@@ -104,7 +96,7 @@ const squaresOf = (fitted: Fitted): readonly [number, number] => symbolById(fitt
 function fittedRoom(owner: Owner, fitted: Fitted): Room {
   const [w, h] = squaresOf(fitted);
   const across = fitted.door.edge === "n" || fitted.door.edge === "s";
-  return { owner, squares: w * h, width: across ? w : h, depth: across ? h : w, fitted };
+  return { owner, squares: w * h, width: across ? w : h, depth: across ? h : w };
 }
 
 /** The fitted room a component is, and how many of it, if it is plainly one at the library's size. */
@@ -123,38 +115,6 @@ function fittedFor(component: Component): { fitted: Fitted; units: number } | un
   }
   const system = FITTED_SYSTEMS.find(([label]) => label.test(component.label));
   return system === undefined ? undefined : fits(system[1]);
-}
-
-const SIDES: readonly Side[] = ["n", "e", "s", "w"];
-
-/**
- * A fitted room put down with its door on the corridor: the turn that brings
- * its door's edge round to face the corridor, and where along the corridor
- * the door then is, from the room's first square.
- */
-function turnToCorridor(fitted: Fitted, side: "north" | "south"): { rotation: Rotation; doorAt: number } {
-  const [w, h] = squaresOf(fitted);
-  const facing: Side = side === "north" ? "s" : "n";
-  const quarters = (SIDES.indexOf(facing) - SIDES.indexOf(fitted.door.edge) + 4) % 4;
-  const { edge, at } = fitted.door;
-  // The door's two ends as drawn, then turned a quarter clockwise at a time
-  // within the box, which takes (u, v) in a w by h box to (h - v, u).
-  let ends: [number, number][] =
-    edge === "n"
-      ? [[at, 0], [at + 1, 0]]
-      : edge === "s"
-        ? [[at, h], [at + 1, h]]
-        : edge === "w"
-          ? [[0, at], [0, at + 1]]
-          : [[w, at], [w, at + 1]];
-  let bh = h;
-  let bw = w;
-  for (let q = 0; q < quarters; q++) {
-    const height = bh;
-    ends = ends.map(([u, v]) => [height - v, u]);
-    [bw, bh] = [bh, bw];
-  }
-  return { rotation: (quarters * 90) as Rotation, doorAt: Math.min(ends[0]![0], ends[1]![0]) };
 }
 
 /**
@@ -221,7 +181,6 @@ function roomsOf(component: Component): Room[] {
       squares: docked.squares,
       width: docked.width,
       depth: docked.squares / docked.width,
-      inset: docked.symbol,
     }));
   }
   const found = fittedFor(component);
@@ -230,16 +189,7 @@ function roomsOf(component: Component): Room[] {
     return Array.from({ length: found.units }, (_, i) => fittedRoom(found.units > 1 ? instanceOwner(component.key, i + 1) : component.key, found.fitted));
   }
   const { width, depth } = shapeFor(component.target);
-  const fill = FILLED[component.key];
-  return [
-    {
-      owner: component.key,
-      squares: component.target,
-      depth,
-      width,
-      ...(fill === undefined ? {} : { fill }),
-    },
-  ];
+  return [{ owner: component.key, squares: component.target, depth, width }];
 }
 
 /** The rooms to lay, bow first, each group in the sheet's order. */
@@ -361,25 +311,6 @@ export function suggestLayout(manifest: Manifest, remembered: FloorPlan["remembe
     const squares = roomSquares(room, x, corridor, side);
     for (const [sx, sy] of squares) set(deck, sx, sy, room.owner);
     const wall = side === "north" ? corridor : corridor + 1;
-    if (room.fitted !== undefined) {
-      // The fitted room over the floor, and a door where its own is.
-      const { rotation, doorAt } = turnToCorridor(room.fitted, side);
-      const top = side === "north" ? corridor - room.depth : corridor + 1;
-      fixtures.push({ kind: "symbol", deck, x, y: top, rotation, symbol: room.fitted.symbol });
-      fixtures.push({ kind: "door", deck, x: x + doorAt, y: wall, edge: "n" });
-      continue;
-    }
-    if (room.inset !== undefined) {
-      const symbol = symbolById(room.inset);
-      if (symbol !== undefined) {
-        const [w, h] = symbol.squares;
-        const far = side === "north" ? corridor - room.depth : corridor + 1 + room.depth - h;
-        fixtures.push({ kind: "symbol", deck, x: x + (room.width - w) / 2, y: far, rotation: 0, symbol: room.inset });
-      }
-    }
-    if (room.fill !== undefined) {
-      for (const [sx, sy] of squares) fixtures.push({ kind: "symbol", deck, x: sx, y: sy, rotation: 0, symbol: room.fill });
-    }
     // The middle of the room's run along the corridor, on the wall between them.
     const door: EdgeFixture = { kind: "door", deck, x: x + Math.floor((room.width - 1) / 2), y: wall, edge: "n" };
     fixtures.push(door);

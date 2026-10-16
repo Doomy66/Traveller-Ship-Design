@@ -97,6 +97,21 @@ function squaresFor(tons: number): number {
   return Math.ceil(tons * SQUARES_PER_TON - 1e-9);
 }
 
+/**
+ * Lines whose several things are each a room of their own, as staterooms
+ * are: a weapon mounted several times, each craft's berth, and a fitted room
+ * bought more than once. Not low berths, seats or drones, which share a room.
+ * FP 5.4.
+ */
+function roomEach(line: SheetLine, count: number): boolean {
+  if (count <= 1) return false;
+  if (line.key === "staterooms" || line.key.startsWith("weapon:") || line.key.endsWith(":berth")) return true;
+  return line.key.startsWith("system:") && !/drones|seat/i.test(line.label);
+}
+
+/** Squares for each of a component's rooms. */
+export const squaresPerRoom = (component: Pick<Component, "target" | "rooms">): number => component.target / component.rooms;
+
 function componentFrom(line: SheetLine): Component | undefined {
   if (LEFT_OFF.has(line.section)) return undefined;
   const tons = line.tons ?? 0;
@@ -106,14 +121,17 @@ function componentFrom(line: SheetLine): Component | undefined {
   }
   const count = line.count ?? 1;
   const staterooms = line.key === "staterooms";
+  const target = staterooms ? count * SQUARES_PER_STATEROOM : squaresFor(tons);
+  // Each room a whole number of squares, or the line is one room.
+  const rooms = roomEach(line, count) && target % count === 0 ? count : 1;
   return {
     key: line.key,
     label: line.label,
     group: GROUPS[line.section] ?? "systems",
     tons,
-    target: staterooms ? count * SQUARES_PER_STATEROOM : squaresFor(tons),
+    target,
     count,
-    rooms: staterooms ? count : 1,
+    rooms,
     required: line.key !== "fuel",
   };
 }

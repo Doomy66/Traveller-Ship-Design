@@ -81,6 +81,7 @@ user. Dates are the day the release was tagged.
   hatches, a new Hatch tool, and geomorph tiles with lifts, stairs or vertical
   access all count as ways between decks wherever they overlap.
 - **Many at once.** Shift and a drag with Move picks up everything in a box, rooms, furniture and doors together, to drag, nudge or delete; with Erase it clears the box, pieces and all.
+- **Rooms of their own.** A weapon mounted several times, each carried craft's berth, and fitted rooms bought more than once are each a room, painted and checked one by one as staterooms are, and Suggest a layout lays them so. Its other rooms are rectangles where their size allows, never longer than six to one.
 - **Pieces shown or hidden.** Show and Hide, beside the room labels, put the furniture, fittings and tiles on the plan or leave them off, on screen, in exports and in print.
 - **Room labels off.** Beside Names and Numbers, Off draws the plan without room labels, on screen, in exports and in print.
 - **Walls.** A Wall tool in the walls section draws a wall where there is none, to split a room; drag across or down for a long one.

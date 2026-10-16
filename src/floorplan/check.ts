@@ -26,7 +26,7 @@ export interface Tally {
   readonly placed: number;
   readonly required: boolean;
   readonly status: Status;
-  /** For staterooms: rooms wanted and rooms drawn. FP 5.4. */
+  /** For a component of several rooms, staterooms and the like: rooms wanted and rooms drawn. FP 5.4. */
   readonly rooms?: { readonly wanted: number; readonly drawn: number };
   /** Squares placed for each of a component's several things, by number. */
   readonly instances?: Readonly<Record<number, number>>;
@@ -130,17 +130,15 @@ export function check(manifest: Manifest, plan: FloorPlan): Report {
       warn(`${component.label} has ${squares(count)}, ${formatSquares(count - component.target)} more than its ${component.target}.`, "5.2");
     }
     let rooms: Tally["rooms"];
-    if (component.key === "staterooms") {
+    if (component.rooms > 1) {
       rooms = { wanted: component.rooms, drawn: count === 0 ? 0 : (roomsDrawn.get(component.key) ?? 0) };
       // Too many rooms is wrong at once; too few only once all the squares are down,
       // since until then the rest are simply not drawn yet.
       const tooMany = rooms.drawn > rooms.wanted;
       const tooFew = rooms.drawn < rooms.wanted && count >= component.target;
       if (tooMany || tooFew) {
-        warn(
-          `${rooms.wanted} staterooms are drawn as ${rooms.drawn} ${rooms.drawn === 1 ? "room" : "rooms"}.`,
-          "5.4",
-        );
+        const what = component.key === "staterooms" ? `${rooms.wanted} staterooms are` : `${component.label} is ${rooms.wanted} rooms,`;
+        warn(`${what} drawn as ${rooms.drawn} ${rooms.drawn === 1 ? "room" : "rooms"}.`, "5.4");
       }
     }
     const its = instances.get(component.key);

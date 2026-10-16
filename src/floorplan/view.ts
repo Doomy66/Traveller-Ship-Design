@@ -18,14 +18,16 @@ import type { Bounds } from "./geometry";
 import { bounds, regions, storedEdge } from "./geometry";
 import { suggestLayout } from "./layout";
 import type { Component, ComponentGroup, Manifest } from "./manifest";
-import { SQUARES_PER_STATEROOM } from "./manifest";
+import { squaresPerRoom } from "./manifest";
 import type { AccessKind, EdgeFixture, EdgeKind, Fixture, FloorPlan, Group, Owner, PlacedTile, Rotation, SquareFixture } from "./plan";
 import {
   addDeck,
   CORRIDOR,
   cellKey,
   edgesOf,
+  instanceOf,
   instanceOwner,
+  baseKey,
   moveDeck,
   moveGroup,
   parseCell,
@@ -308,39 +310,42 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
 
   // ------------------------------------------------------- the left: components
 
-  function stateroomChips(component: Component, tally: Tally): HTMLElement {
+  /** A chip for each of a component's rooms, staterooms and the like, to paint each on its own. FP 5.4.1. */
+  function roomChips(component: Component, tally: Tally): HTMLElement {
     const chips = el("div", { class: "fp-chips" });
-    for (let i = 1; i <= component.count; i++) {
+    const each = squaresPerRoom(component);
+    for (let i = 1; i <= component.rooms; i++) {
       const placed = tally.instances?.[i] ?? 0;
-      const state = placed === 0 ? "empty" : placed === SQUARES_PER_STATEROOM ? "met" : placed < SQUARES_PER_STATEROOM ? "short" : "over";
+      const state = placed === 0 ? "empty" : placed === each ? "met" : placed < each ? "short" : "over";
       const owner = instanceOwner(component.key, i);
       const chosen = tool.kind === "paint" && tool.owner === owner;
       chips.append(
         button(String(i), () => selectTool({ kind: "paint", owner }), {
           class: `fp-chip fp-${state}${chosen ? " on" : ""}`,
-          title: `Stateroom ${i}: ${formatSquares(placed)} of ${SQUARES_PER_STATEROOM} squares`,
+          title: `${shortLabel(component)} ${i}: ${formatSquares(placed)} of ${each} squares`,
         }),
       );
     }
     return chips;
   }
 
-  /** The first stateroom not yet drawn, or the first if all are. */
-  function nextStateroom(component: Component, tally: Tally | undefined, after = 0): Owner {
-    for (let step = 1; step <= component.count; step++) {
-      const i = ((after + step - 1) % component.count) + 1;
-      if ((tally?.instances?.[i] ?? 0) < SQUARES_PER_STATEROOM) return instanceOwner(component.key, i);
+  /** The first of a component's rooms not yet drawn, or the first if all are. */
+  function nextRoom(component: Component, tally: Tally | undefined, after = 0): Owner {
+    const each = squaresPerRoom(component);
+    for (let step = 1; step <= component.rooms; step++) {
+      const i = ((after + step - 1) % component.rooms) + 1;
+      if ((tally?.instances?.[i] ?? 0) < each) return instanceOwner(component.key, i);
     }
     return instanceOwner(component.key, 1);
   }
 
   function componentRow(component: Component, number: number, tally: Tally): HTMLElement {
-    const several = component.key === "staterooms" && component.count > 1;
+    const several = component.rooms > 1;
     const chosen = tool.kind === "paint" && (tool.owner === component.key || tool.owner.startsWith(`${component.key}#`));
     const row = el("div", { class: `fp-row fp-${tally.status}${chosen ? " on" : ""}` });
     const pick = button(
       "",
-      () => selectTool({ kind: "paint", owner: several ? nextStateroom(component, tally) : component.key }),
+      () => selectTool({ kind: "paint", owner: several ? nextRoom(component, tally) : component.key }),
       { class: "fp-pick", title: `${number}. ${component.label}. Pick to paint its squares.` },
     );
     pick.append(
@@ -354,7 +359,7 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
       ]),
     );
     row.append(pick);
-    if (several) row.append(stateroomChips(component, tally));
+    if (several) row.append(roomChips(component, tally));
     return row;
   }
 
@@ -1392,15 +1397,17 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     }
   }
 
-  /** After drawing a stateroom, move the brush on to the next one not yet drawn. */
+  /** After drawing one of a component's rooms, move the brush on to the next one not yet drawn. */
   function advanceStateroom(): void {
-    if (tool.kind !== "paint" || !tool.owner.startsWith("staterooms#")) return;
-    const component = components().find((c) => c.key === "staterooms");
-    const tally = report.tallies.find((t) => t.key === "staterooms");
+    if (tool.kind !== "paint") return;
+    const n = instanceOf(tool.owner);
+    if (n === undefined) return;
+    const key = baseKey(tool.owner);
+    const component = components().find((c) => c.key === key);
+    const tally = report.tallies.find((t) => t.key === key);
     if (component === undefined || tally === undefined) return;
-    const n = Number(tool.owner.slice("staterooms#".length));
-    if ((tally.instances?.[n] ?? 0) < SQUARES_PER_STATEROOM) return;
-    selectTool({ kind: "paint", owner: nextStateroom(component, tally, n) });
+    if ((tally.instances?.[n] ?? 0) < squaresPerRoom(component)) return;
+    selectTool({ kind: "paint", owner: nextRoom(component, tally, n) });
   }
 
   svg.addEventListener("pointerup", () => {

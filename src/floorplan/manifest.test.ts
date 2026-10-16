@@ -70,13 +70,21 @@ describe("the manifest", () => {
     expect(components.filter((c) => c.key !== "fuel" && c.target > 0).every((c) => c.required)).toBe(true);
   });
 
-  it("carries a squadron's number, but asks for its hangars as one target", () => {
+  it("gives each craft of a squadron a hangar of its own, as each stateroom is a room", () => {
     const tern = CATALOGUE.find((entry) => entry.design.name === "Tern-class Fighter Carrier")!.design;
     const hangars = manifest(tern).components.find((c) => c.key === "craft:0:berth")!;
     expect(hangars.count).toBe(24);
     expect(hangars.target).toBe(1920 * 2);
-    // Only staterooms are checked room by room.
-    expect(hangars.rooms).toBe(1);
+    expect(hangars.rooms).toBe(24);
+  });
+
+  it("makes a room of each weapon mount and fitted room bought more than once, but not of low berths, seats or drones", () => {
+    const rooms = (design: Design, match: RegExp) => manifest(design).components.filter((c) => match.test(c.label)).map((c) => [c.count, c.rooms]);
+    const ships = CATALOGUE.map((e) => e.design);
+    const all = (match: RegExp) => ships.flatMap((d) => rooms(d, match));
+    for (const [count, made] of all(/Turret|Barbette|Bay \(|Battery/)) expect(made).toBe(count);
+    for (const [count, made] of all(/^(Medical Bay|Briefing Room|Workshop|Armoury)/)) expect(made).toBe(count);
+    for (const [, made] of all(/Low Berth|Seat|Drones/)) expect(made).toBe(1);
   });
 
   it("groups components for colouring", () => {

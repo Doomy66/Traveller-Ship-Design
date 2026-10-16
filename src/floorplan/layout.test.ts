@@ -124,3 +124,45 @@ describe("craft in their docking spaces", () => {
     expect(bay).toHaveLength(10 * 4);
   });
 });
+
+describe("room shapes and rooms of their own", () => {
+  const regionsOf = (design: Design) => {
+    const m = manifest(design);
+    const plan = suggestLayout(m);
+    return { m, plan, regions: plan.decks.flatMap((d) => regions(d)).filter((r) => r.owner !== CORRIDOR) };
+  };
+
+  it.each(EVERY_SHIP.map((d) => [d.name, d] as const))("draws every room of the %s as a rectangle no longer than six to one where its size allows", (_, design) => {
+    const { regions: rooms } = regionsOf(design);
+    for (const room of rooms) {
+      const squares = room.squares.length / 4;
+      const xs = room.squares.map(([x]) => x);
+      const ys = room.squares.map(([, y]) => y);
+      const w = Math.max(...xs) + 0.5 - Math.min(...xs);
+      const h = Math.max(...ys) + 0.5 - Math.min(...ys);
+      // A size with a rectangle within 6:1 is drawn as one.
+      const can = Array.from({ length: squares }, (_, i) => i + 1).some((d) => squares % d === 0 && Math.max(d, squares / d) / Math.min(d, squares / d) <= 6);
+      if (can) {
+        expect(w * h).toBe(squares);
+        expect(Math.max(w, h) / Math.min(w, h)).toBeLessThanOrEqual(6);
+      }
+    }
+  });
+
+  it("gives each turret and each of several fitted rooms a room of its own, with its own number", () => {
+    const corvette = PATROL_CORVETTE;
+    const { m, plan } = regionsOf(corvette);
+    const turrets = m.components.find((c) => c.label.startsWith("Triple Turret") && c.count > 1) ?? m.components.find((c) => c.key.startsWith("weapon:") && c.rooms > 1);
+    if (turrets !== undefined) {
+      const owners = new Set(Object.values(plan.decks.flatMap((d) => Object.values(d.cells))).filter((o) => o.startsWith(`${turrets.key}#`)));
+      expect(owners.size).toBe(turrets.rooms);
+    }
+    const ships = CATALOGUE.map((e) => e.design);
+    const bays = ships.find((d) => manifest(d).components.some((c) => c.label.startsWith("Medical Bay x")))!;
+    const mb = manifest(bays).components.find((c) => c.label.startsWith("Medical Bay x"))!;
+    const laid = suggestLayout(manifest(bays));
+    const report = check(manifest(bays), laid);
+    expect(report.tallies.find((t) => t.key === mb.key)?.rooms).toEqual({ wanted: mb.rooms, drawn: mb.rooms });
+    expect(laid.fixtures.filter((f) => f.kind === "symbol" && f.symbol === "medical-bay")).toHaveLength(mb.rooms);
+  });
+});

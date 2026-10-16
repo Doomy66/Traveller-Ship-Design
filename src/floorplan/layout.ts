@@ -166,7 +166,37 @@ function depthFor(squares: number): number {
   return Math.max(2, Math.round(Math.sqrt(squares / 2)));
 }
 
+/**
+ * A room's shape: an exact rectangle, as near twice as long as it is deep
+ * as its size allows and no longer than six to one; or, where no rectangle
+ * that shape holds exactly its squares, whole columns and a part one.
+ */
+function shapeFor(squares: number): { width: number; depth: number } {
+  let best: { width: number; depth: number; off: number } | undefined;
+  for (let depth = 1; depth * depth <= squares; depth++) {
+    if (squares % depth !== 0) continue;
+    const width = squares / depth;
+    if (width / depth > MOST_ELONGATED) continue;
+    const off = Math.abs(Math.log(width / depth / 2));
+    if (best === undefined || off <= best.off) best = { width, depth, off };
+  }
+  if (best !== undefined) return { width: best.width, depth: best.depth };
+  const depth = depthFor(squares);
+  return { width: Math.ceil(squares / depth), depth };
+}
+
+/** The longest a rectangular room is drawn, to its depth. */
+const MOST_ELONGATED = 6;
+
 function roomsOf(component: Component): Room[] {
+  // Each of several rooms is laid as a room of its own, with its own owner
+  // as each stateroom has, and fitted or furnished as one would be alone.
+  if (component.key !== "staterooms" && component.rooms > 1) {
+    const each = { ...component, target: component.target / component.rooms, count: 1, rooms: 1 };
+    return Array.from({ length: component.rooms }, (_, i) =>
+      roomsOf(each).map((room) => ({ ...room, owner: instanceOwner(component.key, i + 1) })),
+    ).flat();
+  }
   if (component.key === "staterooms") {
     const [w, h] = squaresOf(STATEROOM);
     const fits = w * h === SQUARES_PER_STATEROOM;
@@ -195,15 +225,18 @@ function roomsOf(component: Component): Room[] {
     }));
   }
   const found = fittedFor(component);
-  if (found !== undefined) return Array.from({ length: found.units }, () => fittedRoom(component.key, found.fitted));
-  const depth = depthFor(component.target);
+  if (found !== undefined) {
+    // Several lounges and the like are each a room, numbered, so they do not run together.
+    return Array.from({ length: found.units }, (_, i) => fittedRoom(found.units > 1 ? instanceOwner(component.key, i + 1) : component.key, found.fitted));
+  }
+  const { width, depth } = shapeFor(component.target);
   const fill = FILLED[component.key];
   return [
     {
       owner: component.key,
       squares: component.target,
       depth,
-      width: Math.ceil(component.target / depth),
+      width,
       ...(fill === undefined ? {} : { fill }),
     },
   ];

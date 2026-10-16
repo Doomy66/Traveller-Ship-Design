@@ -16,7 +16,7 @@ import { check, formatSquares } from "./check";
 import { exportPng, exportSvg } from "./export";
 import type { Bounds } from "./geometry";
 import { bounds, regions, storedEdge } from "./geometry";
-import { suggestLayout } from "./layout";
+import { suggestedDecks, suggestLayout } from "./layout";
 import type { Component, ComponentGroup, Manifest } from "./manifest";
 import { squaresPerRoom } from "./manifest";
 import type { AccessKind, EdgeFixture, EdgeKind, Fixture, FloorPlan, Group, Owner, PlacedTile, Rotation, SquareFixture } from "./plan";
@@ -394,10 +394,12 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
     left.replaceChildren(
       el("h2", { class: "fp-heading" }, [host.manifest.shipName]),
       el("p", { class: "fp-hint" }, ["Pick a component, then paint its squares on the deck."]),
-      button("Suggest a layout", suggest, {
-        class: "fp-suggest",
-        title: "Lay every component down as a room along a corridor, to move about from there. Undo puts back what was here.",
-      }),
+      el("div", { class: "fp-suggest" }, [
+        button("Suggest a layout", suggest, {
+          title: "Lay every component down as a room along a corridor, to move about from there. Undo puts back what was here.",
+        }),
+        decksBox(),
+      ]),
       list,
       el("div", { class: "fp-totals" }, [
         el("div", {}, [`Corridors ${formatSquares(report.corridor)}`]),
@@ -411,11 +413,34 @@ export function renderFloorPlan(root: HTMLElement, host: FloorPlanHost): FloorPl
   }
 
   /** A first layout from the manifest, in place of whatever is drawn. FP 7.9. */
+  /** The decks the suggested layout is to have, if changed from the number it offers. FP 7.9. */
+  let layoutDecks: number | undefined;
+
+  /** The number of decks for Suggest a layout, filled with the number that suits the ship. */
+  function decksBox(): HTMLElement {
+    const offered = suggestedDecks(host.manifest);
+    const box = el("input", {
+      class: "fp-decks",
+      type: "number",
+      min: "1",
+      max: "20",
+      value: String(layoutDecks ?? offered),
+      "aria-label": "Decks for the suggested layout",
+      title: `Decks for the suggested layout; ${offered} suits this ship`,
+    }) as HTMLInputElement;
+    box.addEventListener("change", () => {
+      const n = Math.round(Number(box.value));
+      layoutDecks = Number.isFinite(n) && n >= 1 && n !== offered ? Math.min(20, n) : undefined;
+      box.value = String(layoutDecks ?? offered);
+    });
+    return el("label", { class: "fp-decks-label" }, [box, " decks"]);
+  }
+
   function suggest(): void {
     const drawn = plan().decks.some((d) => Object.keys(d.cells).length > 0) || plan().fixtures.length > 0 || plan().tiles.length > 0;
     if (drawn && !confirm("Replace this plan with a suggested layout? Undo will bring it back.")) return;
     deck = 0;
-    commit(suggestLayout(host.manifest, plan().remembered));
+    commit(suggestLayout(host.manifest, plan().remembered, layoutDecks ?? suggestedDecks(host.manifest)));
     fit();
   }
 

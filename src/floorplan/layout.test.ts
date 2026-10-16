@@ -11,7 +11,7 @@ import { PATROL_CORVETTE } from "../fixtures/patrolCorvette";
 import { SCOUT_COURIER } from "../fixtures/scoutCourier";
 import { check } from "./check";
 import { regions } from "./geometry";
-import { suggestLayout } from "./layout";
+import { suggestedDecks, suggestLayout } from "./layout";
 import { manifest } from "./manifest";
 import type { SquareFixture } from "./plan";
 import { CORRIDOR, parseCell } from "./plan";
@@ -164,5 +164,32 @@ describe("room shapes and rooms of their own", () => {
     const report = check(manifest(bays), laid);
     expect(report.tallies.find((t) => t.key === mb.key)?.rooms).toEqual({ wanted: mb.rooms, drawn: mb.rooms });
     expect(laid.fixtures.filter((f) => f.kind === "symbol" && f.symbol === "medical-bay")).toHaveLength(mb.rooms);
+  });
+});
+
+describe("the number of decks", () => {
+  it("offers the number it would choose by itself, and uses it when not told otherwise", () => {
+    for (const design of [SCOUT_COURIER, FREE_TRADER, PATROL_CORVETTE, DESTROYER_ESCORT]) {
+      const m = manifest(design);
+      expect(suggestLayout(m).decks).toHaveLength(suggestedDecks(m));
+    }
+  });
+
+  it("lays the ship over as many decks as asked, joined by lifts", () => {
+    const m = manifest(FREE_TRADER);
+    for (const wanted of [1, 2, 3]) {
+      const plan = suggestLayout(m, {}, wanted);
+      expect(plan.decks).toHaveLength(wanted);
+      const report = check(m, plan);
+      expect(report.cutOff).toEqual([]);
+      for (const tally of report.tallies) expect(tally.placed).toBe(tally.key === "fuel" ? 0 : tally.target);
+      if (wanted > 1) expect(plan.decks.every((d) => Object.keys(d.cells).length > 0)).toBe(true);
+    }
+  });
+
+  it("leaves a deck empty, ready to draw on, when asked for more than the rooms can fill", () => {
+    const plan = suggestLayout(manifest(SCOUT_COURIER), {}, 40);
+    expect(plan.decks).toHaveLength(40);
+    expect(plan.decks.filter((d) => Object.keys(d.cells).length === 0).length).toBeGreaterThan(0);
   });
 });

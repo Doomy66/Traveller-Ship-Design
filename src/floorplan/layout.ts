@@ -270,14 +270,25 @@ function longestDeck(rooms: readonly Room[]): number {
   return Math.max(widest, Math.ceil(2.5 * Math.sqrt(squares)));
 }
 
-/**
- * Rooms put on decks and sides, with the decks about the same length: as few
- * decks as keep each within the longest a deck should run, then the shortest
- * run that still fits the rooms on that many.
- */
-function arrange(rooms: readonly Room[]): { laid: Laid[]; lengths: number[] } {
+/** The decks a layout would take by itself: as few as keep each within the longest a deck should run. */
+function sensibleDecks(rooms: readonly Room[]): number {
   const oneDeck = arrangeWithin(rooms, Infinity);
-  const decks = Math.ceil((oneDeck.lengths[0] ?? 0) / longestDeck(rooms));
+  return Math.max(1, Math.ceil((oneDeck.lengths[0] ?? 0) / longestDeck(rooms)));
+}
+
+/** The number of decks Suggest a layout offers for a ship. FP 7.9. */
+export function suggestedDecks(manifest: Manifest): number {
+  return sensibleDecks(roomsFor(manifest));
+}
+
+/**
+ * Rooms put on that many decks, or as many as make sense, with the decks
+ * about the same length: the shortest run that fits the rooms on no more
+ * decks than that. A deck asked for and not needed is left empty.
+ */
+function arrange(rooms: readonly Room[], wanted?: number): { laid: Laid[]; lengths: number[] } {
+  const decks = Math.max(1, Math.min(wanted ?? sensibleDecks(rooms), Math.max(1, rooms.length)));
+  const oneDeck = arrangeWithin(rooms, Infinity);
   if (decks <= 1) return oneDeck;
   for (let most = Math.ceil((oneDeck.lengths[0] ?? 0) / decks); ; most++) {
     const tried = arrangeWithin(rooms, most);
@@ -327,9 +338,12 @@ function roomSquares(room: Room, x: number, corridor: number, side: "north" | "s
 }
 
 /** A suggested plan for the manifest, keeping what the old plan remembered. */
-export function suggestLayout(manifest: Manifest, remembered: FloorPlan["remembered"] = {}): FloorPlan {
+export function suggestLayout(manifest: Manifest, remembered: FloorPlan["remembered"] = {}, deckCount?: number): FloorPlan {
   const rooms = roomsFor(manifest);
-  const { laid, lengths } = arrange(rooms);
+  const arranged = arrange(rooms, deckCount);
+  const { laid } = arranged;
+  // Decks asked for beyond those the rooms filled are there, and empty, to draw on.
+  const lengths = [...arranged.lengths, ...Array.from({ length: Math.max(0, (deckCount ?? 0) - arranged.lengths.length) }, () => 0)];
   // Every deck's corridor is on the same row, so decks line up over one another.
   const corridor = laid.reduce((most, l) => (l.side === "north" ? Math.max(most, l.room.depth) : most), 0);
   const cells: Record<string, Owner>[] = lengths.map(() => ({}));
@@ -340,6 +354,7 @@ export function suggestLayout(manifest: Manifest, remembered: FloorPlan["remembe
 
   for (const [deck, length] of lengths.entries()) {
     for (let x = 0; x < length; x++) set(deck, x, corridor, CORRIDOR);
+    if (length === 0) continue;
     if (lengths.length > 1) fixtures.push({ kind: "lift", deck, x: 0, y: corridor, rotation: 0 });
   }
   for (const { room, deck, x, side } of laid) {

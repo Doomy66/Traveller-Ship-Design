@@ -33,6 +33,7 @@ const HIGH_GUARD = new Set(["Dragon-System-Defence-Boat.ship"]);
 /** Designed from scratch in this designer rather than taken from a source. */
 const ORIGINAL = new Set([
   "FOO3.ship",
+  "Gremlin-Strike-Boat.ship",
   "Maul-class-Bombardment-Ship.ship",
   "Roam-Pod.ship",
   "Snub.ship",

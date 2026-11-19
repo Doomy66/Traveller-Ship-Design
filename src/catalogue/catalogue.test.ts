@@ -9,7 +9,7 @@ import { CATALOGUE } from "./index";
 
 describe("the ship catalogue", () => {
   it("holds every design it was given", () => {
-    expect(CATALOGUE.length).toBe(36);
+    expect(CATALOGUE.length).toBe(37);
   });
 
   it.each(CATALOGUE.map((entry) => [entry.design.name, entry] as const))("%s opens with no errors", (_, entry) => {

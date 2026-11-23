@@ -5,6 +5,12 @@ user. Dates are the day the release was tagged.
 
 ## 2.0.0 — 2026-11-23
 
+Ships get floor plans. Beside the design sheet there is now a deck plan to
+paint, furnish and print, checked against the components as it is drawn, and
+a button to suggest a first layout. The catalogue grows to 41 ships, carried
+craft come in squadrons or from your own saved designs, and small craft are
+held to High Guard's firmpoint rule.
+
 - **Floor plans.** A Floor plan button beside Design lays the ship out on
   Traveller's deck squares. Pick a component and paint its squares, two to the
   ton, six for a stateroom, in any shape and on as many decks as you like. The

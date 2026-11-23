@@ -5,6 +5,8 @@ We design to **Mongoose Traveller 2nd Edition, High Guard Update 2022**.
 - File: `C:\Users\sburrows\OneDrive\Games\Traveller\High_Guard_Update_2022.PDF` (80 MB, 290 pages, text layer present, watermarked to the owner's order number).
 - Copyright Mongoose Publishing. Extracted text and page images stay out of this repo. The repo is public.
 - Also in that folder and likely to matter: `travellercorerulebookupdate2022.pdf` (Core Rulebook, has the basic spacecraft chapter and the common ships), `Central_Supply_Catalogue_Update_2023.PDF`, `High_Guard_Deployment_Shuttle.PDF`.
+- Optional rules from two other books, each marked as such in ShipSpec: `Traveller_Companion_Update_2024.pdf` (Starship Automation, page 178, ShipSpec 4.10.4) and `Vehicle_Handbook_Ebook.pdf` (the 78 example vehicles' Tech Level, Shipping size and price, PDF pages 71-148, printed page one less, ShipSpec 4.11.3.3).
+- `Traveller_Core_Rulebook_Update_2022.pdf` is a later printing of the Core Rulebook than `travellercorerulebookupdate2022.pdf`. Compared page by page, its corrections are to play rules, cross-references and the common ships' sheets; none changes a High Guard design rule. Its Free Trader power line now reads basic 40 and jump 20, which is what the engine computes. The Free Trader's tonnage is still a ton out (ShipSpec 7.3.2).
 
 ## Reading it
 

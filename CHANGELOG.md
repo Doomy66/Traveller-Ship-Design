@@ -3,6 +3,11 @@
 The version in [package.json](package.json) is the one number that reaches a
 user. Dates are the day the release was tagged.
 
+## Unreleased
+
+- **Vehicles from the Vehicle Handbook.** Under Carry craft, *From the Vehicle Handbook* lists the book's 78 example vehicles up to the ship's Tech Level, grouped by its chapters, from a G/bike to a Rakatama G/carrier. Picking one fills in its shipping size and price, berthed in a docking space.
+- **Automation.** A choice under The ship, from the Traveller Companion's optional rule: crew-intensive to high automation. More automation costs a share of the hull, drives and power plant and needs fewer engineers, gunners, maintenance crew, administrators and sensor operators; less is cheaper and needs more. Pilots, astrogators and stewards are untouched, and the sheet notes the DM it puts on shipboard tasks.
+
 ## 2.0.0 — 2026-11-23
 
 Ships get floor plans. Beside the design sheet there is now a deck plan to

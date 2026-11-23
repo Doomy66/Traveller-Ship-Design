@@ -17,6 +17,8 @@ import {
   BASIC_SYSTEMS_POWER,
   BAY_SIZES,
   BAY_WEAPONS,
+  AUTOMATED_SECTIONS,
+  AUTOMATION,
   BLACK_GLOBE,
   CANISTERS,
   CANISTERS_PER_TON,
@@ -1176,8 +1178,25 @@ export function sheet(design: Design): Sheet {
   }
   lines.push({ key: "cargo", section: "Cargo", label: "Cargo", tons: cargoTons });
 
+  // Automation, priced as a share of the hull, drives and plant. An optional
+  // rule from the Companion, not High Guard. ShipSpec 4.10.4.
+  const automation = AUTOMATION[design.automation ?? "standard"];
+  if (automation.costFraction !== 0) {
+    const automated = lines
+      .filter((line) => AUTOMATED_SECTIONS.includes(line.section))
+      .reduce((sum, line) => sum + (line.cost ?? 0), 0);
+    const share = Math.round(automation.costFraction * 100);
+    lines.splice(lines.length - 1, 0, {
+      key: "automation",
+      section: "Automation",
+      label: `${automation.label} (${share > 0 ? "+" : ""}${share}% of hull, drives and power plant)`,
+      cost: cr(automated * automation.costFraction),
+    });
+  }
+  if (automation.effect !== undefined) note(`${automation.label}: ${automation.effect}.`, "4.10.4");
+
   // Step 13: finalise. ShipSpec 4.13.
-  const totalCost = cr(lines.reduce((sum, line) => sum + (line.cost ?? 0), 0));
+  const totalCost =cr(lines.reduce((sum, line) => sum + (line.cost ?? 0), 0));
   const purchaseCost = cr(
     design.standardDesign === true ? totalCost * STANDARD_DESIGN_FACTOR : totalCost * (1 + ARCHITECT_FEE),
   );
@@ -1229,7 +1248,11 @@ export function sheet(design: Design): Sheet {
       if (role === "medic" || role === "officer") continue;
       const rule = CREW_ROLES[role];
       const raw = rule[column](inputs);
-      const count = rule.reducible ? Math.ceil(raw * reduction) : raw;
+      // The large-ship cut and automation reach the same shareable jobs, and
+      // a fraction of a job still wants a whole person. ShipSpec 4.10.3, 4.10.4.
+      const count = rule.reducible
+        ? Math.ceil(Math.ceil(raw * reduction) * automation.crewFactor - 1e-9)
+        : raw;
       base += count;
       if (count > 0) crew.push({ role, label: rule.label, count, salary: rule.salary });
     }

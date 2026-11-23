@@ -25,6 +25,7 @@
 
 import {
   ARMOUR_TYPES,
+  AUTOMATION,
   BARBETTES,
   BAY_SIZES,
   BAY_WEAPONS,
@@ -51,8 +52,11 @@ import {
   TORPEDOES,
   TRAITS,
   TURRET_WEAPONS,
+  VEHICLES,
+  vehicleBand,
 } from "../rules/index";
 import type {
+  AutomationLevel,
   FlatSystem,
   PerHullTonSystem,
   PerTonSystem,
@@ -220,6 +224,7 @@ function ship(host: FormHost): Element {
     `TL${d.tl}`,
     d.standardDesign === true ? "standard design" : "new design",
     d.military === true ? "military" : "commercial",
+    d.automation === undefined ? undefined : AUTOMATION[d.automation].label.toLowerCase(),
   ], "");
   return step("ship", "", "The ship", precis, [[
     labelled("Name", text(d.name, (name) => host.rebuild({ name }))),
@@ -230,6 +235,10 @@ function ship(host: FormHost): Element {
       "A design already in production: a tenth off everything but fuel and ammunition."),
     check(d.military === true, "Military crewing", (military) => host.rebuild({ military }),
       "Read the military column of the Crew Requirements table."),
+  ], [
+    labelled("Automation", select(d.automation ?? "standard", optionsOf(AUTOMATION), (v) =>
+      host.rebuild({ automation: v === "standard" ? undefined : v as AutomationLevel })),
+      "The Traveller Companion's optional rule: more automation costs a share of the hull, drives and power plant and needs fewer engineers, gunners and maintenance crew; less is cheaper and needs more."),
   ]]);
 }
 
@@ -733,12 +742,29 @@ function craft(host: FormHost): Element {
     }]);
   };
 
+  // A ready-made vehicle from the Vehicle Handbook, at or below the shipyard's
+  // Tech Level, with its shipping size and price filled in. ShipSpec 4.11.3.3.
+  const vehicles = VEHICLES.flatMap((v, at) => v.tl > host.design.tl ? [] : [{
+    value: String(at),
+    label: `${v.label} (TL${v.tl}, ${v.tons} tons, MCr${v.cost})`,
+    group: vehicleBand(v.tl),
+  }]);
+  const picker = grouped("", vehicles, (v) => {
+    const vehicle = v === "" ? undefined : VEHICLES[Number(v)];
+    if (vehicle === undefined) return;
+    set([...live(), { label: vehicle.label, tons: vehicle.tons, cost: vehicle.cost, kind: "vehicle", berth: "dockingSpace" }]);
+  });
+  picker.prepend(el("option", { value: "" }, ["+ From the Vehicle Handbook…"]));
+  picker.value = "";
+  picker.classList.add("add");
+  picker.title = "A ready-made vehicle at or below this ship's Tech Level, with its shipping size and price.";
+
   const carried = live().reduce((sum, entry) => sum + (entry.quantity ?? 1), 0);
   return step("craft", "9b", "Carry craft",
     carried === 0 ? "none" : count(carried, "craft", "craft"), [[
       listEditor(rows, (i) => set(live().filter((_, k) => k !== i)), "Add a craft", () =>
         set([...live(), { label: "Air/Raft", tons: 4, cost: 0.25, kind: "vehicle", berth: "dockingSpace" }]),
-        [button("+ From a saved design…", () => void fromDesign(), "add")]),
+        [button("+ From a saved design…", () => void fromDesign(), "add"), picker]),
     ]]);
 }
 

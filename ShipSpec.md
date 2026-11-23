@@ -50,6 +50,7 @@ Clauses are numbered so they can be cited from code and tests. Page numbers are 
 | Field | Holds | Clause |
 |---|---|---|
 | `name`, `tl`, `standardDesign`, `military` | Identity, shipyard TL, whether the 10% standard-design discount applies, and which crew column to read | 2.4, 4.13, 4.10 |
+| `automation` | How automated the ship is, an optional rule from the Companion; absent is standard | 4.10.4 |
 | `hull` | Tons, configuration, specialised hull flags, hull options, structure options | 4.1 |
 | `armour` | Type and protection, or absent | 4.2 |
 | `manoeuvre`, `reaction`, `jump`, `highBurnThruster` | A rating each, optionally with the tonnage the drive is built to move and a customisation on it | 4.3, 4.15 |
@@ -329,6 +330,21 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 
 4.10.3 Over 5,000 tons the engineer, maintenance, gunner, administrator and sensor operator counts are multiplied by 0.75 (to 19,999), 0.67 (to 49,999), 0.5 (to 99,999) or 0.33 (from 100,000), rounded up, before officers and medics are worked out.
 
+4.10.4 **Automation** is an optional rule from the *Traveller Companion Update 2024* (page 178), not from High Guard, and a design that does not choose it is unaffected. It is priced as a share of the cost of the hull, drives and power plant (the sheet's Hull, M-Drive, R-Drive, J-Drive and Power Plant lines, so hull options and armour are left out), and multiplies the crew the ship needs:
+
+| Level | Cost | Crew | Shipboard tasks |
+|---|---|---|---|
+| Crew-intensive | -40% | x2 | DM-4 |
+| Low | -20% | x1.4 | DM-1 after a week in space |
+| Standard | none | x1 | |
+| Enhanced | +25% | x0.9 | |
+| Advanced | +50% | x0.75 | DM+1 |
+| High | +100% | x0.6 | DM+2 |
+
+4.10.4.1 The Companion says automation bears on engineering and operations rather than flight crew, that every craft flown at once wants its own pilot, and that a ship needing one astrogator still needs one. So it reaches the same shareable jobs as the large-ship cut of 4.10.3: engineers, maintenance, gunners, administrators and sensor operators. It is applied after that cut, each role on its own, rounded up, because a fraction of a job still wants a person; so a ship with one engineer keeps one. Officers and medics are worked out from the result. A small craft's single pilot is untouched.
+
+4.10.4.2 The cost is a line of its own under **Automation**, with no tonnage, and is part of the total the standard design discount and the architect's fee are taken from. Where the level carries a DM, the sheet says so as a note.
+
 ### 4.11 Install optional systems (pages 44-64)
 
 4.11.1 Each system is a data entry with tons, cost, power and TL, or a small rule where the book gives one. Three shapes cover nearly the whole chapter: **flat**, a fixed tonnage and price, like a six-ton workshop; **per ton**, where the designer says how big and both follow, like a fuel processor; and **per hull ton**, priced against the whole ship and taking no room of its own, like a holographic hull. Some of the notable entries:
@@ -365,6 +381,8 @@ Rounding up gives the Corvette three where the book gives two. Rounding down giv
 4.11.3.1 A line may stand for **any number of identical craft**. Each has a berth of its own, rounded up on its own, and a pilot of its own, and each engine room counts (4.10.2.1.1), so twelve fighters on one line come to exactly what twelve lines of one would. The sheet prints one berth line and one craft line with the number beside them, as it does a battery of turrets.
 
 4.11.3.2 **A craft's cost is its full price.** The standard design discount of 4.13.2 is taken off the whole ship, carried craft included: the Patrol Corvette's standard design price is 90% of a total that includes its ship's boat and G/carrier. A craft whose own sheet shows a standard design price, entered at that price, is discounted twice. A craft taken from another saved design takes that design's total, before any discount, along with its tonnage and the weight of its drives and plant.
+
+4.11.3.3 **Ready-made vehicles** come from Mongoose's *Vehicle Handbook*: its 78 example vehicles, each with its Tech Level, its Shipping size in tons and its price, transcribed in `src/rules/vehicles.ts` with the page each is on. Shipping size is what a vehicle takes aboard and what its berth is sized from. Choosing one fills in a vehicle line, berthed in a docking space, which the designer can then change like any other. Only vehicles at or below the shipyard's Tech Level are offered. The book's Air/Raft, 4 tons and MCr0.25, is the figure High Guard's sheets use.
 
 ### 4.12 Install staterooms (page 25)
 

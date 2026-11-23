@@ -3,7 +3,7 @@
 The version in [package.json](package.json) is the one number that reaches a
 user. Dates are the day the release was tagged.
 
-## Unreleased
+## 2.0.0 — 2026-11-23
 
 - **Floor plans.** A Floor plan button beside Design lays the ship out on
   Traveller's deck squares. Pick a component and paint its squares, two to the

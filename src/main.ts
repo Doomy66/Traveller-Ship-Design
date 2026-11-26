@@ -316,19 +316,16 @@ function wire(): void {
   find("#save-as").addEventListener("click", () => void write(true));
   if (!canRewrite()) find("#save-as").remove();
 
-  // Print gives the design's sheet the first page and every deck of the
-  // floor plan a page after it, from either screen. The decks follow the
+  // Print gives the design's sheet and then every deck of the floor plan a
+  // page of its own, from either screen, the first deck on the sheet's last
+  // page when there is room for it. The decks follow the
   // floor plan's Names or Numbers switch.
   find("#print").addEventListener("click", async () => {
     drawSheet();
     const pages = design.floorPlan === undefined ? undefined : await printPages(currentManifest(), planView?.piecesShown() === false ? withoutPieces(currentPlan()) : currentPlan(), planView?.labels() ?? "names");
-    if (pages !== undefined) {
-      document.body.append(pages);
-      document.body.classList.add("print-with-plan");
-    }
+    if (pages !== undefined) document.body.append(pages);
     const done = () => {
       pages?.remove();
-      document.body.classList.remove("print-with-plan");
       window.removeEventListener("afterprint", done);
     };
     window.addEventListener("afterprint", done);

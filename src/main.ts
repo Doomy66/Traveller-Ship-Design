@@ -316,9 +316,8 @@ function wire(): void {
   find("#save-as").addEventListener("click", () => void write(true));
   if (!canRewrite()) find("#save-as").remove();
 
-  // Print gives the design's sheet and then every deck of the floor plan a
-  // page of its own, from either screen, the first deck on the sheet's last
-  // page when there is room for it. The decks follow the
+  // Print gives the design's sheet and then every deck of the floor plan, from
+  // either screen, each deck on the page in hand when it fits there whole. The decks follow the
   // floor plan's Names or Numbers switch.
   find("#print").addEventListener("click", async () => {
     drawSheet();

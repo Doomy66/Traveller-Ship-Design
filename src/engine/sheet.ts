@@ -107,6 +107,7 @@ import {
   TURRET_WEAPONS,
   UNCUSTOMISED,
   WEEKS_PER_MONTH,
+  apportionCrew,
   armourTonnageMultiplier,
   bridgeCost,
   cargoCraneTons,
@@ -1243,19 +1244,23 @@ export function sheet(design: Design): Sheet {
       middlePassengers: passengers.middle,
     };
     const reduction = crewReductionMultiplier(hullTons);
-    let base = 0;
-    for (const role of Object.keys(CREW_ROLES) as CrewRole[]) {
-      if (role === "medic" || role === "officer") continue;
+    const roles = (Object.keys(CREW_ROLES) as CrewRole[]).filter((role) => role !== "medic" && role !== "officer");
+    const counts = roles.map((role) => {
       const rule = CREW_ROLES[role];
       const raw = rule[column](inputs);
-      // The large-ship cut and automation reach the same shareable jobs, and
-      // a fraction of a job still wants a whole person. ShipSpec 4.10.3, 4.10.4.
-      const count = rule.reducible
-        ? Math.ceil(Math.ceil(raw * reduction) * automation.crewFactor - 1e-9)
-        : raw;
+      return rule.reducible ? Math.ceil(raw * reduction) : raw;
+    });
+    // Automation reaches the jobs the large-ship cut does, scaled as one body
+    // and shared out in proportion. ShipSpec 4.10.3, 4.10.4.1.
+    const shareable = roles.flatMap((role, at) => (CREW_ROLES[role].reducible ? [at] : []));
+    const scaled = apportionCrew(shareable.map((at) => counts[at]!), automation.crewFactor);
+    shareable.forEach((at, i) => { counts[at] = scaled[i]!; });
+    let base = 0;
+    roles.forEach((role, at) => {
+      const count = counts[at]!;
       base += count;
-      if (count > 0) crew.push({ role, label: rule.label, count, salary: rule.salary });
-    }
+      if (count > 0) crew.push({ role, label: CREW_ROLES[role].label, count, salary: CREW_ROLES[role].salary });
+    });
     const derived = { crew: base, passengers: passengers.high + passengers.middle + passengers.low };
     const medics = DERIVED_CREW.medic[column](derived);
     if (medics > 0) crew.push({ role: "medic", label: CREW_ROLES.medic.label, count: medics, salary: CREW_ROLES.medic.salary });

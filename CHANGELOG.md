@@ -5,6 +5,7 @@ user. Dates are the day the release was tagged.
 
 ## Unreleased
 
+- **The Swan joins the example ships**, under Original designs: an 800-ton jump-3 merchant with over 250 tons of hold and room for passengers, the ship the Gremlin Strike Boat was converted from. Its two-deck floor plan comes with it.
 - **Vehicles from the Vehicle Handbook.** Under Carry craft, *From the Vehicle Handbook* lists the book's 78 example vehicles up to the ship's Tech Level, grouped by its chapters, from a G/bike to a Rakatama G/carrier. Picking one fills in its shipping size and price, berthed in a docking space.
 - **Automation.** A choice under The ship, from the Traveller Companion's optional rule: crew-intensive to high automation. More automation costs a share of the hull, drives and power plant and needs fewer engineers, gunners, maintenance crew, administrators and sensor operators; less is cheaper and needs more. Pilots, astrogators and stewards are untouched, and the sheet notes the DM it puts on shipboard tasks.
 

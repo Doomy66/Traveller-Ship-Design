@@ -66,6 +66,7 @@ The carriers that buy them are repriced to match: the Hyperion's snubs, the Tern
 | Snub | Snub.ship | Steve Burrows, made in the Traveller Ship Designer | Mongoose 2e | Own design: a 20-ton TL9 fighter. Thrust 1 is all a TL9 manoeuvre drive gives, so a reaction booster adds thrust 5 for two hours of combat. |
 | Snub 2 | Snub-2.ship | Steve Burrows, made in the Traveller Ship Designer | Mongoose 2e | Own design: the Snub rebuilt at TL12, with a thrust 6 manoeuvre drive and crystaliron. |
 | Gremlin Strike Boat | Gremlin-Strike-Boat.ship | Steve Burrows, made in the Traveller Ship Designer | Mongoose 2e | Own design: an 800-ton TL12 raider, jump 3 and thrust 5, with an ion cannon to disable prizes, a breaching tube and barracks for a boarding party, and 180 tons of hold for plunder. |
+| Swan | Swan.ship | Steve Burrows, made in the Traveller Ship Designer | Mongoose 2e | Own design: an 800-ton TL12 jump-3 merchant with over 250 tons of hold, staterooms to spare for passengers and ten low berths. The Gremlin Strike Boat was converted from it. Its two-deck floor plan comes with it. |
 
 ## Assumed craft prices
 
